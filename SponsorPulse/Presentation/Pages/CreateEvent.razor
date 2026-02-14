@@ -1,0 +1,126 @@
+@page "/create-event"
+@using SponsorPulse.Application.Events.Commands
+@using SponsorPulse.Domain.Entities
+@using SponsorPulse.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<SponsorPulseDbContext> DbFactory
+@inject NavigationManager Navigation
+
+<div class="page-container fade-in">
+    <div class="header mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">Créer un événement</h1>
+        <p class="text-gray-400">Configurez votre stream pour générer un rapport sponsor.</p>
+    </div>
+
+    <div class="glass-panel p-8 max-w-2xl">
+        <EditForm Model="@command" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            
+            <div class="mb-6">
+                <label class="form-label" for="name">Nom de l'événement</label>
+                <InputText id="name" class="sp-input" @bind-Value="command.Name" placeholder="Ex: Grand Tournoi Rocket League" />
+                <ValidationMessage For="@(() => command.Name)" />
+            </div>
+
+            <div class="mb-6">
+                <label class="form-label" for="description">Description</label>
+                <InputTextArea id="description" class="sp-input" @bind-Value="command.Description" rows="3" placeholder="Description courte pour le rapport..." />
+                <ValidationMessage For="@(() => command.Description)" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="form-label" for="date">Date</label>
+                    <InputDate id="date" class="sp-input" @bind-Value="command.Date" />
+                    <ValidationMessage For="@(() => command.Date)" />
+                </div>
+                <div>
+                    <label class="form-label" for="platform">Plateforme</label>
+                    <InputSelect id="platform" class="sp-input" @bind-Value="command.StreamPlatform">
+                        <option value="Twitch">Twitch</option>
+                        <option value="YouTube">YouTube</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => command.StreamPlatform)" />
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <label class="form-label" for="channel">ID de la chaîne / URL</label>
+                <div class="relative">
+                    <InputText id="channel" class="sp-input pl-10" @bind-Value="command.ChannelId" placeholder="ex: gotaga" />
+                    <!-- Icon placeholder -->
+                    <span class="absolute left-3 top-3 text-gray-500">
+                        📺
+                    </span>
+                </div>
+                <ValidationMessage For="@(() => command.ChannelId)" />
+                <p class="text-xs text-gray-500 mt-2">Nous utiliserons cet ID pour récupérer les statistiques du stream.</p>
+            </div>
+
+            <div class="flex justify-end gap-4">
+                <a href="/" class="btn-ghost" style="padding: 0.75rem 1.5rem; color: var(--grey-text); text-decoration: none;">Annuler</a>
+                <button type="submit" class="btn-primary-sp">
+                    Créer l'événement
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<style>
+    .page-container {
+        padding: 2rem;
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .mb-6 { margin-bottom: 1.5rem; }
+    .mb-8 { margin-bottom: 2rem; }
+    .p-8 { padding: 2rem; }
+    .max-w-2xl { max-width: 42rem; }
+    .text-3xl { font-size: 1.875rem; }
+    .font-bold { font-weight: 700; }
+    .text-white { color: var(--white); }
+    .text-gray-400 { color: var(--grey-text); }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gap-6 { gap: 1.5rem; }
+    .flex { display: flex; }
+    .justify-end { justify-content: flex-end; }
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    .left-3 { left: 0.75rem; }
+    .top-3 { top: 0.75rem; }
+    .text-xs { font-size: 0.75rem; }
+    .mt-2 { margin-top: 0.5rem; }
+</style>
+
+@code {
+    private CreateEventCommand command = new();
+
+    private async Task HandleValidSubmit()
+    {
+        // 1. Validation Logic (déjà gérée par EditForm)
+        
+        // 2. Mapping vers Domain Entity
+        var newEvent = Event.Create(
+            command.Name,
+            command.Description,
+            command.Date ?? DateTime.Now,
+            command.StreamPlatform,
+            command.ChannelId
+        );
+
+        // 3. Persistance via EF Core (Scope Factory pour Blazor WASM)
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Events.Add(newEvent);
+        await context.SaveChangesAsync();
+
+        // 4. Navigation vers le Dashboard
+        Navigation.NavigateTo("/");
+    }
+}

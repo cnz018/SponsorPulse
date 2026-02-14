@@ -1,158 +1,110 @@
 @page "/"
 @using SponsorPulse.Domain.Entities
+@inject NavigationManager Navigation
 
 <PageTitle>Dashboard - SponsorPulse</PageTitle>
 
-<div class="dashboard-container">
-    <div class="glass-sidebar">
-        <div class="logo">SponsorPulse</div>
-        <nav>
-            <div class="nav-item active">Dashboard</div>
-            <div class="nav-item">Événements</div>
-            <div class="nav-item">Rapports</div>
-        </nav>
+<div class="dashboard-content fade-in">
+    <div class="glass-panel header-panel mb-8">
+        <h1 class="text-3xl font-bold mb-2">Bienvenue sur SponsorPulse</h1>
+        <p class="text-gray-400">Générez vos rapports sponsors professionnels en quelques clics.</p>
     </div>
 
-    <div class="main-content">
-        <div class="glass-panel header-panel">
-            <h1 class="text-white">Bienvenue sur SponsorPulse</h1>
-            <p class="text-gray-300">Générez vos rapports sponsors professionnels en quelques clics.</p>
+    <div class="stats-grid">
+        <div class="glass-card">
+            <h3>Événements</h3>
+            <div class="value">0</div>
         </div>
-
-        <div class="stats-grid">
-            <div class="glass-card">
-                <h3>Événements</h3>
-                <div class="value">0</div>
-            </div>
-            <div class="glass-card">
-                <h3>Rapports</h3>
-                <div class="value">0</div>
-            </div>
-            <div class="glass-card action-card">
-                <button class="btn-create">+ Créer un événement</button>
-            </div>
+        <div class="glass-card">
+            <h3>Rapports</h3>
+            <div class="value">0</div>
+        </div>
+        <div class="glass-card action-card" @onclick="GoToCreate">
+            <button class="btn-create">+ Créer un événement</button>
         </div>
     </div>
 </div>
 
 <style>
-    /* Design System: Ink Black, Deep Space Blue, Glassmorphism */
-    :root {
-        --ink-black: #050505;
-        --deep-space-blue: #0F172A;
-        /* Slate 900 */
-        --accent-blue: #3B82F6;
-        --glass-bg: rgba(255, 255, 255, 0.05);
-        --glass-border: rgba(255, 255, 255, 0.1);
-        --text-primary: #F8FAFC;
+    .dashboard-content {
+        animation: fadeIn 0.5s ease-out;
     }
 
-    body {
-        margin: 0;
-        font-family: 'Inter', sans-serif;
-        background-color: var(--ink-black);
-        color: var(--text-primary);
-    }
-
-    .dashboard-container {
-        display: flex;
-        min-height: 100vh;
-        background: radial-gradient(circle at top right, #1E293B 0%, #000000 100%);
-    }
-
-    .glass-sidebar {
-        width: 250px;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(12px);
-        border-right: 1px solid var(--glass-border);
+    .header-panel {
         padding: 2rem;
-        display: flex;
-        flex-direction: column;
+        background: linear-gradient(135deg, rgba(50, 74, 95, 0.4) 0%, rgba(12, 24, 33, 0.4) 100%);
     }
 
-    .logo {
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-bottom: 3rem;
-        background: linear-gradient(90deg, #60A5FA, #A78BFA);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .nav-item {
-        padding: 0.75rem 1rem;
-        margin-bottom: 0.5rem;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.2s;
-        color: #94A3B8;
-    }
-
-    .nav-item:hover,
-    .nav-item.active {
-        background: var(--glass-bg);
-        color: white;
-        border: 1px solid var(--glass-border);
-    }
-
-    .main-content {
-        flex: 1;
-        padding: 3rem;
-    }
-
-    .glass-panel {
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-    }
+    .mb-8 { margin-bottom: 2rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .text-3xl { font-size: 1.875rem; }
+    .font-bold { font-weight: 700; }
+    .text-gray-400 { color: var(--grey-text); }
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
     }
 
     .glass-card {
         background: var(--glass-bg);
-        backdrop-filter: blur(8px);
         border: 1px solid var(--glass-border);
-        border-radius: 12px;
+        border-radius: 16px;
         padding: 1.5rem;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        transition: transform 0.2s, background 0.2s;
+        cursor: default;
+        min-height: 160px;
+    }
+
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card.action-card {
+        cursor: pointer;
+        border: 1px dashed var(--charcoal-blue);
+    }
+
+    .glass-card.action-card:hover {
+        border-color: var(--lavender);
+        transform: translateY(-4px);
     }
 
     .glass-card h3 {
         margin: 0 0 0.5rem 0;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #94A3B8;
+        letter-spacing: 0.1em;
+        color: var(--grey-text);
     }
 
     .glass-card .value {
-        font-size: 2.5rem;
-        font-weight: bold;
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--white) 0%, var(--lavender) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .btn-create {
-        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        background: transparent;
         border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        color: white;
+        color: var(--lavender);
         font-weight: 600;
+        font-size: 1.1rem;
         cursor: pointer;
-        transition: transform 0.1s;
-        width: 100%;
-    }
-
-    .btn-create:hover {
-        transform: translateY(-2px);
+        pointer-events: none; /* Let the card handle click */
     }
 </style>
+
+@code {
+    private void GoToCreate()
+    {
+        Navigation.NavigateTo("create-event");
+    }
+}

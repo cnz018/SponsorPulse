@@ -1,0 +1,96 @@
+:root {
+    /* Colors */
+    --ink-black: #0C1821;
+    --deep-space-blue: #1B2A41;
+    --charcoal-blue: #324A5F;
+    --lavender: #CCC9DC;
+    --grey-text: #94A3B8;
+    --white: #F8FAFC;
+    --glass-bg: rgba(50, 74, 95, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.1);
+
+    /* Spacing */
+    --radius-card: 16px;
+    --radius-input: 12px;
+    --radius-btn: 8px;
+}
+
+body {
+    background-color: var(--ink-black);
+    color: var(--white);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Deep Space Gradient Background */
+    background: radial-gradient(circle at top right, var(--deep-space-blue), var(--ink-black));
+    min-height: 100vh;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-card);
+}
+
+/* Form Styles */
+.form-label {
+    color: var(--grey-text);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.sp-input {
+    background: rgba(12, 24, 33, 0.6);
+    border: 1px solid var(--charcoal-blue);
+    color: var(--white);
+    border-radius: var(--radius-input);
+    padding: 0.75rem 1rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.sp-input:focus {
+    outline: none;
+    border-color: var(--lavender);
+    box-shadow: 0 0 0 2px rgba(204, 201, 220, 0.2);
+}
+
+.btn-primary-sp {
+    background-color: var(--lavender);
+    color: var(--deep-space-blue);
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-btn);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s;
+}
+
+.btn-primary-sp:hover {
+    background-color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Layout overrides */
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.top-row {
+    background-color: transparent;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.validation-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
