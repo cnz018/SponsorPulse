@@ -23,6 +23,11 @@
             <button class="btn-create">+ Créer un événement</button>
         </div>
     </div>
+    
+    @if (showCreateModal)
+    {
+        <CreateEvent OnClose="@(() => showCreateModal = false)" OnCreated="HandleEventCreated" />
+    }
 </div>
 
 <style>
@@ -35,11 +40,25 @@
         background: linear-gradient(135deg, rgba(50, 74, 95, 0.4) 0%, rgba(12, 24, 33, 0.4) 100%);
     }
 
-    .mb-8 { margin-bottom: 2rem; }
-    .mb-2 { margin-bottom: 0.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .font-bold { font-weight: 700; }
-    .text-gray-400 { color: var(--grey-text); }
+    .mb-8 {
+        margin-bottom: 2rem;
+    }
+
+    .mb-2 {
+        margin-bottom: 0.5rem;
+    }
+
+    .text-3xl {
+        font-size: 1.875rem;
+    }
+
+    .font-bold {
+        font-weight: 700;
+    }
+
+    .text-gray-400 {
+        color: var(--grey-text);
+    }
 
     .stats-grid {
         display: grid;
@@ -98,13 +117,22 @@
         font-weight: 600;
         font-size: 1.1rem;
         cursor: pointer;
-        pointer-events: none; /* Let the card handle click */
+        pointer-events: none;
+        /* Let the card handle click */
     }
 </style>
 
 @code {
+    private bool showCreateModal = false;
+
     private void GoToCreate()
     {
-        Navigation.NavigateTo("create-event");
+        showCreateModal = true;
+    }
+    
+    private async Task HandleEventCreated()
+    {
+        // Refresh dashboard data if needed in future
+        await Task.CompletedTask;
     }
 }

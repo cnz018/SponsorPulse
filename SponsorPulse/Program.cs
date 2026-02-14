@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using SponsorPulse;
 using SponsorPulse.Infrastructure.Persistence;
 
+// Initialiser SQLitePCL pour Blazor WASM
+SQLitePCL.Batteries_V2.Init();
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");

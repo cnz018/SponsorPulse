@@ -4,13 +4,13 @@
 
 <nav>
     <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
-        <span class="icon">🏠</span> Dashboard
+        <span class="icon"><!-- Icon Home --></span> Dashboard
     </NavLink>
-    <NavLink class="nav-item" href="create-event">
-        <span class="icon">➕</span> Créer Event
+    <NavLink class="nav-item" href="events">
+        <span class="icon"><!-- Icon Events --></span> Événements
     </NavLink>
     <NavLink class="nav-item" href="reports">
-        <span class="icon">📊</span> Rapports
+        <span class="icon"><!-- Icon Reports --></span> Rapports
     </NavLink>
 </nav>
 
@@ -47,11 +47,17 @@
     .nav-item.active {
         background: var(--glass-bg);
         color: var(--white);
-        border-left-color: #10B981; /* Green accent from spec */
+        border-left-color: #10B981;
+        /* Green accent from spec */
     }
 
     .icon {
         margin-right: 12px;
         font-size: 1.1rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 1px solid var(--grey-text);
+        border-radius: 4px;
+        display: inline-block;
     }
 </style>

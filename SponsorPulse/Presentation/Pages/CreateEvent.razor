@@ -1,4 +1,3 @@
-@page "/create-event"
 @using SponsorPulse.Application.Events.Commands
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
@@ -6,29 +5,33 @@
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
 @inject NavigationManager Navigation
 
-<div class="page-container fade-in">
-    <div class="header mb-8">
-        <h1 class="text-3xl font-bold text-white mb-2">Créer un événement</h1>
-        <p class="text-gray-400">Configurez votre stream pour générer un rapport sponsor.</p>
-    </div>
+<div class="modal-backdrop">
+    <div class="modal-content glass-panel fade-in-scale">
+        <div class="header mb-6">
+            <h2 class="text-2xl font-bold text-white">Créer un événement</h2>
+            <button class="close-btn" @onclick="OnClose">✕</button>
+        </div>
 
-    <div class="glass-panel p-8 max-w-2xl">
+        <p class="text-gray-400 mb-6">Configurez votre stream pour générer un rapport sponsor.</p>
+
         <EditForm Model="@command" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
-            
-            <div class="mb-6">
+
+            <div class="mb-4">
                 <label class="form-label" for="name">Nom de l'événement</label>
-                <InputText id="name" class="sp-input" @bind-Value="command.Name" placeholder="Ex: Grand Tournoi Rocket League" />
+                <InputText id="name" class="sp-input" @bind-Value="command.Name"
+                           placeholder="Ex: Grand Tournoi Rocket League" />
                 <ValidationMessage For="@(() => command.Name)" />
             </div>
 
-            <div class="mb-6">
+            <div class="mb-4">
                 <label class="form-label" for="description">Description</label>
-                <InputTextArea id="description" class="sp-input" @bind-Value="command.Description" rows="3" placeholder="Description courte pour le rapport..." />
+                <InputTextArea id="description" class="sp-input" @bind-Value="command.Description" rows="3"
+                               placeholder="Description courte pour le rapport..." />
                 <ValidationMessage For="@(() => command.Description)" />
             </div>
 
-            <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="form-label" for="date">Date</label>
                     <InputDate id="date" class="sp-input" @bind-Value="command.Date" />
@@ -47,18 +50,15 @@
             <div class="mb-8">
                 <label class="form-label" for="channel">ID de la chaîne / URL</label>
                 <div class="relative">
-                    <InputText id="channel" class="sp-input pl-10" @bind-Value="command.ChannelId" placeholder="ex: gotaga" />
-                    <!-- Icon placeholder -->
-                    <span class="absolute left-3 top-3 text-gray-500">
-                        📺
-                    </span>
+                    <InputText id="channel" class="sp-input" @bind-Value="command.ChannelId" placeholder="ex: gotaga" />
                 </div>
                 <ValidationMessage For="@(() => command.ChannelId)" />
-                <p class="text-xs text-gray-500 mt-2">Nous utiliserons cet ID pour récupérer les statistiques du stream.</p>
+                <p class="text-xs text-gray-500 mt-2">Nous utiliserons cet ID pour récupérer les statistiques du stream.
+                </p>
             </div>
 
-            <div class="flex justify-end gap-4">
-                <a href="/" class="btn-ghost" style="padding: 0.75rem 1.5rem; color: var(--grey-text); text-decoration: none;">Annuler</a>
+            <div class="flex justify-end gap-3">
+                <button type="button" class="btn-ghost" @onclick="OnClose">Annuler</button>
                 <button type="submit" class="btn-primary-sp">
                     Créer l'événement
                 </button>
@@ -68,44 +68,148 @@
 </div>
 
 <style>
-    .page-container {
-        padding: 2rem;
-        animation: fadeIn 0.5s ease-out;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
     }
 
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .p-8 { padding: 2rem; }
-    .max-w-2xl { max-width: 42rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .font-bold { font-weight: 700; }
-    .text-white { color: var(--white); }
-    .text-gray-400 { color: var(--grey-text); }
-    .grid { display: grid; }
-    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .gap-6 { gap: 1.5rem; }
-    .flex { display: flex; }
-    .justify-end { justify-content: flex-end; }
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .left-3 { left: 0.75rem; }
-    .top-3 { top: 0.75rem; }
-    .text-xs { font-size: 0.75rem; }
-    .mt-2 { margin-top: 0.5rem; }
+    .modal-content {
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 2rem;
+        position: relative;
+    }
+
+    .fade-in-scale {
+        animation: formPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @@keyframes formPop {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: transparent;
+        border: none;
+        color: var(--grey-text);
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
+
+    .close-btn:hover {
+        color: var(--white);
+    }
+
+    .btn-ghost {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--grey-text);
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-btn);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--white);
+    }
+
+    .mb-4 {
+        margin-bottom: 1rem;
+    }
+
+    .mb-6 {
+        margin-bottom: 1.5rem;
+    }
+
+    .mb-8 {
+        margin-bottom: 2rem;
+    }
+
+    .text-2xl {
+        font-size: 1.5rem;
+    }
+
+    .font-bold {
+        font-weight: 700;
+    }
+
+    .text-white {
+        color: var(--white);
+    }
+
+    .text-gray-400 {
+        color: var(--grey-text);
+    }
+
+    .grid {
+        display: grid;
+    }
+
+    .grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gap-4 {
+        gap: 1rem;
+    }
+
+    .gap-3 {
+        gap: 0.75rem;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .justify-end {
+        justify-content: flex-end;
+    }
+
+    .relative {
+        position: relative;
+    }
+
+    .mt-2 {
+        margin-top: 0.5rem;
+    }
+
+    .text-xs {
+        font-size: 0.75rem;
+    }
 </style>
 
 @code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnCreated { get; set; } // Callback to refresh parent if needed
+
     private CreateEventCommand command = new();
 
     private async Task HandleValidSubmit()
     {
-        // 1. Validation Logic (déjà gérée par EditForm)
-        
         // 2. Mapping vers Domain Entity
         var newEvent = Event.Create(
             command.Name,
@@ -115,12 +219,14 @@
             command.ChannelId
         );
 
-        // 3. Persistance via EF Core (Scope Factory pour Blazor WASM)
+        // 3. Persistance via EF Core
         using var context = await DbFactory.CreateDbContextAsync();
+        
         context.Events.Add(newEvent);
         await context.SaveChangesAsync();
 
-        // 4. Navigation vers le Dashboard
-        Navigation.NavigateTo("/");
+        // 4. Fermer la modale et notifier
+        await OnCreated.InvokeAsync();
+        await OnClose.InvokeAsync();
     }
 }
