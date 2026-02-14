@@ -9,10 +9,14 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Injection des dépendances de base
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress),
+});
 
 // Configuration de la base de données (Clean Architecture - Infrastructure Layer)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=SponsorPulse.db";
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=SponsorPulse.db";
 
 // Utilisation du DbContextFactory pour Blazor WASM (meilleure gestion du scope / concurrency)
 builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
@@ -20,16 +24,16 @@ builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
     // Mode "Production Distante" (abstraction prête pour l'avenir)
     // Ici, on pourrait switcher sur un provider API ou une autre config
     if (builder.HostEnvironment.IsProduction())
-{
-    // Mode Production : Préparation pour la logique distante (Turso via API)
-    // Actuellement fallback sur SQLite local pour le MVP tant que l'API n'est pas branchée
-    options.UseSqlite(connectionString);
-}
-else
-{
-    // Mode Développement : SQLite Local (WASM)
-    options.UseSqlite(connectionString);
-}
+    {
+        // Mode Production : Préparation pour la logique distante (Turso via API)
+        // Actuellement fallback sur SQLite local pour le MVP tant que l'API n'est pas branchée
+        options.UseSqlite(connectionString);
+    }
+    else
+    {
+        // Mode Développement : SQLite Local (WASM)
+        options.UseSqlite(connectionString);
+    }
 });
 
 var host = builder.Build();
@@ -39,7 +43,9 @@ var host = builder.Build();
 try
 {
     var scope = host.Services.CreateScope();
-    var dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<SponsorPulseDbContext>>();
+    var dbFactory = scope.ServiceProvider.GetRequiredService<
+        IDbContextFactory<SponsorPulseDbContext>
+    >();
     using var context = await dbFactory.CreateDbContextAsync();
     await context.Database.EnsureCreatedAsync();
 }
