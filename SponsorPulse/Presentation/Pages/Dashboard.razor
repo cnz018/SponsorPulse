@@ -36,7 +36,7 @@
         }
         else if (!events.Any())
         {
-             <div class="glass-panel text-center p-8 text-gray-400 col-span-full">
+            <div class="glass-panel text-center p-8 text-gray-400 col-span-full">
                 Aucun événement pour le moment.
             </div>
         }
@@ -46,9 +46,9 @@
             {
                 <div class="glass-card event-card relative">
                     <button class="top-left-action" title="Options" @onclick="() => ToggleOptions(evt.Id)">
-                       <span class="icon-dots"></span>
+                        <span class="icon-dots"></span>
                     </button>
-                    
+
                     @if (optionsMenuOpenId == evt.Id)
                     {
                         <div class="options-menu">
@@ -78,7 +78,7 @@
     {
         <CreateEvent OnClose="@(() => showCreateModal = false)" OnCreated="HandleEventCreated" />
     }
-    
+
     @if (eventToDelete != null)
     {
         <div class="modal-backdrop" @onclick="CancelDelete">
@@ -86,11 +86,11 @@
                 <div class="mb-4">
                     <h2 class="text-xl font-bold text-white">Supprimer définitivement</h2>
                 </div>
-                
+
                 <p class="text-gray-300 mb-6">
                     Etes vous sur de vouloir supprimer cet event <strong>@eventToDelete.Name</strong> ?
                 </p>
-                
+
                 <div class="flex justify-end gap-4">
                     <button class="btn-cancel" @onclick="CancelDelete">Annuler</button>
                     <button class="btn-delete-confirm" @onclick="ConfirmDelete">Oui, Supprimer</button>
@@ -101,7 +101,7 @@
 </div>
 
 <style>
-/* Previous styles remain */
+    /* Previous styles remain */
     .dashboard-content {
         animation: fadeIn 0.5s ease-out;
         padding-bottom: 4rem;
@@ -115,7 +115,7 @@
         background: var(--dark-bg);
         border: 1px solid var(--glass-border);
         border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         z-index: 10;
         overflow: hidden;
         min-width: 180px;
@@ -135,10 +135,10 @@
     }
 
     .menu-item:hover {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255, 255, 255, 0.05);
         color: var(--white);
     }
-    
+
     .menu-item.delete:hover {
         background: rgba(239, 68, 68, 0.2);
         color: #F87171;
@@ -179,7 +179,7 @@
         cursor: pointer;
         font-weight: 500;
     }
-    
+
     .btn-cancel:hover {
         color: var(--white);
         border-color: var(--grey-text);
@@ -198,10 +198,18 @@
     .btn-delete-confirm:hover {
         background: #EF4444;
     }
-    
-    .flex { display: flex; }
-    .justify-end { justify-content: flex-end; }
-    .gap-4 { gap: 1rem; }
+
+    .flex {
+        display: flex;
+    }
+
+    .justify-end {
+        justify-content: flex-end;
+    }
+
+    .gap-4 {
+        gap: 1rem;
+    }
 
 
     .header-panel {
@@ -215,17 +223,49 @@
         background: rgba(255, 255, 255, 0.03);
     }
 
-    .mb-8 { margin-bottom: 2rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-2 { margin-bottom: 0.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-xl { font-size: 1.25rem; }
-    .font-bold { font-weight: 700; }
-    .text-gray-400 { color: var(--grey-text); }
-    .text-white { color: var(--white); }
-    .col-span-full { grid-column: 1 / -1; }
-    .text-center { text-align: center; }
-    .p-8 { padding: 2rem; }
+    .mb-8 {
+        margin-bottom: 2rem;
+    }
+
+    .mb-6 {
+        margin-bottom: 1.5rem;
+    }
+
+    .mb-2 {
+        margin-bottom: 0.5rem;
+    }
+
+    .text-3xl {
+        font-size: 1.875rem;
+    }
+
+    .text-xl {
+        font-size: 1.25rem;
+    }
+
+    .font-bold {
+        font-weight: 700;
+    }
+
+    .text-gray-400 {
+        color: var(--grey-text);
+    }
+
+    .text-white {
+        color: var(--white);
+    }
+
+    .col-span-full {
+        grid-column: 1 / -1;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .p-8 {
+        padding: 2rem;
+    }
 
     .stats-grid {
         display: grid;
@@ -255,7 +295,7 @@
 
     /* Stats Card Specifics */
     .stats-grid .glass-card {
-         min-height: 160px;
+        min-height: 160px;
     }
 
     /* Event Card Specifics */
@@ -311,7 +351,8 @@
 
     .card-content {
         width: 100%;
-        margin-top: 1.5rem; /* Space for the top-left button */
+        margin-top: 1.5rem;
+        /* Space for the top-left button */
         flex-grow: 1;
     }
 
@@ -320,7 +361,7 @@
         justify-content: space-between;
         margin-bottom: 0.5rem;
         font-size: 0.95rem;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         padding-bottom: 0.25rem;
     }
 
@@ -389,7 +430,7 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-    
+
     .btn-access:hover {
         background: var(--accent-blue);
         color: white;
@@ -462,7 +503,7 @@
         await LoadEvents();
         StateHasChanged();
     }
-    
+
     private void NavigateToEvent(string slug)
     {
         Navigation.NavigateTo($"event/{slug}");

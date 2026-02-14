@@ -10,6 +10,9 @@ public record Event(
     string Slug
 )
 {
+    private const int MAX_SLUG_LENGTH = 9;
+    private const int SLUG_CONVERSION_FACTOR = 62;
+
     public static Event Create(
         string name,
         string description,
@@ -31,17 +34,18 @@ public record Event(
         var diff = DateTime.UtcNow - epoch;
         long value = (long)diff.TotalMilliseconds;
 
-        if (value < 0) value = 0; // Should not happen given the epoch
+        if (value < 0)
+            value = 0; // Should not happen given the epoch
 
         var sb = new System.Text.StringBuilder();
         do
         {
-            sb.Insert(0, chars[(int)(value % 62)]);
-            value /= 62;
+            sb.Insert(0, chars[(int)(value % SLUG_CONVERSION_FACTOR)]);
+            value /= SLUG_CONVERSION_FACTOR;
         } while (value > 0);
 
         // Ensure max 7 chars (although it fits for ~100 years)
         var result = sb.ToString();
-        return result.Length > 7 ? result.Substring(result.Length - 7) : result;
+        return result.Length > MAX_SLUG_LENGTH ? result.Substring(result.Length - MAX_SLUG_LENGTH) : result;
     }
 }

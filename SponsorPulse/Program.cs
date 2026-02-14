@@ -19,7 +19,8 @@ builder.Services.AddScoped(sp => new HttpClient
 
 // Configuration de la base de données (Clean Architecture - Infrastructure Layer)
 var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=SponsorPulseV2.db";
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Data Source=SponsorPulseV2.db";
 
 // Utilisation du DbContextFactory pour Blazor WASM (meilleure gestion du scope / concurrency)
 builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
