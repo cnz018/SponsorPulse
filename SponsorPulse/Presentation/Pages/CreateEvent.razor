@@ -221,7 +221,7 @@
 
         // 3. Persistance via EF Core
         using var context = await DbFactory.CreateDbContextAsync();
-        
+
         context.Events.Add(newEvent);
         await context.SaveChangesAsync();
 
