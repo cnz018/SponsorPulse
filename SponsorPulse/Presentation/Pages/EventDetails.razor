@@ -1,6 +1,7 @@
 @page "/event/{Slug}"
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
+@using SponsorPulse.Presentation.Components.Twitch
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
 @inject NavigationManager Navigation
@@ -44,6 +45,14 @@
                     <h3 class="section-title">Description</h3>
                     <p class="text-gray-300 leading-relaxed">@(_event.Description ?? "Aucune description fournie.")</p>
                 </div>
+                
+                @if (_event.StreamPlatform == "Twitch")
+                {
+                    <div class="section mb-6">
+                        <h3 class="section-title">Données Stream</h3>
+                        <TwitchFetcher EventToUpdate="@_event" OnDataUpdated="HandleDataUpdated" />
+                    </div>
+                }
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="section">
@@ -236,5 +245,15 @@
     private void GoBack()
     {
         Navigation.NavigateTo("/");
+    }
+
+    private async Task HandleDataUpdated(Event updatedEvent)
+    {
+        _event = updatedEvent;
+        // Save to DB
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Events.Update(_event);
+        await context.SaveChangesAsync();
+        StateHasChanged();
     }
 }

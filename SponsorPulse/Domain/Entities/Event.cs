@@ -1,5 +1,7 @@
 namespace SponsorPulse.Domain.Entities;
 
+public enum EventStatus { Draft, Fetching, AnalysisReady, Completed, Error }
+
 public record Event(
     Guid Id,
     string Name,
@@ -10,7 +12,16 @@ public record Event(
     string Slug
 )
 {
-    private const int MAX_SLUG_LENGTH = 9;
+    public EventStatus Status { get; set; } = EventStatus.Draft;
+    
+    // Twitch Metrics
+    public int? ViewerCount { get; set; }
+    public int? PeakViewers { get; set; }
+    public TimeSpan? StreamDuration { get; set; }
+    public DateTime? StartedAt { get; set; }
+    public string? GameName { get; set; }
+
+    private const int MAX_SLUG_LENGTH = 7;
     private const int SLUG_CONVERSION_FACTOR = 62;
 
     public static Event Create(

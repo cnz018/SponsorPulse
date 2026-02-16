@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse;
 using SponsorPulse.Infrastructure.Persistence;
+using SponsorPulse.Infrastructure.DependencyInjection;
 
 // Initialiser SQLitePCL pour Blazor WASM
 SQLitePCL.Batteries_V2.Init();
@@ -16,6 +17,7 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress),
 });
+builder.Services.AddInfrastructure();
 
 // Configuration de la base de données (Clean Architecture - Infrastructure Layer)
 var connectionString =
