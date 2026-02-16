@@ -13,8 +13,8 @@ public class Result<T>
         ErrorMessage = errorMessage;
     }
 
-    public static Result<T> Success(T value) => new Result<T>(value, true, null);
+    public static Result<T> Success(T value) => new(value, true, null);
 
     public static Result<T> Failure(string errorMessage) =>
-        new Result<T>(default, false, errorMessage);
+        new(default, false, errorMessage);
 }
