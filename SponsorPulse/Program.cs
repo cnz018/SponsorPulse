@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse;
-using SponsorPulse.Infrastructure.Persistence;
 using SponsorPulse.Infrastructure.DependencyInjection;
+using SponsorPulse.Infrastructure.Persistence;
 
 // Initialiser SQLitePCL pour Blazor WASM
 SQLitePCL.Batteries_V2.Init();

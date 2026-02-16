@@ -10,9 +10,9 @@
         <div class="flex-grow">
             <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Canal Twitch</label>
             <div class="flex gap-2">
-                 <input type="text" class="sp-input flex-grow" disabled value="@EventToUpdate.ChannelId" />
-                 
-                 <button class="btn-fetch" @onclick="FetchData" disabled="@IsLoading">
+                <input type="text" class="sp-input flex-grow" disabled value="@EventToUpdate.ChannelId" />
+
+                <button class="btn-fetch" @onclick="FetchData" disabled="@IsLoading">
                     @if (IsLoading)
                     {
                         <div class="spinner"></div>
@@ -21,7 +21,7 @@
                     {
                         <span>Collecter Données</span>
                     }
-                 </button>
+                </button>
             </div>
         </div>
     </div>
@@ -31,120 +31,127 @@
         <div class="glass-alert error mb-4">
             <span class="icon">⚠️</span> @ErrorMessage
         </div>
-        
+
         <!-- Manual Fallback Mode -->
         <div class="glass-panel p-4 mt-2 border-orange-500/300">
             <h4 class="text-white text-sm font-bold mb-3">Saisie Manuelle</h4>
             <div class="grid grid-cols-2 gap-4">
-                 <div>
-                    <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Spectateurs Moyens</label>
-                    <input type="number" class="sp-input" @bind="EventToUpdate.ViewerCount" />
-                 </div>
-                 <div>
-                    <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Pic Spectateurs</label>
-                    <input type="number" class="sp-input" @bind="EventToUpdate.PeakViewers" />
-                 </div>
-                  <div class="col-span-2">
-                    <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Jeu</label>
-                    <input type="text" class="sp-input" @bind="EventToUpdate.GameName" />
-                 </div>
-            </div>
-             <button class="btn-primary mt-4 w-full p-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition" @onclick="SaveManualData">Sauvegarder Manuellement</button>
-        </div>
-    }
-
-    @if (EventToUpdate.Status == EventStatus.Completed || EventToUpdate.Status == EventStatus.AnalysisReady)
-    {
-         <div class="glass-panel success p-4 mt-4 bg-green-900/20 border border-green-500/30 rounded-lg">
-            <h4 class="text-green-400 text-sm font-bold mb-2">✅ Données Collectées</h4>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                    <span class="text-gray-400 block text-xs">Jeu</span>
-                    <span class="text-white font-mono">@EventToUpdate.GameName</span>
+                    <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Spectateurs
+                        Moyens</label>
+                        <input type="number" class="sp-input" @bind="EventToUpdate.ViewerCount" />
+                    </div>
+                    <div>
+                        <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Pic Spectateurs</label>
+                        <input type="number" class="sp-input" @bind="EventToUpdate.PeakViewers" />
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Jeu</label>
+                        <input type="text" class="sp-input" @bind="EventToUpdate.GameName" />
+                    </div>
                 </div>
-                 <div>
-                    <span class="text-gray-400 block text-xs">Viewers</span>
-                    <span class="text-white font-mono">@EventToUpdate.ViewerCount</span>
-                </div>
-                 <div>
-                    <span class="text-gray-400 block text-xs">Durée</span>
-                    <span class="text-white font-mono">@(EventToUpdate.StreamDuration?.ToString(@"hh\:mm") ?? "--:--")</span>
-                </div>
+                <button
+                class="btn-primary mt-4 w-full p-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition"
+                @onclick="SaveManualData">Sauvegarder Manuellement</button>
             </div>
+        }
+
+        @if (EventToUpdate.Status == EventStatus.Completed || EventToUpdate.Status == EventStatus.AnalysisReady)
+        {
+            <div class="glass-panel success p-4 mt-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <h4 class="text-green-400 text-sm font-bold mb-2">✅ Données Collectées</h4>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-400 block text-xs">Jeu</span>
+                        <span class="text-white font-mono">@EventToUpdate.GameName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block text-xs">Viewers</span>
+                        <span class="text-white font-mono">@EventToUpdate.ViewerCount</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block text-xs">Durée</span>
+                        <span class="text-white font-mono">@(EventToUpdate.StreamDuration?.ToString(@"hh\:mm") ??
+                                                "--:--")</span>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
-    }
-</div>
 
-<style>
-    .twitch-fetcher {
-        background: rgba(0,0,0,0.2);
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.05);
-    }
-    
-    .sp-input {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: white;
-        padding: 0.75rem;
-        border-radius: 8px;
-        width: 100%;
-    }
+        <style>
+            .twitch-fetcher {
+                background: rgba(0, 0, 0, 0.2);
+                padding: 1.5rem;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
 
-    .btn-fetch {
-        background: var(--accent-blue);
-        color: white;
-        border: none;
-        padding: 0 1.5rem;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 160px;
-        height: 42px;
-        transition: background 0.2s;
-    }
-    
-    .btn-fetch:hover:not(:disabled) {
-        background: #2563EB; /* Slightly lighter blue */
-    }
-    
-    .btn-fetch:disabled {
-        opacity: 0.7;
-        cursor: wait;
-        background: #1e3a8a;
-    }
+            .sp-input {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: white;
+                padding: 0.75rem;
+                border-radius: 8px;
+                width: 100%;
+            }
 
-    .spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: white;
-        animation: spin 1s ease-in-out infinite;
-    }
+            .btn-fetch {
+                background: var(--accent-blue);
+                color: white;
+                border: none;
+                padding: 0 1.5rem;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 160px;
+                height: 42px;
+                transition: background 0.2s;
+            }
 
-    .glass-alert {
-        padding: 1rem;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .glass-alert.error {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        color: #FCA5A5;
-    }
+            .btn-fetch:hover:not(:disabled) {
+                background: #2563EB;
+                /* Slightly lighter blue */
+            }
 
-    @@keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-</style>
+            .btn-fetch:disabled {
+                opacity: 0.7;
+                cursor: wait;
+                background: #1e3a8a;
+            }
+
+            .spinner {
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
+            }
+
+            .glass-alert {
+                padding: 1rem;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .glass-alert.error {
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.2);
+                color: #FCA5A5;
+            }
+
+            @@keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
 
 @code {
     [Parameter] public Event EventToUpdate { get; set; } = default!;
@@ -157,18 +164,18 @@
     {
         IsLoading = true;
         ErrorMessage = null;
-        
+
         try
         {
             // Simulate status update immediately
             EventToUpdate.Status = EventStatus.Fetching;
-            
+
             var result = await TwitchService.GetStreamMetricsAsync(EventToUpdate.ChannelId);
 
             if (result.IsSuccess && result.Value != null)
             {
                 var metrics = result.Value;
-                
+
                 // Update Entity
                 EventToUpdate.ViewerCount = metrics.ViewerCount;
                 EventToUpdate.PeakViewers = metrics.PeakViewers;

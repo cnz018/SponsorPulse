@@ -1,6 +1,13 @@
 namespace SponsorPulse.Domain.Entities;
 
-public enum EventStatus { Draft, Fetching, AnalysisReady, Completed, Error }
+public enum EventStatus
+{
+    Draft,
+    Fetching,
+    AnalysisReady,
+    Completed,
+    Error,
+}
 
 public record Event(
     Guid Id,
@@ -13,7 +20,7 @@ public record Event(
 )
 {
     public EventStatus Status { get; set; } = EventStatus.Draft;
-    
+
     // Twitch Metrics
     public int? ViewerCount { get; set; }
     public int? PeakViewers { get; set; }
@@ -57,6 +64,8 @@ public record Event(
 
         // Ensure max 7 chars (although it fits for ~100 years)
         var result = sb.ToString();
-        return result.Length > MAX_SLUG_LENGTH ? result.Substring(result.Length - MAX_SLUG_LENGTH) : result;
+        return result.Length > MAX_SLUG_LENGTH
+            ? result.Substring(result.Length - MAX_SLUG_LENGTH)
+            : result;
     }
 }

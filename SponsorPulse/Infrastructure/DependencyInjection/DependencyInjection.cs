@@ -1,6 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Infrastructure.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace SponsorPulse.Infrastructure.DependencyInjection;
 
