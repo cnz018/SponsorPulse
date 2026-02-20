@@ -45,7 +45,7 @@ public class TwitterInfrastructureService(
                 "excellent",
                 "formidable",
                 "merveilleux",
-                "meilleur"
+                "meilleur",
             }
         },
         {
@@ -65,9 +65,9 @@ public class TwitterInfrastructureService(
                 "horrible",
                 "nul",
                 "décevant",
-                "pire"
+                "pire",
             }
-        }
+        },
     };
 
     public async Task<Result<TwitterAnalytics>> GetTwitterMetricsAsync(
@@ -81,9 +81,7 @@ public class TwitterInfrastructureService(
         {
             if (string.IsNullOrWhiteSpace(query))
             {
-                return Result<TwitterAnalytics>.Failure(
-                    "La requête (query) ne peut pas être vide"
-                );
+                return Result<TwitterAnalytics>.Failure("La requête (query) ne peut pas être vide");
             }
 
             if (startDate >= endDate)
@@ -110,33 +108,32 @@ public class TwitterInfrastructureService(
 
             if (!success)
             {
-                logger.LogError(
-                    "Erreur lors de la récupération des tweets: {Error}",
-                    error
-                );
+                logger.LogError("Erreur lors de la récupération des tweets: {Error}", error);
                 return Result<TwitterAnalytics>.Failure(error!);
             }
 
             if (tweets.Count == 0)
             {
                 logger.LogWarning("Aucun tweet trouvé pour la requête '{Query}'", query);
-                return Result<TwitterAnalytics>.Success(new TwitterAnalytics
-                {
-                    TotalTweets = 0,
-                    TotalEngagement = 0,
-                    TopTweets = new List<TopTweet>(),
-                    Period = new DateRange { StartDate = startDate, EndDate = endDate },
-                    EstimatedImpressions = 0,
-                    AdValueEquivalent = 0m,
-                    SentimentRatio = new Dictionary<string, double>
+                return Result<TwitterAnalytics>.Success(
+                    new TwitterAnalytics
                     {
-                        { "Positif", 0 },
-                        { "Neutre", 100 },
-                        { "Négatif", 0 }
-                    },
-                    TopInfluencer = new TopInfluencer(),
-                    ViralMultiplier = 0
-                });
+                        TotalTweets = 0,
+                        TotalEngagement = 0,
+                        TopTweets = new List<TopTweet>(),
+                        Period = new DateRange { StartDate = startDate, EndDate = endDate },
+                        EstimatedImpressions = 0,
+                        AdValueEquivalent = 0m,
+                        SentimentRatio = new Dictionary<string, double>
+                        {
+                            { "Positif", 0 },
+                            { "Neutre", 100 },
+                            { "Négatif", 0 },
+                        },
+                        TopInfluencer = new TopInfluencer(),
+                        ViralMultiplier = 0,
+                    }
+                );
             }
 
             // Traitement parallèle des données brutes
@@ -152,26 +149,23 @@ public class TwitterInfrastructureService(
         }
         catch (OperationCanceledException)
         {
-            return Result<TwitterAnalytics>.Failure(
-                "La requête a été annulée"
-            );
+            return Result<TwitterAnalytics>.Failure("La requête a été annulée");
         }
         catch (Exception ex)
         {
-            logger.LogError(
-                ex,
-                "Erreur non gérée lors de la récupération des métriques Twitter"
-            );
-            return Result<TwitterAnalytics>.Failure(
-                $"Erreur: {ex.Message}"
-            );
+            logger.LogError(ex, "Erreur non gérée lors de la récupération des métriques Twitter");
+            return Result<TwitterAnalytics>.Failure($"Erreur: {ex.Message}");
         }
     }
 
     /// <summary>
     /// Récupère les tweets avec retry exponentiel automatique
     /// </summary>
-    private async Task<(bool Success, List<XpozTweet> Tweets, string? Error)> FetchTwitterPostsWithRetryAsync(
+    private async Task<(
+        bool Success,
+        List<XpozTweet> Tweets,
+        string? Error
+    )> FetchTwitterPostsWithRetryAsync(
         string query,
         DateTime startDate,
         DateTime endDate,
@@ -184,7 +178,8 @@ public class TwitterInfrastructureService(
         {
             try
             {
-                var requestUrl = $"{_xpozSettings.BaseUrl}/twitter/search/getTwitterPostsByKeywords";
+                var requestUrl =
+                    $"{_xpozSettings.BaseUrl}/twitter/search/getTwitterPostsByKeywords";
 
                 var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
                 {
@@ -194,9 +189,9 @@ public class TwitterInfrastructureService(
                             keywords = query,
                             startDate = startDate.ToString("O"),
                             endDate = endDate.ToString("O"),
-                            bucket = _xpozSettings.DefaultBucket
+                            bucket = _xpozSettings.DefaultBucket,
                         }
-                    )
+                    ),
                 };
 
                 request.Headers.Add("x-api-key", _xpozSettings.ApiKey);
@@ -205,9 +200,7 @@ public class TwitterInfrastructureService(
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync(
-                        cancellationToken
-                    );
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
                     var xpozResponse = JsonSerializer.Deserialize<XpozTwitterResponse>(
                         content,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
@@ -284,14 +277,13 @@ public class TwitterInfrastructureService(
         {
             // Calcul du volume total et engagement
             var totalTweets = tweets.Count;
-            var totalEngagement = tweets.AsParallel()
+            var totalEngagement = tweets
+                .AsParallel()
                 .Sum(t => t.Metrics.Likes + t.Metrics.Retweets + t.Metrics.Replies);
 
             // Top 3 tweets avec le plus d'engagement
             var topTweets = tweets
-                .OrderByDescending(t =>
-                    t.Metrics.Likes + t.Metrics.Retweets + t.Metrics.Replies
-                )
+                .OrderByDescending(t => t.Metrics.Likes + t.Metrics.Retweets + t.Metrics.Replies)
                 .Take(3)
                 .Select(t => new TopTweet
                 {
@@ -303,7 +295,7 @@ public class TwitterInfrastructureService(
                     Likes = t.Metrics.Likes,
                     Retweets = t.Metrics.Retweets,
                     Replies = t.Metrics.Replies,
-                    CreatedAt = t.CreatedAt
+                    CreatedAt = t.CreatedAt,
                 })
                 .ToList();
 
@@ -314,9 +306,7 @@ public class TwitterInfrastructureService(
                 .Select(g => g.First().Author)
                 .ToList();
 
-            var estimatedImpressions = uniqueAuthors
-                .AsParallel()
-                .Sum(a => a.FollowersCount);
+            var estimatedImpressions = uniqueAuthors.AsParallel().Sum(a => a.FollowersCount);
 
             // Top influencer (auteur avec le plus de followers ayant tweeté)
             var topInfluencer = uniqueAuthors
@@ -327,8 +317,7 @@ public class TwitterInfrastructureService(
             var sentimentRatio = CalculateSentimentRatio(tweets);
 
             // Calcul du viral multiplier
-            var totalRetweets = tweets.AsParallel()
-                .Sum(t => t.Metrics.Retweets);
+            var totalRetweets = tweets.AsParallel().Sum(t => t.Metrics.Retweets);
             var viralMultiplier = totalTweets > 0 ? (double)totalRetweets / totalTweets : 0;
 
             // Calcul de l'AVE (Advertising Value Equivalent)
@@ -343,16 +332,17 @@ public class TwitterInfrastructureService(
                 EstimatedImpressions = estimatedImpressions,
                 AdValueEquivalent = adValueEquivalent,
                 SentimentRatio = sentimentRatio,
-                TopInfluencer = topInfluencer != null
-                    ? new TopInfluencer
-                    {
-                        Name = topInfluencer.DisplayName,
-                        Handle = topInfluencer.Username,
-                        FollowersCount = topInfluencer.FollowersCount,
-                        TweetCount = tweets.Count(t => t.Author.Id == topInfluencer.Id)
-                    }
-                    : new TopInfluencer(),
-                ViralMultiplier = viralMultiplier
+                TopInfluencer =
+                    topInfluencer != null
+                        ? new TopInfluencer
+                        {
+                            Name = topInfluencer.DisplayName,
+                            Handle = topInfluencer.Username,
+                            FollowersCount = topInfluencer.FollowersCount,
+                            TweetCount = tweets.Count(t => t.Author.Id == topInfluencer.Id),
+                        }
+                        : new TopInfluencer(),
+                ViralMultiplier = viralMultiplier,
             };
         });
     }
@@ -360,9 +350,7 @@ public class TwitterInfrastructureService(
     /// <summary>
     /// Analyse le sentiment des tweets basée sur des mots-clés
     /// </summary>
-    private static Dictionary<string, double> CalculateSentimentRatio(
-        List<XpozTweet> tweets
-    )
+    private static Dictionary<string, double> CalculateSentimentRatio(List<XpozTweet> tweets)
     {
         if (tweets.Count == 0)
         {
@@ -370,14 +358,11 @@ public class TwitterInfrastructureService(
             {
                 { "Positif", 0 },
                 { "Neutre", 100 },
-                { "Négatif", 0 }
+                { "Négatif", 0 },
             };
         }
 
-        var sentiments = tweets
-            .AsParallel()
-            .Select(t => DetectSentiment(t.Text))
-            .ToList();
+        var sentiments = tweets.AsParallel().Select(t => DetectSentiment(t.Text)).ToList();
 
         var positiveCount = sentiments.Count(s => s == "Positif");
         var negativeCount = sentiments.Count(s => s == "Négatif");
@@ -388,7 +373,7 @@ public class TwitterInfrastructureService(
         {
             { "Positif", Math.Round((positiveCount * 100.0) / total, 2) },
             { "Neutre", Math.Round((neutralCount * 100.0) / total, 2) },
-            { "Négatif", Math.Round((negativeCount * 100.0) / total, 2) }
+            { "Négatif", Math.Round((negativeCount * 100.0) / total, 2) },
         };
     }
 

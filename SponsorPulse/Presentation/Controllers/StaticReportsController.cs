@@ -9,9 +9,7 @@ namespace SponsorPulse.Presentation.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/reports/twitter")]
-public class StaticReportsController(
-    IStaticReportService reportService
-) : ControllerBase
+public class StaticReportsController(IStaticReportService reportService) : ControllerBase
 {
     /// <summary>
     /// Récupère un rapport spécifique par clé
@@ -25,9 +23,7 @@ public class StaticReportsController(
 
         if (!result.IsSuccess)
         {
-            return NotFound(
-                new { message = result.ErrorMessage }
-            );
+            return NotFound(new { message = result.ErrorMessage });
         }
 
         return Ok(result.Value);
@@ -58,15 +54,10 @@ public class StaticReportsController(
     {
         if (string.IsNullOrWhiteSpace(eventName))
         {
-            return BadRequest(
-                new { message = "eventName query parameter is required" }
-            );
+            return BadRequest(new { message = "eventName query parameter is required" });
         }
 
-        var report = await reportService.GetCustomEventReportAsync(
-            eventName,
-            topInfluencerHandle
-        );
+        var report = await reportService.GetCustomEventReportAsync(eventName, topInfluencerHandle);
 
         return Ok(report);
     }

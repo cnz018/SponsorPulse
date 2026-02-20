@@ -1,8 +1,8 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SponsorPulse.Domain.Entities;
 using SponsorPulse.Domain.Models;
-using System.Text.Json;
 
 namespace SponsorPulse.Infrastructure.Persistence;
 
@@ -33,12 +33,15 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
         var jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            WriteIndented = false
+            WriteIndented = false,
         };
 
         var converter = new ValueConverter<TwitterAnalytics?, string>(
             v => v == null ? null : JsonSerializer.Serialize(v, jsonSerializerOptions),
-            v => string.IsNullOrEmpty(v) ? null : JsonSerializer.Deserialize<TwitterAnalytics>(v, jsonSerializerOptions)
+            v =>
+                string.IsNullOrEmpty(v)
+                    ? null
+                    : JsonSerializer.Deserialize<TwitterAnalytics>(v, jsonSerializerOptions)
         );
 
         modelBuilder

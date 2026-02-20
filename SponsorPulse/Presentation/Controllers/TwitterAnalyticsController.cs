@@ -143,32 +143,29 @@ public class TwitterAnalyticsController(
                 request.Queries.Count
             );
 
-            var tasks = request.Queries.Select(query =>
-                twitterService.GetTwitterMetricsAsync(
-                    query,
-                    request.StartDate,
-                    request.EndDate,
-                    cancellationToken
+            var tasks = request
+                .Queries.Select(query =>
+                    twitterService.GetTwitterMetricsAsync(
+                        query,
+                        request.StartDate,
+                        request.EndDate,
+                        cancellationToken
+                    )
                 )
-            ).ToList();
+                .ToList();
 
             var results = await Task.WhenAll(tasks);
 
             var failedResults = results.Where(r => !r.IsSuccess).ToList();
             if (failedResults.Count > 0)
             {
-                return BadRequest(new
-                {
-                    errors = failedResults.Select(r => r.ErrorMessage).ToList()
-                });
+                return BadRequest(
+                    new { errors = failedResults.Select(r => r.ErrorMessage).ToList() }
+                );
             }
 
             var analytics = results.Select(r => r.Value).ToList();
-            return Ok(new
-            {
-                count = analytics.Count,
-                analytics
-            });
+            return Ok(new { count = analytics.Count, analytics });
         }
         catch (OperationCanceledException)
         {
@@ -193,8 +190,10 @@ public class TwitterAnalyticsController(
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request?.Query1) || 
-                string.IsNullOrWhiteSpace(request.Query2))
+            if (
+                string.IsNullOrWhiteSpace(request?.Query1)
+                || string.IsNullOrWhiteSpace(request.Query2)
+            )
             {
                 return BadRequest("Deux requêtes valides sont requises");
             }
@@ -215,36 +214,39 @@ public class TwitterAnalyticsController(
 
             if (!result1.IsSuccess || !result2.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    error1 = result1.ErrorMessage,
-                    error2 = result2.ErrorMessage
-                });
+                return BadRequest(
+                    new { error1 = result1.ErrorMessage, error2 = result2.ErrorMessage }
+                );
             }
 
             var analytics1 = result1.Value;
             var analytics2 = result2.Value;
 
-            return Ok(new
-            {
-                query1 = request.Query1,
-                metrics1 = analytics1,
-                query2 = request.Query2,
-                metrics2 = analytics2,
-                comparison = new
+            return Ok(
+                new
                 {
-                    tweetsRatio = analytics1?.TotalTweets > 0 
-                        ? (double)(analytics2?.TotalTweets ?? 0) / (double)analytics1.TotalTweets 
-                        : 0,
-                    engagementRatio = analytics1?.TotalEngagement > 0 
-                        ? (double)(analytics2?.TotalEngagement ?? 0) / (double)analytics1.TotalEngagement 
-                        : 0,
-                    aveRatio = analytics1?.AdValueEquivalent > 0 
-                        ? (double)(analytics2?.AdValueEquivalent ?? 0m) / (double)analytics1.AdValueEquivalent 
-                        : 0,
-                    winner = DetermineWinner(analytics1!, analytics2!)
+                    query1 = request.Query1,
+                    metrics1 = analytics1,
+                    query2 = request.Query2,
+                    metrics2 = analytics2,
+                    comparison = new
+                    {
+                        tweetsRatio = analytics1?.TotalTweets > 0
+                            ? (double)(analytics2?.TotalTweets ?? 0)
+                                / (double)analytics1.TotalTweets
+                            : 0,
+                        engagementRatio = analytics1?.TotalEngagement > 0
+                            ? (double)(analytics2?.TotalEngagement ?? 0)
+                                / (double)analytics1.TotalEngagement
+                            : 0,
+                        aveRatio = analytics1?.AdValueEquivalent > 0
+                            ? (double)(analytics2?.AdValueEquivalent ?? 0m)
+                                / (double)analytics1.AdValueEquivalent
+                            : 0,
+                        winner = DetermineWinner(analytics1!, analytics2!),
+                    },
                 }
-            });
+            );
         }
         catch (OperationCanceledException)
         {
@@ -262,10 +264,8 @@ public class TwitterAnalyticsController(
         Domain.Models.TwitterAnalytics analytics2
     )
     {
-        var score1 = analytics1.TotalEngagement * 1.0 + 
-                     analytics1.EstimatedImpressions * 0.001;
-        var score2 = analytics2.TotalEngagement * 1.0 + 
-                     analytics2.EstimatedImpressions * 0.001;
+        var score1 = analytics1.TotalEngagement * 1.0 + analytics1.EstimatedImpressions * 0.001;
+        var score2 = analytics2.TotalEngagement * 1.0 + analytics2.EstimatedImpressions * 0.001;
 
         if (score1 > score2)
             return "Query1 Winner";

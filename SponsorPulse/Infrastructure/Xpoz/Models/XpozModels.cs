@@ -12,12 +12,7 @@ public record XpozAuthor(
     string? ProfileImageUrl
 );
 
-public record XpozMetrics(
-    int Likes,
-    int Retweets,
-    int Replies,
-    int Bookmarks
-);
+public record XpozMetrics(int Likes, int Retweets, int Replies, int Bookmarks);
 
 public record XpozTweet(
     string Id,
@@ -29,8 +24,4 @@ public record XpozTweet(
     string? Language
 );
 
-public record XpozTwitterResponse(
-    List<XpozTweet> Posts,
-    int TotalCount,
-    string? NextCursor
-);
+public record XpozTwitterResponse(List<XpozTweet> Posts, int TotalCount, string? NextCursor);

@@ -4,8 +4,8 @@ using SponsorPulse;
 using SponsorPulse.Infrastructure.Api.Extensions;
 using SponsorPulse.Infrastructure.DependencyInjection;
 using SponsorPulse.Infrastructure.Persistence;
-using SponsorPulse.Presentation.Services;
 using SponsorPulse.Presentation;
+using SponsorPulse.Presentation.Services;
 
 // Initialiser SQLitePCL
 SQLitePCL.Batteries_V2.Init();

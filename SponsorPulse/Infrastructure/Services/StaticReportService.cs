@@ -12,10 +12,7 @@ public interface IStaticReportService
 {
     Task<Result<TwitterAnalytics>> GetReportAsync(string reportKey);
     Task<Dictionary<string, TwitterAnalytics>> GetAllReportsAsync();
-    Task<TwitterAnalytics> GetCustomEventReportAsync(
-        string eventName,
-        string topInfluencerHandle
-    );
+    Task<TwitterAnalytics> GetCustomEventReportAsync(string eventName, string topInfluencerHandle);
 }
 
 /// <summary>
@@ -29,16 +26,9 @@ public class StaticReportService : IStaticReportService
         {
             var reports = StaticReportRepository.GetAllReports();
 
-            if (
-                reports.TryGetValue(
-                    reportKey,
-                    out var report
-                )
-            )
+            if (reports.TryGetValue(reportKey, out var report))
             {
-                return Task.FromResult(
-                    Result<TwitterAnalytics>.Success(report)
-                );
+                return Task.FromResult(Result<TwitterAnalytics>.Success(report));
             }
 
             return Task.FromResult(
@@ -59,9 +49,7 @@ public class StaticReportService : IStaticReportService
 
     public Task<Dictionary<string, TwitterAnalytics>> GetAllReportsAsync()
     {
-        return Task.FromResult(
-            StaticReportRepository.GetAllReports()
-        );
+        return Task.FromResult(StaticReportRepository.GetAllReports());
     }
 
     public Task<TwitterAnalytics> GetCustomEventReportAsync(
@@ -70,10 +58,7 @@ public class StaticReportService : IStaticReportService
     )
     {
         return Task.FromResult(
-            StaticReportRepository.GetCustomEventReport(
-                eventName,
-                topInfluencerHandle
-            )
+            StaticReportRepository.GetCustomEventReport(eventName, topInfluencerHandle)
         );
     }
 }

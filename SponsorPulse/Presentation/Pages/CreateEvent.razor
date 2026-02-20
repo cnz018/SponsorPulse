@@ -61,11 +61,12 @@
             <div class="mb-8">
                 <label class="form-label" for="twitter-hashtags">Hashtags Twitter (optionnel)</label>
                 <div class="relative">
-                    <InputText id="twitter-hashtags" class="sp-input" @bind-Value="command.TwitterHashtags" 
+                    <InputText id="twitter-hashtags" class="sp-input" @bind-Value="command.TwitterHashtags"
                                placeholder="ex: #MonEvent; #MaMarque; esports" />
                 </div>
                 <ValidationMessage For="@(() => command.TwitterHashtags)" />
-                <p class="text-xs text-gray-500 mt-2">Séparez les hashtags ou mots-clés par des points-virgules pour analyser les données Twitter.
+                <p class="text-xs text-gray-500 mt-2">Séparez les hashtags ou mots-clés par des points-virgules pour
+                    analyser les données Twitter.
                 </p>
             </div>
 
