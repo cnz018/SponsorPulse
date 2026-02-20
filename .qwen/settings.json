@@ -1,0 +1,12 @@
+{
+  "model": {
+    "provider": "google",
+    "name": "gemini-2.0-flash"
+  },
+  "google": {
+    "apiKey": "AIzaSyDjPbeC-AVZWhJsK_Si4uLvMOoptcPP3OY"
+  },
+  "dashscope": {
+    "apiKey": "votre_clé_dashscope_ici"
+  }
+}

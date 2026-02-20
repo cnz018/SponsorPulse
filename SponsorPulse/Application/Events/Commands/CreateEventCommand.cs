@@ -19,4 +19,7 @@ public class CreateEventCommand
 
     [Required(ErrorMessage = "L'ID de la chaîne est requis.")]
     public string ChannelId { get; set; } = string.Empty;
+
+    [StringLength(500, ErrorMessage = "Les hashtags ne peuvent pas dépasser 500 caractères.")]
+    public string? TwitterHashtags { get; set; }
 }

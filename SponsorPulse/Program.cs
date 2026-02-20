@@ -1,64 +1,70 @@
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse;
+using SponsorPulse.Infrastructure.Api.Extensions;
 using SponsorPulse.Infrastructure.DependencyInjection;
 using SponsorPulse.Infrastructure.Persistence;
+using SponsorPulse.Presentation.Services;
+using SponsorPulse.Presentation;
 
-// Initialiser SQLitePCL pour Blazor WASM
+// Initialiser SQLitePCL
 SQLitePCL.Batteries_V2.Init();
 
-var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
-builder.RootComponents.Add<HeadOutlet>("head::after");
+var builder = WebApplication.CreateBuilder(args);
 
-// Injection des dépendances de base
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress),
-});
-builder.Services.AddInfrastructure();
+// Add Blazor Web Services
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-// Configuration de la base de données (Clean Architecture - Infrastructure Layer)
+// Infrastructure Services
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Register HttpClient
+builder.Services.AddHttpClient();
+
+// Register Presigned URL API Service
+builder.Services.AddScoped<PresignedUrlApiService>();
+
+// Database Context
 var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=SponsorPulseV2.db";
 
-// Utilisation du DbContextFactory pour Blazor WASM (meilleure gestion du scope / concurrency)
 builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
 {
-    // Mode "Production Distante" (abstraction prête pour l'avenir)
-    // Ici, on pourrait switcher sur un provider API ou une autre config
-    if (builder.HostEnvironment.IsProduction())
-    {
-        // Mode Production : Préparation pour la logique distante (Turso via API)
-        // Actuellement fallback sur SQLite local pour le MVP tant que l'API n'est pas branchée
-        options.UseSqlite(connectionString);
-    }
-    else
-    {
-        // Mode Développement : SQLite Local (WASM)
-        options.UseSqlite(connectionString);
-    }
+    options.UseSqlite(connectionString);
 });
 
-var host = builder.Build();
+var app = builder.Build();
 
-// Initialisation de la base de données locale au démarrage
-// Note: Pas de migration pour l'instant, on utilise EnsureCreatedAsync
-try
+// Initialize database
+using (var scope = app.Services.CreateScope())
 {
-    var scope = host.Services.CreateScope();
     var dbFactory = scope.ServiceProvider.GetRequiredService<
         IDbContextFactory<SponsorPulseDbContext>
     >();
     using var context = await dbFactory.CreateDbContextAsync();
+    // Note: In development, if schema changes, delete the .db file and let EnsureCreatedAsync recreate it
     await context.Database.EnsureCreatedAsync();
 }
-catch (Exception ex)
+
+// Configure the HTTP request pipeline
+if (!app.Environment.IsDevelopment())
 {
-    var logger = host.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "Erreur lors de l'initialisation de la base de données SQLite.");
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
 }
 
-await host.RunAsync();
+app.UseHttpsRedirection();
+
+//app.UseRouting();
+app.UseWebSockets();
+app.UseAntiforgery();
+app.MapStaticAssets();
+
+// Map Media API endpoints (presigned URLs, etc.)
+app.MapMediaPresignedUrlEndpoints();
+
+// Map Blazor Components
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+
+app.Run();

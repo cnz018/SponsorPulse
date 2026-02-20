@@ -1,5 +1,7 @@
 namespace SponsorPulse.Domain.Entities;
 
+using SponsorPulse.Domain.Models;
+
 public enum EventStatus
 {
     Draft,
@@ -27,6 +29,13 @@ public record Event(
     public TimeSpan? StreamDuration { get; set; }
     public DateTime? StartedAt { get; set; }
     public string? GameName { get; set; }
+
+    // Twitter Data
+    public string? TwitterHashtags { get; set; }
+    public TwitterAnalytics? TwitterAnalytics { get; set; }
+
+    // Media
+    public List<EventMedia> Media { get; set; } = new();
 
     private const int MAX_SLUG_LENGTH = 7;
     private const int SLUG_CONVERSION_FACTOR = 62;

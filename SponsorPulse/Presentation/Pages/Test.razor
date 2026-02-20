@@ -1,0 +1,46 @@
+@page "/test"
+
+<div style="background-color: #0C1821; color: #F8FAFC; padding: 2rem; font-family: Arial, sans-serif;">
+    <h1>SponsorPulse - Test Page</h1>
+
+    <div
+        style="background-color: rgba(50, 74, 95, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem; margin: 1rem 0; border-radius: 8px;">
+        <h2>Styling Test</h2>
+        <p>If you can see this text with a glassmorphism background, CSS is loading correctly.</p>
+        <p>Background color: <strong>#0C1821</strong></p>
+        <p>Text color: <strong>#F8FAFC</strong></p>
+    </div>
+
+    <div
+        style="background-color: rgba(50, 74, 95, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem; margin: 1rem 0; border-radius: 8px;">
+        <h2>Interactivity Test (JavaScript)</h2>
+        <p>Click counter: <strong id="clickCount">0</strong></p>
+        <button id="testButton" onclick="incrementClick()"
+                style="background-color: #3B82F6; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;">
+            Click Me
+        </button>
+    </div>
+
+    <div
+        style="background-color: rgba(50, 74, 95, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem; margin: 1rem 0; border-radius: 8px;">
+        <h2>Status</h2>
+        <p>✅ App.razor and MainLayout working</p>
+        <p>✅ CSS styling working</p>
+        <p>✅ JavaScript interactivity available</p>
+        <p style="margin-top: 2rem;">
+            <a href="/" style="color: #60A5FA; text-decoration: none;">← Back to Dashboard</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    let count = 0;
+
+    function incrementClick() {
+        count++;
+        document.getElementById('clickCount').textContent = count;
+        console.log('Click count:', count);
+    }
+
+    console.log('Test page JavaScript loaded');
+</script>

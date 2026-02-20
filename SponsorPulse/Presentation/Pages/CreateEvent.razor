@@ -1,3 +1,4 @@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using SponsorPulse.Application.Events.Commands
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
@@ -54,6 +55,17 @@
                 </div>
                 <ValidationMessage For="@(() => command.ChannelId)" />
                 <p class="text-xs text-gray-500 mt-2">Nous utiliserons cet ID pour récupérer les statistiques du stream.
+                </p>
+            </div>
+
+            <div class="mb-8">
+                <label class="form-label" for="twitter-hashtags">Hashtags Twitter (optionnel)</label>
+                <div class="relative">
+                    <InputText id="twitter-hashtags" class="sp-input" @bind-Value="command.TwitterHashtags" 
+                               placeholder="ex: #MonEvent; #MaMarque; esports" />
+                </div>
+                <ValidationMessage For="@(() => command.TwitterHashtags)" />
+                <p class="text-xs text-gray-500 mt-2">Séparez les hashtags ou mots-clés par des points-virgules pour analyser les données Twitter.
                 </p>
             </div>
 
@@ -218,6 +230,12 @@
             command.StreamPlatform,
             command.ChannelId
         );
+
+        // Ajouter les hashtags Twitter si fournis
+        if (!string.IsNullOrWhiteSpace(command.TwitterHashtags))
+        {
+            newEvent = newEvent with { TwitterHashtags = command.TwitterHashtags.Trim() };
+        }
 
         // 3. Persistance via EF Core
         using var context = await DbFactory.CreateDbContextAsync();

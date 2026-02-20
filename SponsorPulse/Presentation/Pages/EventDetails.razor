@@ -1,9 +1,14 @@
 @page "/event/{Slug}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using SponsorPulse.Application.Common.Interfaces
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
 @using SponsorPulse.Presentation.Components.Twitch
+@using SponsorPulse.Presentation.Components.Twitter
+@using SponsorPulse.Presentation.Components.Media
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
+@inject IMediaStorageService MediaStorageService
 @inject NavigationManager Navigation
 
 <PageTitle>@(_event?.Name ?? "Détails") - SponsorPulse</PageTitle>
@@ -54,22 +59,74 @@
                     </div>
                 }
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @if (!string.IsNullOrEmpty(_event.TwitterHashtags))
+                {
+                    <div class="section mb-6">
+                        <h3 class="section-title">Données Twitter</h3>
+                        <TwitterFetcher EventToUpdate="@_event" OnDataUpdated="HandleDataUpdated" />
+                    </div>
+                }
+
+                @* <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="section">
                         <h3 class="section-title">ID de la Chaîne</h3>
                         <div class="code-block">
                             <code>@_event.ChannelId</code>
                         </div>
                     </div>
+                </div> *@
+
+                <div class="section mb-6 mt-8" id="media-section">
+                    <h3 class="section-title">Médias Événement (Photos)</h3>
+                    <div class="media-container mb-4">
+                        @if (_event.Media.Any())
+                        {
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                @foreach (var media in _event.Media)
+                                {
+                                    <div class="media-card group relative">
+                                        <img src="@media.Url" alt="@media.OriginalFileName" 
+                                             class="w-full h-32 object-cover rounded-lg border border-white/10" 
+                                             @onclick="() => OpenLightbox(media.Url)" />
+                                        
+                                        <button class="btn-delete-media absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                @onclick="() => DeleteMedia(media)" @onclick:stopPropagation>
+                                            <span class="icon-small">🗑️</span>
+                                        </button>
+                                        <span class="text-xs text-gray-400 mt-1 block truncate">@media.OriginalFileName</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                    
+                    @if (_event.Media.Count < 5)
+                    {
+                        <MediaUploader EventSlug="@_event.Slug" OnUploadCompleted="HandleMediaUploaded" />
+                    }
+                    else
+                    {
+                        <p class="text-yellow-500 text-sm">Limite de 5 photos atteinte.</p>
+                    }
                 </div>
 
                 <div class="section mt-8 pt-6 border-t border-gray-800">
-                    <button class="btn-action">Générer Rapport Sponsor</button>
+                    <button class="btn-action">Générer Rapport</button>
                 </div>
             </div>
         }
     </div>
 </div>
+
+@if (_lightboxUrl != null)
+{
+    <div class="fixed inset-0 z-[2000] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" @onclick="CloseLightbox">
+        <div class="relative max-w-7xl max-h-screen">
+            <button class="absolute -top-12 right-0 text-white hover:text-gray-300 text-3xl" @onclick="CloseLightbox">✕</button>
+            <img src="@_lightboxUrl" class="max-h-[85vh] max-w-full rounded-lg shadow-2xl" @onclick:stopPropagation />
+        </div>
+    </div>
+}
 
 <style>
     .modal-page-backdrop {
@@ -206,6 +263,19 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
     }
+    
+    /* Media Grid Styles */
+    .media-card {
+        transition: transform 0.2s;
+    }
+    
+    .media-card:hover {
+        transform: scale(1.02);
+    }
+    
+    .icon-small {
+        font-size: 0.8rem;
+    }
 
     .fade-in-up {
         animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -228,13 +298,16 @@
     [Parameter] public string Slug { get; set; } = string.Empty;
     private Event? _event;
     private bool _isLoading = true;
+    private string? _lightboxUrl;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             using var context = await DbFactory.CreateDbContextAsync();
-            _event = await context.Events.FirstOrDefaultAsync(e => e.Slug == Slug);
+            _event = await context.Events
+                .Include(e => e.Media)
+                .FirstOrDefaultAsync(e => e.Slug == Slug);
         }
         finally
         {
@@ -256,4 +329,65 @@
         await context.SaveChangesAsync();
         StateHasChanged();
     }
+
+    private async Task HandleMediaUploaded(List<UploadedMediaResult> results)
+    {
+        if (_event == null) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        var eventEntity = await context.Events.Include(e => e.Media).FirstAsync(e => e.Id == _event.Id);
+        
+        foreach (var result in results)
+        {
+            if (eventEntity.Media.Count >= 5) break;
+
+            var media = EventMedia.Create(
+                result.OriginalFileName,
+                result.StorageFileName,
+                result.Url,
+                result.Size,
+                result.ContentType
+            );
+            eventEntity.Media.Add(media);
+        }
+        
+        await context.SaveChangesAsync();
+        // Reload to ensure we have the latest state (IDs etc)
+        _event = eventEntity;
+        StateHasChanged();
+    }
+    
+    private async Task DeleteMedia(EventMedia media)
+    {
+        if (_event == null) return;
+        
+        // Optimistic UI update
+        _event.Media.Remove(media);
+        StateHasChanged();
+        
+        try 
+        {
+            await MediaStorageService.DeleteMediaAsync(media.StorageFileName);
+            
+            using var context = await DbFactory.CreateDbContextAsync();
+            var eventEntity = await context.Events.Include(e => e.Media).FirstAsync(e => e.Id == _event.Id);
+            
+            // Find and remove by ID
+            var mediaToDelete = eventEntity.Media.FirstOrDefault(m => m.Id == media.Id);
+            if (mediaToDelete != null)
+            {
+                eventEntity.Media.Remove(mediaToDelete);
+                await context.SaveChangesAsync();
+            }
+        }
+        catch(Exception)
+        {
+            // Revert on error
+            _event.Media.Add(media);
+            StateHasChanged();
+        }
+    }
+    
+    private void OpenLightbox(string url) => _lightboxUrl = url;
+    private void CloseLightbox() => _lightboxUrl = null;
 }
