@@ -292,14 +292,14 @@
 
     private void HandleAnalyzeEvent(Event evt)
     {
-        // TODO: Naviguer vers la page d'analyse
-        Navigation.NavigateTo($"event/{evt.Slug}/analyze");
+        // Naviguer vers la page de métriques
+        Navigation.NavigateTo($"event/{evt.Slug}/metrics");
     }
 
     private void HandleGenerateEvent(Event evt)
     {
-        // TODO: Naviguer vers la génération PDF
-        Navigation.NavigateTo($"event/{evt.Slug}/generate-pdf");
+        // Naviguer vers la génération PDF
+        Navigation.NavigateTo($"event/{evt.Slug}/pdf-customize");
     }
 
     private void HandleDeleteEvent(Event evt)

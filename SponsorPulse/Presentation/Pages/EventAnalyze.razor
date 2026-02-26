@@ -1,0 +1,124 @@
+@page "/event/{Slug}/analyze"
+@rendermode RenderMode.InteractiveServer
+@using SponsorPulse.Domain.Entities
+@using SponsorPulse.Infrastructure.Repositories
+@inject NavigationManager Navigation
+
+<style>
+    .card-bg { padding: 2rem; border-radius: 12px; background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(148, 163, 184, 0.2); }
+    .score-display { padding: 1rem; border-radius: 8px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); margin-top: 2rem; }
+    .rec-card { padding: 1rem; border-radius: 8px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); }
+    .btn-secondary { background: transparent; border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
+    .btn-accent { background: transparent; border: 1px solid rgba(148, 163, 184, 0.3); color: #94A3B8; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
+</style>
+
+<PageTitle>Analyze Event</PageTitle>
+
+<div style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <div style="padding: 2rem; background: linear-gradient(135deg, rgba(50, 74, 95, 0.4) 0%, rgba(12, 24, 33, 0.4) 100%); border-radius: 16px; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.875rem; font-weight: 700; color: white; margin: 0 0 0.5rem 0;">Analysis</h1>
+        <p style="color: #94A3B8; margin: 0;">Adjust scoring and view recommendations</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Left Panel - Sliders -->
+        <div class="card-bg">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1.5rem;">Score Adjustments</h2>
+
+            @foreach (var (label, @value) in GetSliders())
+            {
+                <div style="margin-bottom: 1.5rem;">
+                    <span style="display: block; font-size: 0.875rem; color: #94A3B8; margin-bottom: 0.5rem;">@label: @value</span>
+                    <input type="range" value="@value" @onchange="e => UpdateSlider(label, (int)e.Value!)" min="0" max="100" style="width: 100%; cursor: pointer;" />
+                </div>
+            }
+
+            <div class="score-display">
+                <span style="display: block; font-size: 0.875rem; text-transform: uppercase; color: #94A3B8;">Overall Score</span>
+                <div style="font-size: 2.25rem; font-weight: 700; color: @GetScoreColor(overallScore); margin-top: 0.5rem;">@overallScore</div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Recommendations -->
+        <div class="card-bg">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1.5rem;">Sponsor Recommendations</h2>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                @foreach (var rec in GetRecommendations())
+                {
+                    <div class="rec-card">
+                        <div style="font-size: 0.875rem; text-transform: uppercase; color: #94A3B8;">@rec</div>
+                        <div style="font-size: 1.125rem; font-weight: 600; color: #CCC9DC; margin-top: 0.5rem;">@((overallScore + (rec.Length * 3)) % 100)</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+        <button @onclick="GoToMetrics" class="btn-accent">Back to Metrics</button>
+        <button @onclick="GoToPdfCustomize" style="background: #CCC9DC; border: none; color: #0C1821; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600;">Customize PDF</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? Slug { get; set; }
+
+    private Event? currentEvent;
+    private Dictionary<string, int> scores = new()
+    {
+        { "Engagement", 75 },
+        { "Retention", 82 },
+        { "Peak Hours", 68 },
+        { "Hashtag Reach", 90 },
+        { "Influencer Impact", 78 }
+    };
+
+    private int overallScore => (int)(scores.Values.Average());
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Slug))
+            Navigation.NavigateTo("/dashboard");
+        else
+        {
+            var events = StaticDemoRepository.GetDemoEvents();
+            currentEvent = events.FirstOrDefault(e => e.Slug == Slug);
+            if (currentEvent == null)
+                Navigation.NavigateTo("/dashboard");
+        }
+    }
+
+    private List<(string, int)> GetSliders() =>
+        scores.Select(kvp => (kvp.Key, kvp.Value)).ToList();
+
+    private void UpdateSlider(string label, int value)
+    {
+        if (scores.ContainsKey(label))
+            scores[label] = value;
+    }
+
+    private string GetScoreColor(int score) =>
+        score switch
+        {
+            >= 85 => "#22C55E",
+            >= 70 => "#FBBF24",
+            >= 50 => "#F97316",
+            _ => "#EF4444"
+        };
+
+    private List<string> GetRecommendations() => new()
+    {
+        "Audience Value",
+        "Sponsorship ROI",
+        "Growth Potential",
+        "Influencer Reach",
+        "Content Quality",
+        "Strategic Fit"
+    };
+
+    private void GoToMetrics() => Navigation.NavigateTo($"/event/{Slug}/metrics");
+
+    private void GoToPdfCustomize() => Navigation.NavigateTo($"/event/{Slug}/pdf-customize");
+}

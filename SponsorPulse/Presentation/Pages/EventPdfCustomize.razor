@@ -1,0 +1,126 @@
+@page "/event/{Slug}/pdf-customize"
+@rendermode RenderMode.InteractiveServer
+@using SponsorPulse.Domain.Entities
+@using SponsorPulse.Infrastructure.Repositories
+@inject NavigationManager Navigation
+
+<style>
+    .card-bg { padding: 2rem; border-radius: 12px; background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(148, 163, 184, 0.2); }
+    .input-field { width: 100%; padding: 0.75rem; border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; }
+    .btn-secondary { background: transparent; border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
+    .btn-accent { background: transparent; border: 1px solid rgba(148, 163, 184, 0.3); color: #94A3B8; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
+    .file-upload { border: 2px dashed rgba(59, 130, 246, 0.4); border-radius: 8px; padding: 2rem; text-align: center; background: rgba(15, 23, 42, 0.5); }
+</style>
+
+<PageTitle>Customize PDF</PageTitle>
+
+<div style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <div style="padding: 2rem; background: linear-gradient(135deg, rgba(50, 74, 95, 0.4) 0%, rgba(12, 24, 33, 0.4) 100%); border-radius: 16px; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.875rem; font-weight: 700; color: white; margin: 0 0 0.5rem 0;">Customize PDF Report</h1>
+        <p style="color: #94A3B8; margin: 0;">Upload logo and choose colors</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Left Panel -->
+        <div class="card-bg">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1.5rem;">Settings</h2>
+
+            <!-- Company Name -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.875rem; color: #94A3B8; margin-bottom: 0.5rem;">Company Name</label>
+                <input type="text" @bind="companyName" class="input-field" placeholder="Your Company" />
+            </div>
+
+            <!-- Logo -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.875rem; color: #94A3B8; margin-bottom: 0.5rem;">Logo</label>
+                <div class="file-upload">
+                    <button @onclick="async () => await BrowseFileAsync()" style="background: transparent; border: none; color: #60A5FA; cursor: pointer; font-size: 1rem;">
+                        Select Logo
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(uploadedFileName))
+                {
+                    <span style="font-size: 0.75rem; color: #22C55E; margin-top: 0.5rem; display: block;">Uploaded: @uploadedFileName</span>
+                }
+            </div>
+
+            <!-- Colors -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; font-size: 0.875rem; color: #94A3B8; margin-bottom: 0.5rem;">Primary Color</label>
+                    <input type="color" @bind="primaryColor" style="width: 100%; height: 2.5rem; border: none; border-radius: 8px; cursor: pointer;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.875rem; color: #94A3B8; margin-bottom: 0.5rem;">Secondary Color</label>
+                    <input type="color" @bind="secondaryColor" style="width: 100%; height: 2.5rem; border: none; border-radius: 8px; cursor: pointer;" />
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div style="display: flex; gap: 1rem; justify-content: space-between;">
+                <button @onclick="GoBack" class="btn-accent">Back</button>
+                <button @onclick="GoToAnalyze" class="btn-secondary">View Analysis</button>
+                <button @onclick="ExportPdf" style="background: #CCC9DC; border: none; color: #0C1821; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600;">Download PDF</button>
+            </div>
+        </div>
+
+        <!-- Right Panel - Preview -->
+        <div class="card-bg">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1.5rem;">PDF Preview</h2>
+            <div style="background: white; padding: 2rem; border-radius: 8px; color: #0C1821; min-height: 400px; display: flex; flex-direction: column; justify-content: flex-start;">
+                @if (!string.IsNullOrEmpty(companyName))
+                {
+                    <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #0C1821;">@companyName</div>
+                }
+                <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: @primaryColor;">@(currentEvent?.Name ?? "Event Report")</div>
+                <div style="font-size: 0.875rem; color: #64748B; line-height: 1.6;">
+                    <p><strong>Date:</strong> @currentEvent?.Date.ToString("yyyy-MM-dd")</p>
+                    <p><strong>Viewers:</strong> @(currentEvent?.ViewerCount.ToString() ?? "N/A")</p>
+                    <p><strong>Duration:</strong> @FormatDuration(currentEvent?.StreamDuration)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? Slug { get; set; }
+
+    private Event? currentEvent;
+    private string companyName = "Your Company";
+    private string primaryColor = "#CCC9DC";
+    private string secondaryColor = "#60A5FA";
+    private string? uploadedFileName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Slug))
+            Navigation.NavigateTo("/dashboard");
+        else
+        {
+            var events = StaticDemoRepository.GetDemoEvents();
+            currentEvent = events.FirstOrDefault(e => e.Slug == Slug);
+            if (currentEvent == null)
+                Navigation.NavigateTo("/dashboard");
+        }
+    }
+
+    private string FormatDuration(TimeSpan? duration) =>
+        duration == null ? "N/A" : $"{(int)duration.Value.TotalHours}h {duration.Value.Minutes}m";
+
+    private async Task BrowseFileAsync()
+    {
+        uploadedFileName = "sample-logo.png";
+    }
+
+    private void GoBack() => Navigation.NavigateTo($"/event/{Slug}/metrics");
+
+    private void GoToAnalyze() => Navigation.NavigateTo($"/event/{Slug}/analyze");
+
+    private void ExportPdf()
+    {
+        // Mock implementation
+    }
+}
