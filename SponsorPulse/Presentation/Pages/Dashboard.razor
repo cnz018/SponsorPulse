@@ -3,6 +3,7 @@
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
 @using SponsorPulse.Presentation.Components
+@using SponsorPulse.Infrastructure.Repositories
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager Navigation
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
@@ -273,8 +274,9 @@
 
     private async Task LoadEvents()
     {
-        using var context = await DbFactory.CreateDbContextAsync();
-        events = await context.Events.OrderByDescending(e => e.Date).ToListAsync();
+        // For demo purposes, load from static repository
+        events = StaticDemoRepository.GetDemoEvents().OrderByDescending(e => e.Date).ToList();
+        await Task.CompletedTask;
     }
 
     private void GoToCreate()
