@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Glassmorphism and utility classes */
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+  }
+
+  .glass-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+  }
+
+  .gradient-mesh {
+    background: linear-gradient(135deg, #1B2A41 0%, #0C1821 100%);
+  }
+
+  .gradient-radial {
+    background: radial-gradient(circle at 50% 50%, rgba(204, 201, 220, 0.15) 0%, #0C1821 100%);
+  }
+
+  .btn-primary {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .btn-primary-solid {
+    background-color: #000;
+    color: #F8FAFC;
+  }
+
+  .btn-primary-solid:hover {
+    background-color: #1a1a1a;
+    box-shadow: 0 0 0 1px rgba(204,201,220,0.3);
+  }
+
+  .btn-primary-outline {
+    background-color: transparent;
+    border: 2px solid #F8FAFC;
+    color: #F8FAFC;
+  }
+
+  .btn-primary-outline:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 1px rgba(204,201,220,0.3);
+  }
+
+  .metric-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(204, 201, 220, 0.2);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(204, 201, 220, 0.2);
+  }
+}

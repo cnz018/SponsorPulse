@@ -1,0 +1,263 @@
+/* Landing Page Styles - Design System Colors */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --color-ink-black: #0C1821;
+  --color-deep-space-blue: #1B2A41;
+  --color-charcoal-blue: #324A5F;
+  --color-lavender: #CCC9DC;
+  --color-grey-text: #94A3B8;
+  --color-grey-muted: #475569;
+  --color-white: #F8FAFC;
+  --border-radius-card: 16px;
+  --border-radius-button: 8px;
+  --border-radius-input: 12px;
+  --font-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* Glassmorphic Effect */
+.glass-card {
+  background: rgba(51, 65, 85, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-card);
+}
+
+.glass-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+/* Gradient backgrounds */
+.gradient-mesh {
+  background: linear-gradient(135deg, var(--color-deep-space-blue) 0%, var(--color-ink-black) 100%);
+}
+
+.gradient-radial {
+  background: radial-gradient(circle at 50% 50%, rgba(204, 201, 220, 0.15) 0%, var(--color-ink-black) 100%);
+}
+
+/* Typography */
+.text-glow {
+  color: var(--color-lavender);
+  text-shadow: 0 0 20px rgba(204, 201, 220, 0.3);
+}
+
+/* Buttons */
+.btn-cta-primary {
+  background: var(--color-ink-black);
+  color: var(--color-white);
+  padding: 14px 32px;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.btn-cta-primary:hover {
+  background: #1a2d3a;
+  box-shadow: 0 8px 24px rgba(204, 201, 220, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-cta-secondary {
+  background: transparent;
+  color: var(--color-white);
+  padding: 12px 30px;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid var(--color-white);
+  cursor: pointer;
+}
+
+.btn-cta-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(204, 201, 220, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Hero section */
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--color-grey-text);
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Card Metrics */
+.metric-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(204, 201, 220, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  transform: translateZ(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(204, 201, 220, 0.2);
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: var(--color-grey-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-lavender);
+  margin-top: 8px;
+}
+
+.metric-unit {
+  font-size: 0.875rem;
+  color: var(--color-grey-text);
+  margin-left: 4px;
+}
+
+/* Visual Asset Container */
+.visual-asset {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(204, 201, 220, 0.1);
+  margin-top: 64px;
+}
+
+.visual-asset::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 35% 45%, rgba(204, 201, 220, 0.15) 0%, transparent 50%), 
+              radial-gradient(circle at 85% 55%, rgba(51, 65, 85, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Floating Cards Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0);
+  }
+  50% {
+    transform: translateY(-12px) translateX(2px);
+  }
+}
+
+.floating-card {
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-card:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.floating-card:nth-child(3) {
+  animation-delay: 1s;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+  }
+}
+
+/* Header Navigation */
+.nav-link:hover {
+  color: var(--color-lavender);
+}
+
+.nav-link.active {
+  color: var(--color-lavender);
+  border-bottom: 2px solid var(--color-lavender);
+  padding-bottom: 4px;
+}
+
+/* FAQ Accordion */
+.faq-item {
+  margin-bottom: 1rem;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.faq-item summary:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.faq-item[open] summary {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(204, 201, 220, 0.5) !important;
+}
+
+.faq-item summary svg {
+  flex-shrink: 0;
+}
+
+/* CTA Gradient Background */
+.cta-gradient {
+  background: radial-gradient(circle at 35% 50%, rgba(204, 201, 220, 0.1) 0%, transparent 50%), 
+              radial-gradient(circle at 85% 50%, rgba(51, 65, 85, 0.1) 0%, transparent 50%);
+}
+
+/* Enhanced Feature Cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(204, 201, 220, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Input Focus Styles */
+input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(204, 201, 220, 0.1);
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable transition for animations */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

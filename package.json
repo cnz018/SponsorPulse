@@ -1,0 +1,31 @@
+{
+  "name": "sponsorpulse",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "tailwind:build": "npx tailwindcss -i ./tailwind.input.css -o ./SponsorPulse/wwwroot/css/tailwind.css",
+    "tailwind:watch": "npx tailwindcss -i ./tailwind.input.css -o ./SponsorPulse/wwwroot/css/tailwind.css --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cnz018/sponsorpulse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cnz018/sponsorpulse/issues"
+  },
+  "homepage": "https://github.com/cnz018/sponsorpulse#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.0",
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.2.0"
+  }
+}

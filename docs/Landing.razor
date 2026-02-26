@@ -1,0 +1,518 @@
+@page "/"
+@layout EmptyLayout
+
+<div class="min-h-screen gradient-mesh overflow-hidden font-jakarta">
+    <!-- Header / Navigation -->
+    <header class="sticky top-0 z-50 bg-black/30 backdrop-blur-lg border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
+                    <span class="text-xl font-bold hidden sm:inline text-white">SponsorPulse</span>
+                </div>
+
+                <!-- Menu Center - Hidden on Mobile -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="#features" class="nav-link">Fonctionnalités</a>
+                    <a href="#faq" class="nav-link">FAQ</a>
+                    <a href="#" class="nav-link">Support</a>
+                </nav>
+
+                <!-- CTA Buttons -->
+                <div class="flex items-center gap-4">
+                    @*  <button class="hidden sm:block px-6 py-2 text-sm font-medium text-gray-300 hover:text-[#CCC9DC] transition-colors">
+                        Connexion
+                    </button>
+                    <button class="btn-cta-primary text-sm px-6 py-2">
+                        Inscription
+                    </button>*@
+                    <button class="btn-cta-secondary">
+                        Voir une démonstration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center px-4 py-20">
+        <!-- Decorative Background Elements -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-red-500/5 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="relative z-10 max-w-3xl mx-auto text-center">
+            <!-- Main Title - Power Headline -->
+            <h1 class="hero-title mb-6 text-white font-black">
+                Arrêtez de deviner votre valeur.<br class="hidden sm:block" />
+                <span class="text-gradient">Prouvez-la</span> avec des chiffres.
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="hero-subtitle mb-12">
+                Générez des rapports d'impact professionnels en 10 minutes. Récupérez vos stats Twitch et réseaux
+                automatiquement pour convaincre vos sponsors.
+            </p>
+
+            <!-- Email Input Group -->
+            <div class="flex justify-center mb-12 max-w-xl mx-auto">
+                <div class="relative w-full">
+                    <input type="email" placeholder="Votre email..."
+                           class="w-full px-6 py-3 pr-24 rounded-full bg-white/5 border-2 border-[#CCC9DC] text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 focus:border-[#CCC9DC] transition-all" />
+                    <button
+                        class="btn-cta-primary whitespace-nowrap hover:transform-none absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 text-sm">
+                        Rejoindre
+                    </button>
+                </div>
+            </div>
+
+            <!-- Secondary CTA -->
+
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
+                </path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Visual Asset / Product Demo Section -->
+    <section class="relative px-4 py-32">
+        <div class="max-w-6xl mx-auto">
+            <!-- Main Visual Container -->
+            <div class="relative aspect-video rounded-3xl border border-white/10 overflow-hidden gradient-radial">
+                <!-- Floating Metric Cards -->
+                <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+                    <!-- Card 1: Twitter Reach -->
+                    <div class="floating-animation metric-card absolute -left-4 sm:left-8 top-1/4 w-48 sm:w-56">
+                        <div class="metric-label">Reach Twitter</div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="metric-value">245K</span>
+                            <span class="metric-unit">impressions</span>
+                        </div>
+                        <p class="mt-3 text-xs text-[#94A3B8]">↑ 32% vs dernier déc</p>
+                    </div>
+
+                    <!-- Card 2: Sentiment Analysis -->
+                    <div class="floating-animation metric-card absolute -right-4 sm:right-8 top-1/3 w-48 sm:w-56">
+                        <div class="metric-label">Sentiment</div>
+                        <div class="flex items-baseline gap-2 mt-2">
+                            <span class="text-2xl">😊</span>
+                            <span class="metric-value">94%</span>
+                        </div>
+                        <p class="mt-3 text-xs text-[#94A3B8]">Positif (Tweet Analysis)</p>
+                    </div>
+
+                    <!-- Card 3: Ad Value Equivalent -->
+                    <div
+                        class="floating-animation metric-card absolute left-1/2 transform -translate-x-1/2 bottom-1/4 w-48 sm:w-56">
+                        <div class="metric-label">Ad Value Equivalent</div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="metric-value">$18.5K</span>
+                            <span class="metric-unit">USD</span>
+                        </div>
+                        <p class="mt-3 text-xs text-[#94A3B8]">Valeur sponsor estimée</p>
+                    </div>
+
+                    <!-- Card 4: Twitch Peak Viewers -->
+                    <div class="floating-animation metric-card absolute left-12 bottom-12 w-48 sm:w-56">
+                        <div class="metric-label">Pic Spectateurs</div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="metric-value">8.2K</span>
+                            <span class="metric-unit">viewers</span>
+                        </div>
+                        <p class="mt-3 text-xs text-[#94A3B8]">Dernier stream</p>
+                    </div>
+
+                    <!-- Card 5: Engagement Rate -->
+                    <div class="floating-animation metric-card absolute right-12 bottom-16 w-48 sm:w-56">
+                        <div class="metric-label">Taux Engagement</div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="metric-value">8.7%</span>
+                            <span class="metric-unit">interaction</span>
+                        </div>
+                        <p class="mt-3 text-xs text-[#94A3B8]">↑ 21% vs mois dernier</p>
+                    </div>
+
+                    <!-- Card 6: Total Followers -->
+                    <div class="floating-animation metric-card absolute left-1/3 top-12 w-48 sm:w-56">
+                        <div class="metric-label">Audience Totale</div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="metric-value">125K</span>
+                            <span class="metric-unit">followers</span>
+                        </div>
+                        <p class="mt-3 text-xs text-[#94A3B8]">Twitch + Twitter combined</p>
+                    </div>
+                </div>
+
+                <!-- Center Accent Glow -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="w-80 h-80 bg-[#CCC9DC]/10 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="p-8">
+                    <div class="text-4xl font-bold text-[#CCC9DC] mb-3">100%</div>
+                    <p class="text-[#94A3B8]">Automoatisé</p>
+                </div>
+                <div class="p-8">
+                    <div class="text-4xl font-bold text-[#CCC9DC] mb-3">5 rapports</div>
+                    <p class="text-[#94A3B8]">d'Essai Gratuits</p>
+                </div>
+                <div class="p-8">
+                    <div class="text-4xl font-bold text-[#CCC9DC] mb-3">24/7</div>
+                    <p class="text-[#94A3B8]">Support</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="relative px-4 py-32 border-t border-white/10">
+        <div class="max-w-6xl mx-auto">
+            <!-- Section Header -->
+            <div class="text-center mb-20">
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
+                    Transformez vos données eSport en <span class="text-gradient">contrats signés</span>
+                </h2>
+                <p class="text-[#94A3B8] max-w-2xl mx-auto">
+                    Une plateforme complète pour transformer vos données de streams en arguments de vente convaincants.
+                </p>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Feature 1: Twitch Analysis -->
+                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
+                    <div class="flex gap-4 mb-4">
+                        <div
+                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
+                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                d="M11 3a1 1 0 0 0-1 1v8H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h7v8a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-8h7a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-7V4a1 1 0 0 0-1-1h-2Z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Analyse Twitch</h3>
+                            <p class="text-sm text-[#94A3B8]">Extraction automatique</p>
+                        </div>
+                    </div>
+                    <p class="text-[#94A3B8] leading-relaxed">
+                        Collez l'URL de votre stream. Nous extrayons les pics d'audience et l'engagement du chat en
+                        temps réel pour quantifier votre impact.
+                    </p>
+                </div>
+
+                <!-- Feature 2: Twitter Intelligence -->
+                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
+                    <div class="flex gap-4 mb-4">
+                        <div
+                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
+                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Intelligence Réseaux sociaux</h3>
+                            <p class="text-sm text-[#94A3B8]">Portée et sentiment</p>
+                        </div>
+                    </div>
+                    <p class="text-[#94A3B8] leading-relaxed">
+                        Scannez vos hashtags et mots-clés. Mesurez la portée réelle et l'engagement de vos posts
+                        sponsorisés avec analyse de sentiment.
+                    </p>
+                </div>
+
+                <!-- Feature 3: AI Storytelling -->
+                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
+                    <div class="flex gap-4 mb-4">
+                        <div
+                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
+                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Storytelling IA</h3>
+                            <p class="text-sm text-[#94A3B8]">Algorithme Gemini 3</p>
+                        </div>
+                    </div>
+                    <p class="text-[#94A3B8] leading-relaxed">
+                        L'IA transforme vos chiffres bruts en un argumentaire de vente percutant pour les marques.
+                        Rédigé en français naturel et professionnel.
+                    </p>
+                </div>
+
+                <!-- Feature 4: PDF Report -->
+                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
+                    <div class="flex gap-4 mb-4">
+                        <div
+                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
+                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                d="M19 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4v2h6v-2h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 16H5V4h14v14zm-5.04-6.71l-2.75 3.54h2.5l2.5-3.29 2.5 3.29h2.5l-2.75-3.54 2.75-3.71h-2.5l-2.5 3.29-2.5-3.29h-2.5l2.75 3.71z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Rapport PDF Premium</h3>
+                            <p class="text-sm text-[#94A3B8]">Express 10 pages</p>
+                        </div>
+                    </div>
+                    <p class="text-[#94A3B8] leading-relaxed">
+                        Exportez un dossier complet au format PDF avec vos logos et couleurs en quelques
+                        minutes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="relative px-4 py-32 border-t border-white/10">
+        <div class="max-w-3xl mx-auto">
+            <!-- Section Header -->
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
+                    Questions <span class="text-gradient">fréquentes</span>
+                </h2>
+            </div>
+
+            <!-- FAQ Items -->
+            <div class="space-y-4">
+                <!-- FAQ Item 1 -->
+                <details class="faq-item group cursor-pointer">
+                    <summary
+                        class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
+                        <span class="text-lg font-semibold text-white">Quelles plateformes sont supportées ?</span>
+                        <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
+                             stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </summary>
+                    <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
+                        <p class="mb-3">Actuellement, nous supportons :</p>
+                        <ul class="list-disc list-inside space-y-2 text-[#94A3B8]">
+                            <li><strong class="text-white">Twitter (X)</strong> - Extraction de tweets, hashtags,
+                                mentions</li>
+                                <li><strong class="text-white">Twitch</strong> - Statistiques de streams, audience, chat
+                                    engagement</li>
+                                </ul>
+                                <p class="mt-3 text-sm">YouTube, TikTok sont en feuille de route pour 2026.</p>
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 2 -->
+                        <details class="faq-item group cursor-pointer">
+                            <summary
+                                class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
+                                <span class="text-lg font-semibold text-white">Est-ce que le rapport est personnalisable
+                                    ?</span>
+                                    <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
+                                         stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                    </svg>
+                                </summary>
+                                <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
+                                    <p>Absolument ! Vous pouvez :</p>
+                                    <ul class="list-disc list-inside space-y-2 mt-3 text-[#94A3B8]">
+                                        <li>Ajouter votre logo et couleurs de marque</li>
+                                        <li>Ajouter des notes personnelles et témoignages</li>
+                                        <li>Exporter en PDF</li>
+                                    </ul>
+                                </div>
+                            </details>
+
+                            <!-- FAQ Item 3 -->
+                            <details class="faq-item group cursor-pointer">
+                                <summary
+                                    class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
+                                    <span class="text-lg font-semibold text-white">Combien de temps dure l'analyse ?</span>
+                                    <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
+                                         stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                    </svg>
+                                </summary>
+                                <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
+                                    <p><strong class="text-[#CCC9DC]">Moins de 10 minutes</strong> pour un rapport complet.</p>
+                                    @* <p class="mt-3">La vitesse dépend du volume de données :</p>
+                                    <ul class="list-disc list-inside space-y-2 mt-3 text-[#94A3B8]">
+                                        <li>Stream Twitch seul : 2-3 minutes</li>
+                                        <li>Twitch + Twitter (30j) : 5-7 minutes</li>
+                                        <li>Twitch + Twitter (90j) : 8-10 minutes</li> 
+                                    </ul>*@
+                                </div>
+                            </details>
+
+                            <!-- FAQ Item 4 -->
+                            <details class="faq-item group cursor-pointer">
+                                <summary
+                                    class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
+                                    <span class="text-lg font-semibold text-white">Combien ça coûte ?</span>
+                                    <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
+                                         stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                    </svg>
+                                </summary>
+                                <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
+                                    <p class="mb-3">Nous sommes actuellement en <strong class="text-white">beta fermée</strong>.
+                                    </p>
+                                    <p>Les premiers utilisateurs auront :</p>
+                                    <ul class="list-disc list-inside space-y-2 mt-3 text-[#94A3B8]">
+                                        <li>Accès anticipé et pricing founders</li>
+                                        <li>5 rapports gratuits pour commencer</li>
+                                        <li>Support prioritaire et feedback direct</li>
+                                    </ul>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Last CTA Section -->
+                <section class="relative px-4 py-32">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="relative overflow-hidden rounded-3xl p-12 md:p-20 border border-[#CCC9DC]/20 cta-gradient">
+                            <!-- Animated background -->
+                            <div class="absolute inset-0 opacity-40 pointer-events-none">
+                                <div class="absolute top-0 right-0 w-64 h-64 bg-[#CCC9DC]/10 rounded-full blur-3xl animate-pulse">
+                                </div>
+                                <div class="absolute bottom-0 left-0 w-96 h-96 bg-[#324A5F]/10 rounded-full blur-3xl animate-pulse"
+                                     style="animation-delay: 1s;"></div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="relative z-10 text-center">
+                                <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
+                                    Prêt à signer votre<br />prochain gros sponsor ?
+                                </h2>
+
+                                <p class="text-lg text-[#94A3B8] mb-12 max-w-2xl mx-auto">
+                                    Rejoignez les organisateurs eSport qui gagnent déjà des contrats avec SponsorPulse.
+                                </p>
+
+                                <button class="btn-cta-primary text-lg px-10 py-4 mx-auto block">
+                                    Rejoindre la waitlist
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer Section -->
+                <footer class="border-t border-white/10 py-16 px-4">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                            <!-- Brand -->
+                            <div>
+                                <div class="flex items-center gap-2 mb-4">
+                                    <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
+                                    <span class="text-lg font-bold text-white">SponsorPulse</span>
+                                </div>
+                                <p class="text-[#94A3B8] text-sm">
+                                  Prouvez votre valuer avec des chiffres concrets.
+                                </p>
+                            </div>
+
+                            <!-- Product -->
+                            @* <div>
+                                <h4 class="font-semibold text-white mb-4">Produit</h4>
+                                <ul class="space-y-2 text-sm text-[#94A3B8]">
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Fonctionnalités</a></li>
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Pricing</a></li>
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">API</a></li>
+                                </ul>
+                            </div>
+
+                             <!-- Company -->
+                            <div>
+                                <h4 class="font-semibold text-white mb-4">Entreprise</h4>
+                                <ul class="space-y-2 text-sm text-[#94A3B8]">
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">À propos</a></li>
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Blog</a></li>
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Contact</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Legal -->
+                            <div>
+                                <h4 class="font-semibold text-white mb-4">Légal</h4>
+                                <ul class="space-y-2 text-sm text-[#94A3B8]">
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Conditions</a></li>
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Confidentialité</a></li>
+                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Cookies</a></li>
+                                </ul>
+                            </div>*@
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="border-t border-white/10 pt-8">
+                            <div class="flex flex-col md:flex-row justify-between items-center text-sm text-[#94A3B8]">
+                                <p>&copy; 2026 SponsorPulse. Tous droits réservés.</p>
+                                <div class="flex gap-6 mt-4 md:mt-0">
+                                    <a href="#" class="hover:text-[#CCC9DC] transition-colors">Twitter</a>
+                                    <a href="#" class="hover:text-[#CCC9DC] transition-colors">Discord</a>
+                                    <a href="#" class="hover:text-[#CCC9DC] transition-colors">GitHub</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+
+@code {
+    // Page Logic
+}
+
+<style>
+    .font-jakarta {
+        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #CCC9DC 0%, #324A5F 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .cta-gradient {
+        background: radial-gradient(circle at 35% 50%, rgba(204, 201, 220, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 85% 50%, rgba(51, 65, 85, 0.1) 0%, transparent 50%);
+    }
+
+    /* Material Symbols Icon */
+    .material-symbols-light {
+        font-variation-settings:
+            'FILL' 0,
+            'wght' 300,
+            'GRAD' 0,
+            'opsz' 24;
+    }
+
+    /* FAQ Accordion Styling */
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    details summary {
+        list-style: none;
+    }
+
+    .faq-item[open] summary {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(204, 201, 220, 0.5);
+    }
+</style>
