@@ -1,5 +1,6 @@
 @page "/"
 @layout EmptyLayout
+@inject NavigationManager Navigation
 
 <div class="min-h-screen gradient-mesh overflow-hidden font-jakarta">
     <!-- Header / Navigation -->
@@ -27,7 +28,7 @@
                     <button class="btn-cta-primary text-sm px-6 py-2">
                         Inscription
                     </button>*@
-                    <button class="btn-cta-secondary">
+                    <button class="btn-cta-secondary" @onclick="GoToDemo">
                         Voir une démonstration
                     </button>
                 </div>
@@ -473,7 +474,10 @@
             </div>
 
 @code {
-    // Page Logic
+    private void GoToDemo()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
 }
 
 <style>
