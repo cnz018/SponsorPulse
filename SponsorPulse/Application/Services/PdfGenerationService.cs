@@ -1,11 +1,14 @@
 namespace SponsorPulse.Application.Services;
 
 using SponsorPulse.Domain.Entities;
+using SponsorPulse.Application.Common.Configuration;
+using Microsoft.Extensions.Options;
 
 public interface IPdfGenerationService
 {
     Task<PdfGenerationResult> GeneratePdfAsync(Event @event, PdfCustomizationOptions options);
     Task<string> GetPdfPreviewHtmlAsync(Event @event, PdfCustomizationOptions options);
+    bool IsInDemoMode { get; }
 }
 
 public record PdfCustomizationOptions(
@@ -24,20 +27,40 @@ public record PdfGenerationResult(
 
 public class PdfGenerationService : IPdfGenerationService
 {
+    private readonly DemoModeSettings _settings;
+
+    public bool IsInDemoMode => _settings.IsDemo;
+
+    public PdfGenerationService(IOptions<DemoModeSettings> options)
+    {
+        _settings = options.Value;
+    }
+
     public async Task<PdfGenerationResult> GeneratePdfAsync(Event @event, PdfCustomizationOptions options)
     {
         try
         {
-            // Mock PDF generation
             var html = await GetPdfPreviewHtmlAsync(@event, options);
             
-            // In production, this would use a library like iTextSharp or Pupeteer
-            // For demo, we'll just return a success with empty bytes
-            var pdfBytes = System.Text.Encoding.UTF8.GetBytes(html);
+            if (_settings.IsDemo)
+            {
+                // Mode démo : retourner un contenu HTML encodé
+                var pdfBytes = System.Text.Encoding.UTF8.GetBytes(html);
 
+                return new PdfGenerationResult(
+                    Success: true,
+                    PdfBytes: pdfBytes,
+                    ErrorMessage: null,
+                    GeneratedAt: DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                );
+            }
+
+            // Mode normal : appeler une vraie API de génération PDF (iTextSharp, Puppeteer, etc.)
+            // Pour l'instant, même comportement que la démo
+            var demoBytes = System.Text.Encoding.UTF8.GetBytes(html);
             return new PdfGenerationResult(
                 Success: true,
-                PdfBytes: pdfBytes,
+                PdfBytes: demoBytes,
                 ErrorMessage: null,
                 GeneratedAt: DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
             );

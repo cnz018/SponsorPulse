@@ -4,9 +4,11 @@
 @using SponsorPulse.Infrastructure.Persistence
 @using SponsorPulse.Presentation.Components
 @using SponsorPulse.Infrastructure.Repositories
+@using SponsorPulse.Application.Services
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager Navigation
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
+@inject IDemoDataService DemoDataService
 
 <PageTitle>Dashboard - SponsorPulse</PageTitle>
 
@@ -274,9 +276,17 @@
 
     private async Task LoadEvents()
     {
-        // For demo purposes, load from static repository
-        events = StaticDemoRepository.GetDemoEvents().OrderByDescending(e => e.Date).ToList();
-        await Task.CompletedTask;
+        if (DemoDataService.IsInDemoMode)
+        {
+            // En mode démo, charger depuis le service qui utilise StaticDemoRepository
+            events = (await DemoDataService.GetDemoEventsAsync()).OrderByDescending(e => e.Date).ToList();
+        }
+        else
+        {
+            // En mode normal, charger depuis la base de données
+            using var context = await DbFactory.CreateDbContextAsync();
+            events = await context.Events.OrderByDescending(e => e.Date).ToListAsync();
+        }
     }
 
     private void GoToCreate()
