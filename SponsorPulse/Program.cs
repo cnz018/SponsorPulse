@@ -1,3 +1,4 @@
+using LumexUI.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse;
@@ -13,7 +14,10 @@ SQLitePCL.Batteries_V2.Init();
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Blazor Web Services
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddLumexServices();
 
 // Infrastructure Services
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -65,6 +69,7 @@ app.MapStaticAssets();
 app.MapMediaPresignedUrlEndpoints();
 
 // Map Blazor Components
-app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();

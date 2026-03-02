@@ -34,8 +34,8 @@
 
     <h2 class="text-xl font-bold text-white mb-6">Vos Événements</h2>
 
-    <EventSelector Events="events" OnEdit="HandleEditEvent"        OnDelete="HandleDeleteEvent"        OnAnalyze="HandleAnalyzeEvent"
-                   OnGenerate="HandleGenerateEvent"        OnBulkAnalyze="HandleBulkAnalyze"        OnBulkDelete="HandleBulkDelete" />
+    <EventSelector Events="events" OnEdit="HandleEditEvent" OnDelete="HandleDeleteEvent" OnAnalyze="HandleAnalyzeEvent"
+                   OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze" OnBulkDelete="HandleBulkDelete" />
 
     @if (showCreateModal)
     {
@@ -296,14 +296,14 @@
 
     private void HandleEditEvent(Event evt)
     {
-        // TODO: Naviguer vers la page d'édition d'événement
-        Navigation.NavigateTo($"event/{evt.Slug}/edit");
+        // Naviguer vers la page des métrique/détails de l'événement
+        Navigation.NavigateTo($"event/{evt.Slug}/metrics");
     }
 
     private void HandleAnalyzeEvent(Event evt)
     {
-        // Naviguer vers la page de métriques
-        Navigation.NavigateTo($"event/{evt.Slug}/metrics");
+        // Naviguer vers la page d'analyse
+        Navigation.NavigateTo($"event/{evt.Slug}/analyze");
     }
 
     private void HandleGenerateEvent(Event evt)

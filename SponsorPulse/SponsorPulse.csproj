@@ -7,8 +7,13 @@
     <RenderComponentScripts>true</RenderComponentScripts>
   </PropertyGroup>
 
+  <Target Name="BuildTailwind" BeforeTargets="AfterBuild">
+    <Exec Command="npm run tailwind:build" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="Cloudflare.NET.R2" Version="2.0.0" />
+    <PackageReference Include="LumexUI" Version="2.3.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.3" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
   </ItemGroup>

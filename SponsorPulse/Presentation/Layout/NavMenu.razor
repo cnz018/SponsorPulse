@@ -1,29 +1,64 @@
-﻿<div class="logo-area">
-    <span class="logo-gradient">SponsorPulse</span>
-</div>
-
-<nav>
-    <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
-        <span class="icon"><!-- Icon Home --></span> Dashboard
+﻿@using LumexUI.Common
+@* <nav>
+    <NavLink class="nav-item mb-auto" href="" Match="NavLinkMatch.All">
+        <i class="bi bi-house mr-2"></i> Dashboard
     </NavLink>
-    <NavLink class="nav-item" href="events">
-        <span class="icon"><!-- Icon Events --></span> Événements
+    <NavLink class="nav-item" href="">
+        <i class="bi bi-gear mr-2"></i> Settings
+    </NavLink>
+    @* <NavLink class="nav-item" href="events">
+        <span class="iconify" data-icon="material-symbols:calendar-today-outline-rounded" data-inline="false"></span> Événements
     </NavLink>
     <NavLink class="nav-item" href="reports">
-        <span class="icon"><!-- Icon Reports --></span> Rapports
+        <span class="iconify" data-icon="material-symbols:bar-chart-outline-rounded" data-inline="false"></span> Rapports
     </NavLink>
-</nav>
+<div class="logo-area">
+    <img src="/sp_logo.png" alt="SponsorPulse Logo" />
+    <span class="logo-nav">SponsorPulse</span>
+</div>
+</nav> 
+*@
+<LumexNavbar>
+    <LumexUser Name="John Doe" Description="Paternship Manager">
+        <AvatarContent>
+            <LumexAvatar Src="https://randomuser.me/api/portraits/" Radius=@Radius.Small />
+        </AvatarContent>
+    </LumexUser>
+    <LumexDivider />
+    <LumexNavbarItem>
+        <LumexLink href="" class="nav-item mb-auto">
+            <i class="bi bi-house mr-2"></i> Dashboard
+        </LumexLink>
+    </LumexNavbarItem>
+    <LumexNavbarItem>
+        <LumexLink href="" class="nav-item mb-auto">
+            <i class="bi bi-gear mr-2"></i> Settings
+        </LumexLink>
+    </LumexNavbarItem>
+</LumexNavbar>
 
 <style>
+    nav {
+        display: flex;
+        flex-direction: column;
+    }
+
     .logo-area {
+        display: flex;
         padding: 2rem;
         margin-bottom: 1rem;
     }
 
-    .logo-gradient {
+    .logo-area img {
+        width: 32px;
+        height: 32px;
+        margin-right: 8px;
+    }
+
+    .logo-nav {
         font-size: 1.5rem;
         font-weight: 700;
-        background: linear-gradient(90deg, #60A5FA, #A78BFA);
+        background: var(--white);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }

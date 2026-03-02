@@ -37,7 +37,8 @@
     {
         <div style="margin-bottom: 1.5rem;">
             <span style="display: block; font-size: 0.875rem; color: #94A3B8; margin-bottom: 0.5rem;">@label: @value</span>
-            <input type="range" value="@value" @onchange="e => UpdateSlider(label, (int)e.Value!)" min="0" max="100" style="width: 100%; cursor: pointer;" />
+            <input type="range" value="@value" @onchange="e => UpdateSlider(label, (int)e.Value!)" min="0" max="100"
+                   style="width: 100%; cursor: pointer;" />
         </div>
     }
 </div>

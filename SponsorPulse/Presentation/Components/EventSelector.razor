@@ -4,19 +4,27 @@
     <!-- Toolbar avec actions groupées -->
     @if (SelectedEventIds.Count > 1)
     {
-        <div class="toolbar-grouped-actions glass-panel mb-4">
-            <div class="toolbar-info">
-                <span class="text-sm text-gray-400">
-                    @SelectedEventIds.Count événement(s) sélectionné(s)
-                </span>
-            </div>
-            <div class="toolbar-actions gap-2 flex">
-                <button class="btn-grouped" @onclick="() => OnBulkAnalyze.InvokeAsync()">
-                    Analyser les sélectionnés
+        <div class="toolbar-grouped-actions mb-4">
+            <div class="toolbar-actions gap-2 flex relative">
+                <button class="btn-grouped" @onclick="ToggleBulkMenu">
+                    Actions groupées
                 </button>
-                <button class="btn-grouped btn-danger" @onclick="() => OnBulkDelete.InvokeAsync()">
-                    Supprimer les sélectionnés
-                </button>
+
+                @if (OpenBulkMenu)
+                {
+                    <div class="menu-dropdown" @onclick:stopPropagation="true">
+                        <button class="menu-item" @onclick="() => { OnBulkAnalyze.InvokeAsync(); ToggleBulkMenu(); }">
+                            <span class="icon-analyze">📊</span> Analyser
+                        </button>
+                        <button class="menu-item" @onclick="() => { OnBulkGenerate.InvokeAsync(); ToggleBulkMenu(); }">
+                            <span class="icon-generate">📄</span> Générer PDF
+                        </button>
+                        <hr class="menu-divider" />
+                        <button class="menu-item danger" @onclick="() => { OnBulkDelete.InvokeAsync(); ToggleBulkMenu(); }">
+                            <span class="icon-delete">🗑</span> Supprimer
+                        </button>
+                    </div>
+                }
             </div>
         </div>
     }
@@ -33,17 +41,6 @@
         {
             <table class="w-full">
                 <thead>
-                    <tr class="border-b border-gray-700">
-                        <th class="checkbox-col">
-                            <input type="checkbox"    @onchange="ToggleSelectAll"                   checked="@IsAllSelected"
-                                   class="checkbox-input" />
-                        </th>
-                        <th class="col-name">Événement</th>
-                        <th class="col-date">Date</th>
-                        <th class="col-platform">Plateforme</th>
-                        <th class="col-status">Statut</th>
-                        <th class="col-actions">Actions</th>
-                    </tr>
                 </thead>
                 <tbody>
                     @foreach (var evt in Events)
@@ -52,7 +49,7 @@
                             <td class="checkbox-col">
                                 <input type="checkbox"
                                        @onchange="(ChangeEventArgs e) => ToggleSelection(evt.Id, (bool)e.Value!)"
-                                       @onclick:stopPropagation="true"           checked="@IsEventSelected(evt.Id)"          class="checkbox-input" />
+                                       @onclick:stopPropagation="true" checked="@IsEventSelected(evt.Id)" class="checkbox-input" />
                             </td>
                             <td class="col-name">
                                 <div class="event-name">@evt.Name</div>
@@ -68,7 +65,7 @@
                             </td>
                             <td class="col-actions">
                                 <div class="relative">
-                                    <button class="btn-menu"                title="Options"                    @onclick="() => ToggleMenu(evt.Id)"
+                                    <button class="btn-menu" title="Options" @onclick="() => ToggleMenu(evt.Id)"
                                             @onclick:stopPropagation="true">
                                         <svg class="icon-dots" viewBox="0 0 24 24" fill="currentColor">
                                             <circle cx="12" cy="5" r="2" />
@@ -292,6 +289,14 @@
         height: 16px;
     }
 
+    .icon-dropdown-arrow {
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin-left: 0.5rem;
+        /* Equivalent to ml-2 if Tailwind is used */
+    }
+
     .menu-dropdown {
         position: absolute;
         top: 100%;
@@ -428,8 +433,12 @@
     [Parameter]
     public EventCallback OnBulkDelete { get; set; }
 
+    [Parameter]
+    public EventCallback OnBulkGenerate { get; set; }
+
     private HashSet<Guid> SelectedEventIds { get; set; } = new();
     private Guid? OpenMenuId { get; set; }
+    private bool OpenBulkMenu { get; set; }
 
     private void ToggleSelection(Guid eventId, bool? isChecked)
     {
@@ -481,6 +490,12 @@
     private void ToggleMenu(Guid eventId)
     {
         OpenMenuId = OpenMenuId == eventId ? null : eventId;
+    }
+
+    private void ToggleBulkMenu()
+    {
+        OpenBulkMenu = !OpenBulkMenu;
+        StateHasChanged();
     }
 
     private string GetStatusClass(EventStatus status) =>

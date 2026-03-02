@@ -9,7 +9,8 @@
     public string Description { get; set; } = string.Empty;
 }
 
-<div style="padding: 1rem; border-radius: 8px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2);">
+<div
+    style="padding: 1rem; border-radius: 8px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2);">
     <div style="font-size: 0.875rem; text-transform: uppercase; color: #94A3B8;">@Title</div>
     <div style="font-size: 1.25rem; font-weight: 600; color: #CCC9DC; margin: 0.5rem 0;">@Score%</div>
     @if (!string.IsNullOrEmpty(Description))
