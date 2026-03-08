@@ -5,7 +5,7 @@
         <NavMenu />
     </div>
 
-    <main class="main-layout-content">
+    <main class="main-layout-content gradient-mesh">
         <LumexToastProvider @rendermode="@RenderMode.InteractiveServer" />
         @Body
     </main>
@@ -27,7 +27,7 @@
         grid-area: sidebar;
         width: 260px;
 
-        background: rgba(12, 24, 33, 0.8);
+        background: var(--ink-black);
         backdrop-filter: blur(12px);
         border-right: 1px solid var(--glass-border);
         display: flex;

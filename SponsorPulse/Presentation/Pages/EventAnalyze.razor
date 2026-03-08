@@ -109,6 +109,9 @@
     [Parameter]
     public string? Slug { get; set; }
 
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
     private Event? currentEvent;
     private Dictionary<string, int> scores = new()
     {
@@ -162,7 +165,28 @@
         "Strategic Fit"
     };
 
-    private void GoToMetrics() => Navigation.NavigateTo($"/event/{Slug}/metrics");
+    private void GoToMetrics()
+    {
+        if (OnClose.HasDelegate)
+        {
+            OnClose.InvokeAsync();
+        }
+        else
+        {
+            Navigation.NavigateTo($"/event/{Slug}/metrics");
+        }
+    }
 
-    private void GoToPdfCustomize() => Navigation.NavigateTo($"/event/{Slug}/pdf-customize");
+    private void GoToPdfCustomize()
+    {
+        if (OnClose.HasDelegate)
+        {
+            OnClose.InvokeAsync();
+            // Navigate to PDF customize in a new modal will be handled by parent
+        }
+        else
+        {
+            Navigation.NavigateTo($"/event/{Slug}/pdf-customize");
+        }
+    }
 }

@@ -1,37 +1,20 @@
 ﻿@using LumexUI.Common
-@* <nav>
-    <NavLink class="nav-item mb-auto" href="" Match="NavLinkMatch.All">
-        <i class="bi bi-house mr-2"></i> Dashboard
-    </NavLink>
-    <NavLink class="nav-item" href="">
-        <i class="bi bi-gear mr-2"></i> Settings
-    </NavLink>
-    @* <NavLink class="nav-item" href="events">
-        <span class="iconify" data-icon="material-symbols:calendar-today-outline-rounded" data-inline="false"></span> Événements
-    </NavLink>
-    <NavLink class="nav-item" href="reports">
-        <span class="iconify" data-icon="material-symbols:bar-chart-outline-rounded" data-inline="false"></span> Rapports
-    </NavLink>
-<div class="logo-area">
-    <img src="/sp_logo.png" alt="SponsorPulse Logo" />
-    <span class="logo-nav">SponsorPulse</span>
-</div>
-</nav> 
-*@
-<LumexNavbar>
-    <LumexUser Name="John Doe" Description="Paternship Manager">
+@inject NavigationManager Navigation
+
+<LumexNavbar ">
+    <LumexUser Name="John Doe" Description="HyperCore Gaming" Class="user-area">
         <AvatarContent>
-            <LumexAvatar Src="https://randomuser.me/api/portraits/" Radius=@Radius.Small />
+            <LumexAvatar Size="@Size.Large" Src="https://randomuser.me/api/portraits/" Radius=@Radius.Small />
         </AvatarContent>
     </LumexUser>
     <LumexDivider />
-    <LumexNavbarItem>
-        <LumexLink href="" class="nav-item mb-auto">
+    <LumexNavbarItem Class="w-full">
+        <LumexLink href="" class="nav-item w-full text-lg mb-auto @(IsActive("/") ? "active" : "")">
             <i class="bi bi-house mr-2"></i> Dashboard
         </LumexLink>
     </LumexNavbarItem>
-    <LumexNavbarItem>
-        <LumexLink href="" class="nav-item mb-auto">
+    <LumexNavbarItem Class="w-full">
+        <LumexLink href="" class="nav-item w-full text-lg mb-auto @(IsActive("/settings") ? "active" : "")">
             <i class="bi bi-gear mr-2"></i> Settings
         </LumexLink>
     </LumexNavbarItem>
@@ -43,9 +26,13 @@
         flex-direction: column;
     }
 
-    .logo-area {
+    header::before{
+        background-color: transparent;
+    }
+
+.user-area {
         display: flex;
-        padding: 2rem;
+padding-top: 2rem;
         margin-bottom: 1rem;
     }
 
@@ -66,7 +53,7 @@
     .nav-item {
         display: flex;
         align-items: center;
-        padding: 0.75rem 2rem;
+        padding: 0.75rem 1rem;
         color: var(--grey-text);
         text-decoration: none;
         transition: all 0.2s;
@@ -80,10 +67,11 @@
     }
 
     .nav-item.active {
-        background: var(--glass-bg);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
         color: var(--white);
-        border-left-color: #10B981;
-        /* Green accent from spec */
+        border-left: 3px solid #10B981;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
     .icon {
@@ -96,3 +84,20 @@
         display: inline-block;
     }
 </style>
+
+@code {
+    private bool IsActive(string path)
+    {
+        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (string.IsNullOrEmpty(currentPath))
+        {
+            currentPath = "/";
+        }
+        else
+        {
+            currentPath = "/" + currentPath;
+        }
+        
+        return currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+    }
+}

@@ -1,43 +1,45 @@
 @page "/"
 @layout EmptyLayout
+@rendermode @(new InteractiveServerRenderMode())
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+@using LumexUI
+@using LumexUI.Common
+@using Microsoft.AspNetCore.Components.Web
 
-<div class="min-h-screen gradient-mesh overflow-hidden font-jakarta">
-    <!-- Header / Navigation -->
-    <header class="sticky top-0 z-50 bg-black/30 backdrop-blur-lg border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <!-- Logo -->
-                <div class="flex items-center gap-2">
-                    <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
-                    <span class="text-xl font-bold hidden sm:inline text-white">SponsorPulse</span>
-                </div>
-
-                <!-- Menu Center - Hidden on Mobile -->
-                <nav class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="nav-link">Fonctionnalités</a>
-                    <a href="#faq" class="nav-link">FAQ</a>
-                    <a href="#" class="nav-link">Support</a>
-                </nav>
-
-                <!-- CTA Buttons -->
-                <div class="flex items-center gap-4">
-                    @*  <button class="hidden sm:block px-6 py-2 text-sm font-medium text-gray-300 hover:text-[#CCC9DC] transition-colors">
-                        Connexion
-                    </button>
-                    <button class="btn-cta-primary text-sm px-6 py-2">
-                        Inscription
-                    </button>*@
-                    <a class="btn-cta-secondary" href="/dashboard">
-                        Voir une démonstration
-                    </a>
-                </div>
+<div class="min-h-screen gradient-mesh font-jakarta">
+    <LumexNavbar Sticky="@true" Blurred="@false" Bordered="@false" Height="5rem" Class="landing-navbar">
+        <LumexNavbarBrand>
+            <div class="flex items-center gap-2">
+                <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
+                <span class="text-xl font-bold text-white navbar-brand-text">SponsorPulse</span>
             </div>
-        </div>
-    </header>
+        </LumexNavbarBrand>
+
+        <LumexNavbarContent Class="hidden md:flex ml-auto">
+            <LumexNavbarItem>
+                <LumexLink Href="#features" Class="nav-link">Fonctionnalités</LumexLink>
+            </LumexNavbarItem>
+            <LumexNavbarItem>
+                <LumexLink Href="#faq" Class="nav-link">FAQ</LumexLink>
+            </LumexNavbarItem>
+            <LumexNavbarItem>
+                <LumexLink Href="#" Class="nav-link">Support</LumexLink>
+            </LumexNavbarItem>
+        </LumexNavbarContent>
+
+        <LumexNavbarContent Align="@Align.End">
+            <LumexNavbarItem>
+                <LumexButton class="btn-cta-secondary" Variant="@Variant.Ghost" @onclick="@(async () => await NavigateToDemo())"
+                             Radius="@Radius.Small">
+                    Tester la démo
+                </LumexButton>
+            </LumexNavbarItem>
+        </LumexNavbarContent>
+    </LumexNavbar>
 
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center justify-center px-4 py-20">
+    <section class="relative min-h-screen flex items-center justify-center px-4 py-10">
         <!-- Decorative Background Elements -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute top-20 left-10 w-72 h-72 bg-red-500/5 rounded-full blur-3xl"></div>
@@ -45,32 +47,23 @@
         </div>
 
         <div class="relative z-10 max-w-3xl mx-auto text-center">
-            <!-- Main Title - Power Headline -->
             <h1 class="hero-title mb-6 text-white font-black">
                 Arrêtez de deviner votre valeur.<br class="hidden sm:block" />
                 <span class="text-gradient">Prouvez-la</span> avec des chiffres.
             </h1>
-
-            <!-- Subtitle -->
-            <p class="hero-subtitle mb-12">
-                Générez des rapports d'impact professionnels en 10 minutes. Récupérez vos stats Twitch et réseaux
+            <p class="hero-subtitle mb-12 mb-12">
+                Générez des rapports impactants à partir de vos stats de streams et réseaux
                 automatiquement pour convaincre vos sponsors.
             </p>
 
             <!-- Email Input Group -->
-            <div class="flex justify-center mb-12 max-w-xl mx-auto">
-                <div class="relative w-full">
-                    <input type="email" placeholder="Votre email..."
-                           class="w-full px-6 py-3 pr-24 rounded-full bg-white/5 border-2 border-[#CCC9DC] text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 focus:border-[#CCC9DC] transition-all" />
-                    <button
-                        class="btn-cta-primary whitespace-nowrap hover:transform-none absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 text-sm">
-                        Rejoindre
-                    </button>
-                </div>
+            <div class="flex justify-center mb-12 mt-20 max-w-xl mx-auto items-center">
+                <LumexTextbox Type="InputType.Email" Placeholder="mon.mail@trophype.fr"
+                              Class="w-full px-6 py-3placeholder-gray-400 focus:outline-none focus:bg-white/10 transition-all" />
+                <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary whitespace-nowrap" Radius="@Radius.Small">
+                    Rejoindre la waitlist
+                </LumexButton>
             </div>
-
-            <!-- Secondary CTA -->
-
         </div>
 
         <!-- Scroll Indicator -->
@@ -188,91 +181,99 @@
                 </p>
             </div>
 
-            <!-- Features Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Feature 1: Twitch Analysis -->
-                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
-                    <div class="flex gap-4 mb-4">
-                        <div
-                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
-                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                d="M11 3a1 1 0 0 0-1 1v8H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h7v8a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-8h7a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-7V4a1 1 0 0 0-1-1h-2Z" />
-                            </svg>
+            <!-- Features Tabs -->
+            <div class="w-full max-w-5xl mx-auto py-8">
+                <LumexTabs Variant="@TabVariant.Underlined" Color="@ThemeColor.Info" Size="@Size.Large">
+                    <!-- Tab 1: Analyse Twitch -->
+                    <LumexTab Id="stream-tab" Title="Analyse Streams">
+                        <div class="feature-tab-content">
+                            <div class="feature-illustration">
+                                <div class="illustration-icon">
+                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                        d="M11 3a1 1 0 0 0-1 1v8H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h7v8a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-8h7a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-7V4a1 1 0 0 0-1-1h-2Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="feature-text">
+                                <h3 class="feature-title">Analyse stream</h3>
+                                <p class="feature-description">
+                                    Collez l'URL de votre stream. Nous extrayons les pics d'audience et l'engagement
+                                    du
+                                    chat en
+                                    temps réel pour quantifier votre impact.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-white">Analyse Twitch</h3>
-                            <p class="text-sm text-[#94A3B8]">Extraction automatique</p>
-                        </div>
-                    </div>
-                    <p class="text-[#94A3B8] leading-relaxed">
-                        Collez l'URL de votre stream. Nous extrayons les pics d'audience et l'engagement du chat en
-                        temps réel pour quantifier votre impact.
-                    </p>
-                </div>
+                    </LumexTab>
 
-                <!-- Feature 2: Twitter Intelligence -->
-                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
-                    <div class="flex gap-4 mb-4">
-                        <div
-                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
-                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
-                            </svg>
+                    <!-- Tab 2: Intelligence Réseaux sociaux -->
+                    <LumexTab Id="sn-tab" Title="Intelligence Sociale">
+                        <div class="feature-tab-content">
+                            <div class="feature-illustration">
+                                <div class="illustration-icon">
+                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="feature-text">
+                                <h3 class="feature-title">Réseaux sociaux</h3>
+                                <p class="feature-description">
+                                    Scannez vos hashtags et mots-clés. Mesurez la portée réelle et l'engagement de
+                                    vos
+                                    posts
+                                    sponsorisés avec analyse de sentiment.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-white">Intelligence Réseaux sociaux</h3>
-                            <p class="text-sm text-[#94A3B8]">Portée et sentiment</p>
-                        </div>
-                    </div>
-                    <p class="text-[#94A3B8] leading-relaxed">
-                        Scannez vos hashtags et mots-clés. Mesurez la portée réelle et l'engagement de vos posts
-                        sponsorisés avec analyse de sentiment.
-                    </p>
-                </div>
+                    </LumexTab>
 
-                <!-- Feature 3: AI Storytelling -->
-                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
-                    <div class="flex gap-4 mb-4">
-                        <div
-                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
-                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                            </svg>
+                    <!-- Tab 3: Storytelling IA -->
+                    <LumexTab Id="ia-tab" Title="Storytelling IA">
+                        <div class="feature-tab-content">
+                            <div class="feature-illustration">
+                                <div class="illustration-icon">
+                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="feature-text">
+                                <h3 class="feature-title">Storytelling IA</h3>
+                                <p class="feature-description">
+                                    L'IA transforme vos chiffres bruts en un argumentaire de vente percutant pour
+                                    les
+                                    marques.
+                                    Rédigé en français naturel et professionnel.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-white">Storytelling IA</h3>
-                            <p class="text-sm text-[#94A3B8]">Algorithme Gemini 3</p>
-                        </div>
-                    </div>
-                    <p class="text-[#94A3B8] leading-relaxed">
-                        L'IA transforme vos chiffres bruts en un argumentaire de vente percutant pour les marques.
-                        Rédigé en français naturel et professionnel.
-                    </p>
-                </div>
+                    </LumexTab>
 
-                <!-- Feature 4: PDF Report -->
-                <div class="glass-card group hover:border-[#CCC9DC]/50 transition-all cursor-pointer">
-                    <div class="flex gap-4 mb-4">
-                        <div
-                            class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#CCC9DC]/20 to-[#324A5F]/20 group-hover:from-[#CCC9DC]/30 group-hover:to-[#324A5F]/30 transition-all">
-                            <svg class="w-6 h-6 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                d="M19 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4v2h6v-2h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 16H5V4h14v14zm-5.04-6.71l-2.75 3.54h2.5l2.5-3.29 2.5 3.29h2.5l-2.75-3.54 2.75-3.71h-2.5l-2.5 3.29-2.5-3.29h-2.5l2.75 3.71z" />
-                            </svg>
+                    <!-- Tab 4: Rapport PDF Premium -->
+                    <LumexTab Id="pdf-tab" Title="Rapport PDF">
+                        <div class="feature-tab-content">
+                            <div class="feature-illustration">
+                                <div class="illustration-icon">
+                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                        d="M19 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4v2h6v-2h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 16H5V4h14v14zm-5.04-6.71l-2.75 3.54h2.5l2.5-3.29 2.5 3.29h2.5l-2.75-3.54 2.75-3.71h-2.5l-2.5 3.29-2.5-3.29h-2.5l2.75 3.71z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="feature-text">
+                                <h3 class="feature-title">Rapport PDF Premium</h3>
+                                <p class="feature-description">
+                                    Exportez un dossier complet au format PDF avec vos logos et couleurs en quelques
+                                    minutes.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-white">Rapport PDF Premium</h3>
-                            <p class="text-sm text-[#94A3B8]">Express 10 pages</p>
-                        </div>
-                    </div>
-                    <p class="text-[#94A3B8] leading-relaxed">
-                        Exportez un dossier complet au format PDF avec vos logos et couleurs en quelques
-                        minutes.
-                    </p>
-                </div>
+                    </LumexTab>
+                </LumexTabs>
             </div>
         </div>
     </section>
@@ -288,192 +289,240 @@
             </div>
 
             <!-- FAQ Items -->
-            <div class="space-y-4">
-                <!-- FAQ Item 1 -->
-                <details class="faq-item group cursor-pointer">
-                    <summary
-                        class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
-                        <span class="text-lg font-semibold text-white">Quelles plateformes sont supportées ?</span>
-                        <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
-                             stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                        </svg>
-                    </summary>
-                    <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
-                        <p class="mb-3">Actuellement, nous supportons :</p>
-                        <ul class="list-disc list-inside space-y-2 text-[#94A3B8]">
-                            <li><strong class="text-white">Twitter (X)</strong> - Extraction de tweets, hashtags,
-                                mentions</li>
-                                <li><strong class="text-white">Twitch</strong> - Statistiques de streams, audience, chat
-                                    engagement</li>
-                                </ul>
-                                <p class="mt-3 text-sm">YouTube, TikTok sont en feuille de route pour 2026.</p>
-                            </div>
-                        </details>
+            <div class="max-w-3xl mx-auto py-8">
+                <div class="lumex-components-wrapper">
+                    <LumexAccordion Variant="@AccordionVariant.Bordered" SelectionMode="@SelectionMode.Single"
+                                    ShowDividers="@true" Collapsible="true">
+                        <!-- FAQ Item 1 -->
+                        <LumexAccordionItem Id="faq1" Title="Quelles plateformes sont supportées ?">
+                            <div class="faq-content">
+                                <p class="mb-3">Actuellement, nous supportons :</p>
+                                <ul class="faq-list">
+                                    <li><strong class="text-white">Twitter (X)</strong> - Extraction de tweets,
+                                        hashtags,
+                                        mentions</li>
+                                        <li><strong class="text-white">Twitch</strong> - Statistiques de streams, audience,
+                                            chat
+                                            engagement</li>
+                                        </ul>
+                                        <p class="mt-3 text-sm">YouTube, TikTok, Instagram, Discord sont en feuille de route pour 2026.</p>
+                                    </div>
+                                </LumexAccordionItem>
 
-                        <!-- FAQ Item 2 -->
-                        <details class="faq-item group cursor-pointer">
-                            <summary
-                                class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
-                                <span class="text-lg font-semibold text-white">Est-ce que le rapport est personnalisable
-                                    ?</span>
-                                    <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                                    </svg>
-                                </summary>
-                                <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
-                                    <p>Absolument ! Vous pouvez :</p>
-                                    <ul class="list-disc list-inside space-y-2 mt-3 text-[#94A3B8]">
-                                        <li>Ajouter votre logo et couleurs de marque</li>
-                                        <li>Ajouter des notes personnelles et témoignages</li>
-                                        <li>Exporter en PDF</li>
-                                    </ul>
-                                </div>
-                            </details>
+                                <!-- FAQ Item 2 -->
+                                <LumexAccordionItem Id="faq2" Title="Est-ce que le rapport est personnalisable ?">
+                                    <div class="faq-content">
+                                        <p>Absolument ! Vous pouvez :</p>
+                                        <ul class="faq-list">
+                                            <li>Ajouter votre logo et couleurs de marque</li>
+                                            <li>Exporter en PDF</li>
+                                        </ul>
+                                    </div>
+                                </LumexAccordionItem>
 
-                            <!-- FAQ Item 3 -->
-                            <details class="faq-item group cursor-pointer">
-                                <summary
-                                    class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
-                                    <span class="text-lg font-semibold text-white">Combien de temps dure l'analyse ?</span>
-                                    <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                                    </svg>
-                                </summary>
-                                <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
-                                    <p><strong class="text-[#CCC9DC]">Moins de 10 minutes</strong> pour un rapport complet.</p>
-                                    @* <p class="mt-3">La vitesse dépend du volume de données :</p>
-                                    <ul class="list-disc list-inside space-y-2 mt-3 text-[#94A3B8]">
-                                        <li>Stream Twitch seul : 2-3 minutes</li>
-                                        <li>Twitch + Twitter (30j) : 5-7 minutes</li>
-                                        <li>Twitch + Twitter (90j) : 8-10 minutes</li> 
-                                    </ul>*@
-                                </div>
-                            </details>
+                                <!-- FAQ Item 3 -->
+                                <LumexAccordionItem Id="faq3" Title="Combien de temps dure l'analyse ?">
+                                    <div class="faq-content">
+                                        <p><strong class="text-[#CCC9DC]">Moins de 10 minutes</strong> pour un rapport complet.
+                                        </p>
+                                    </div>
+                                </LumexAccordionItem>
 
-                            <!-- FAQ Item 4 -->
-                            <details class="faq-item group cursor-pointer">
-                                <summary
-                                    class="flex items-center justify-between p-6 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 group-open:border-[#CCC9DC]/50 transition-all">
-                                    <span class="text-lg font-semibold text-white">Combien ça coûte ?</span>
-                                    <svg class="w-6 h-6 text-[#CCC9DC] transition-transform group-open:rotate-180" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                                    </svg>
-                                </summary>
-                                <div class="px-6 pt-2 pb-6 text-[#94A3B8]">
-                                    <p class="mb-3">Nous sommes actuellement en <strong class="text-white">beta fermée</strong>.
-                                    </p>
-                                    <p>Les premiers utilisateurs auront :</p>
-                                    <ul class="list-disc list-inside space-y-2 mt-3 text-[#94A3B8]">
-                                        <li>Accès anticipé et pricing founders</li>
-                                        <li>5 rapports gratuits pour commencer</li>
-                                        <li>Support prioritaire et feedback direct</li>
-                                    </ul>
-                                </div>
-                            </details>
+                                <!-- FAQ Item 4 -->
+                                <LumexAccordionItem Id="faq4" Title="Combien ça coûte ?">
+                                    <div class="faq-content">
+                                        <p class="mb-3">Nous sommes actuellement en <strong class="text-white">beta
+                                            fermée</strong>.
+                                        </p>
+                                    </div>
+                                </LumexAccordionItem>
+                            </LumexAccordion>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <!-- Last CTA Section -->
-                <section class="relative px-4 py-32">
-                    <div class="max-w-4xl mx-auto">
-                        <div class="relative overflow-hidden rounded-3xl p-12 md:p-20 border border-[#CCC9DC]/20 cta-gradient">
-                            <!-- Animated background -->
-                            <div class="absolute inset-0 opacity-40 pointer-events-none">
-                                <div class="absolute top-0 right-0 w-64 h-64 bg-[#CCC9DC]/10 rounded-full blur-3xl animate-pulse">
-                                </div>
-                                <div class="absolute bottom-0 left-0 w-96 h-96 bg-[#324A5F]/10 rounded-full blur-3xl animate-pulse"
-                                     style="animation-delay: 1s;"></div>
+            <!-- Last CTA Section -->
+            <section class="relative px-4 py-32">
+                <div class="max-w-4xl mx-auto">
+                    <div class="relative overflow-hidden rounded-3xl p-12 md:p-20 border border-[#CCC9DC]/20 cta-gradient">
+                        <!-- Animated background -->
+                        <div class="absolute inset-0 opacity-40 pointer-events-none">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-[#CCC9DC]/10 rounded-full blur-3xl animate-pulse">
                             </div>
+                            <div class="absolute bottom-0 left-0 w-96 h-96 bg-[#324A5F]/10 rounded-full blur-3xl animate-pulse"
+                                 style="animation-delay: 1s;"></div>
+                        </div>
 
-                            <!-- Content -->
-                            <div class="relative z-10 text-center">
-                                <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
-                                    Prêt à signer votre<br />prochain gros sponsor ?
-                                </h2>
+                        <!-- Content -->
+                        <div class="relative z-10 text-center">
+                            <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
+                                Prêt à signer votre<br />prochain gros sponsor ?
+                            </h2>
 
-                                <p class="text-lg text-[#94A3B8] mb-12 max-w-2xl mx-auto">
-                                    Rejoignez les organisateurs eSport qui gagnent déjà des contrats avec SponsorPulse.
-                                </p>
+                            <p class="text-lg text-[#94A3B8] mb-12 max-w-2xl mx-auto">
+                                Rejoignez les organisateurs eSport qui gagnent déjà des contrats avec SponsorPulse.
+                            </p>
 
-                                <button class="btn-cta-primary text-lg px-10 py-4 mx-auto block">
-                                    Rejoindre la waitlist
-                                </button>
-                            </div>
+                            <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary-second text-lg px-10 mx-auto block">
+                                Rejoindre la waitlist
+                            </LumexButton>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <!-- Footer Section -->
-                <footer class="border-t border-white/10 py-16 px-4">
-                    <div class="max-w-7xl mx-auto">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                            <!-- Brand -->
-                            <div>
-                                <div class="flex items-center gap-2 mb-4">
-                                    <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
-                                    <span class="text-lg font-bold text-white">SponsorPulse</span>
-                                </div>
-                                <p class="text-[#94A3B8] text-sm">
-                                    Prouvez votre valuer avec des chiffres concrets.
-                                </p>
+            <!-- Footer Section -->
+            <footer class="border-t border-white/10 py-16 px-4">
+                <div class="max-w-7xl mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                        <!-- Brand -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-4">
+                                <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
+                                <span class="text-lg font-bold text-white navbar-brand-text">SponsorPulse</span>
                             </div>
-
-                            <!-- Product -->
-                            @* <div>
-                                <h4 class="font-semibold text-white mb-4">Produit</h4>
-                                <ul class="space-y-2 text-sm text-[#94A3B8]">
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Fonctionnalités</a></li>
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Pricing</a></li>
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">API</a></li>
-                                </ul>
-                            </div>
-
-                             <!-- Company -->
-                            <div>
-                                <h4 class="font-semibold text-white mb-4">Entreprise</h4>
-                                <ul class="space-y-2 text-sm text-[#94A3B8]">
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">À propos</a></li>
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Blog</a></li>
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Contact</a></li>
-                                </ul>
-                            </div>
-
-                            <!-- Legal -->
-                            <div>
-                                <h4 class="font-semibold text-white mb-4">Légal</h4>
-                                <ul class="space-y-2 text-sm text-[#94A3B8]">
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Conditions</a></li>
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Confidentialité</a></li>
-                                    <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Cookies</a></li>
-                                </ul>
-                            </div>*@
+                            <p class="text-[#94A3B8] text-sm">
+                                Prouvez votre valeur avec des chiffres concrets.
+                            </p>
                         </div>
 
-                        <!-- Divider -->
-                        <div class="border-t border-white/10 pt-8">
-                            <div class="flex flex-col md:flex-row justify-between items-center text-sm text-[#94A3B8]">
-                                <p>&copy; 2026 SponsorPulse. Tous droits réservés.</p>
-                                <div class="flex gap-6 mt-4 md:mt-0">
-                                    <a href="#" class="hover:text-[#CCC9DC] transition-colors">Twitter</a>
-                                    <a href="#" class="hover:text-[#CCC9DC] transition-colors">Discord</a>
-                                    <a href="#" class="hover:text-[#CCC9DC] transition-colors">GitHub</a>
-                                </div>
+                        <!-- Product -->
+                        @* <div>
+                    <h4 class="font-semibold text-white mb-4">Produit</h4>
+                    <ul class="space-y-2 text-sm text-[#94A3B8]">
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Fonctionnalités</a></li>
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">API</a></li>
+                    </ul>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Entreprise</h4>
+                    <ul class="space-y-2 text-sm text-[#94A3B8]">
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">À propos</a></li>
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Légal</h4>
+                    <ul class="space-y-2 text-sm text-[#94A3B8]">
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Conditions</a></li>
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Confidentialité</a></li>
+                        <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Cookies</a></li>
+                    </ul>
+                </div>*@
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="border-t border-white/10 pt-8">
+                        <div class="flex flex-col md:flex-row justify-between items-center text-sm text-[#94A3B8]">
+                            <p>&copy; 2026 SponsorPulse. Tous droits réservés.</p>
+                            <div class="flex gap-4 mt-4 md:mt-0">
+                                <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
+                                    <LumexPopoverTrigger>
+                                        <button class="social-icon-btn">
+                                            <img src="https://api.iconify.design/logos:x.svg" alt="Twitter"
+                                                 class="social-icon" />
+                                        </button>
+                                    </LumexPopoverTrigger>
+                                    <LumexPopoverContent>
+                                        <span class="popover-text">Twitter</span>
+                                    </LumexPopoverContent>
+                                </LumexPopover>
+
+                                <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
+                                    <LumexPopoverTrigger>
+                                        <button class="social-icon-btn">
+                                            <img src="https://api.iconify.design/logos:discord-icon.svg" alt="Discord"
+                                                 class="social-icon" />
+                                        </button>
+                                    </LumexPopoverTrigger>
+                                    <LumexPopoverContent>
+                                        <span class="popover-text">Discord</span>
+                                    </LumexPopoverContent>
+                                </LumexPopover>
+
+                                <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
+                                    <LumexPopoverTrigger>
+                                        <button class="social-icon-btn">
+                                            <img src="https://api.iconify.design/logos:github-icon.svg" alt="GitHub"
+                                                 class="social-icon" />
+                                        </button>
+                                    </LumexPopoverTrigger>
+                                    <LumexPopoverContent>
+                                        <span class="popover-text">GitHub</span>
+                                    </LumexPopoverContent>
+                                </LumexPopover>
                             </div>
                         </div>
                     </div>
-                </footer>
-            </div>
+                </div>
+            </footer>
+
+            <!-- Loading Modal -->
+            @if (isLoading)
+            {
+                <div class="loading-modal-backdrop" @onclick="CancelLoading">
+                    <div class="loading-modal-content" @onclick:stopPropagation>
+                        <LumexSpinner Size="@Size.Large" Color="@ThemeColor.Primary" />
+                        <h3 class="loading-title">Chargement de la démo...</h3>
+                        <p class="loading-subtitle">Préparation de votre environnement de démonstration</p>
+                    </div>
+                </div>
+            }
+        </div>
 
 @code {
+    private bool isLoading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Add scroll event listener for navbar background
+            await JS.InvokeVoidAsync("eval", @"
+                (function() {
+                    const navbar = document.querySelector('.landing-navbar');
+                    if (navbar) {
+                        const handleScroll = () => {
+                            if (window.scrollY > 50) {
+                                navbar.classList.add('sticky-active');
+                            } else {
+                                navbar.classList.remove('sticky-active');
+                            }
+                        };
+                        window.addEventListener('scroll', handleScroll);
+                        // Check initial scroll position
+                        handleScroll();
+                    }
+                })()
+            ");
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task NavigateToDemo()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        // Simuler un chargement
+        await Task.Delay(1500);
+
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private void CancelLoading()
+    {
+        isLoading = false;
+    }
+
     private void GoToDemo()
     {
         Navigation.NavigateTo("/dashboard");
@@ -497,6 +546,178 @@
             radial-gradient(circle at 85% 50%, rgba(51, 65, 85, 0.1) 0%, transparent 50%);
     }
 
+    /* Landing Navbar Custom Styles */
+    .landing-navbar {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        border-bottom: none !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        transition: background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease !important;
+    }
+
+    /* Navbar with sticky background - black when scrolled */
+    .landing-navbar.sticky-active {
+        background: rgba(0, 0, 0, 0.95) !important;
+        backdrop-filter: blur(12px) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Ensure LumexUI components are interactive */
+    .landing-navbar [class*="lumex"] {
+        pointer-events: auto !important;
+    }
+
+    /* Feature Tabs - Ensure interactivity */
+    .feature-tab-content {
+        pointer-events: auto;
+    }
+
+    /* FAQ Accordion - Ensure interactivity */
+    .faq-content {
+        pointer-events: auto;
+    }
+
+    /* LumexUI Tabs and Accordion z-index fix */
+    [class*="lumex-tabs"],
+    [class*="lumex-accordion"] {
+        position: relative;
+        z-index: 100;
+    }
+
+    /* Ensure LumexUI popover and dropdowns are visible */
+    [class*="lumex-popover"],
+    [class*="lumex-dropdown"] {
+        z-index: 9999 !important;
+    }
+
+    /* Fix for tabs content visibility */
+    .lumex-tabs-content,
+    [role="tabpanel"] {
+        position: relative;
+        z-index: 50;
+    }
+
+    /* Fix for accordion content visibility */
+    .lumex-accordion-content,
+    [role="region"] {
+        position: relative;
+        z-index: 50;
+    }
+
+    /* Wrapper for LumexUI components to ensure visibility */
+    .lumex-components-wrapper {
+        position: relative;
+        z-index: 100;
+    }
+
+    .lumex-components-wrapper [class^="lumex"] {
+        position: relative;
+        z-index: 100;
+    }
+
+    .landing-navbar .navbar-brand-text {
+        background: linear-gradient(135deg, #CCC9DC 0%, #94A3B8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .landing-navbar .nav-link {
+        color: #94A3B8 !important;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .landing-navbar .nav-link:hover {
+        color: #CCC9DC !important;
+    }
+
+    /* Feature Tabs Styles */
+    .feature-tab-content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 3rem;
+        padding: 3rem 2rem;
+        align-items: center;
+    }
+
+    .feature-illustration {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(204, 201, 220, 0.1) 0%, rgba(50, 74, 95, 0.1) 100%);
+        border-radius: 24px;
+        border: 1px solid rgba(204, 201, 220, 0.2);
+    }
+
+    .illustration-icon {
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .illustration-icon svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .feature-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .feature-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+
+    .feature-subtitle {
+        font-size: 1rem;
+        color: #94A3B8;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .feature-description {
+        font-size: 1.125rem;
+        color: #94A3B8;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .feature-tab-content {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            padding: 2rem 1rem;
+        }
+
+        .feature-illustration {
+            padding: 1.5rem;
+        }
+
+        .illustration-icon {
+            width: 80px;
+            height: 80px;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+        }
+
+        .feature-description {
+            font-size: 1rem;
+        }
+    }
+
     /* Material Symbols Icon */
     .material-symbols-light {
         font-variation-settings:
@@ -507,16 +728,137 @@
     }
 
     /* FAQ Accordion Styling */
-    details summary::-webkit-details-marker {
-        display: none;
+    .faq-content {
+        padding: 1rem 1.5rem 1.5rem;
+        color: #94A3B8;
+        line-height: 1.7;
     }
 
-    details summary {
+    .faq-content p {
+        margin: 0 0 1rem 0;
+    }
+
+    .faq-list {
         list-style: none;
+        padding: 0;
+        margin: 1rem 0;
     }
 
-    .faq-item[open] summary {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-color: rgba(204, 201, 220, 0.5);
+    .faq-list li {
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+    }
+
+    .faq-list li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #CCC9DC;
+        font-weight: bold;
+    }
+
+    /* Social Icons with Popover */
+    .social-icon-btn {
+        background: transparent;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .social-icon-btn:hover {
+        background: rgba(204, 201, 220, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .social-icon {
+        width: 24px;
+        height: 24px;
+        transition: all 0.2s;
+    }
+
+    .social-icon-btn:hover .social-icon {
+        filter: brightness(1.2);
+    }
+
+    .popover-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #94A3B8;
+        white-space: nowrap;
+    }
+
+    /* Loading Modal */
+    .loading-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .loading-modal-content {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+        border: 1px solid rgba(204, 201, 220, 0.3);
+        border-radius: 24px;
+        padding: 3rem;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        max-width: 400px;
+    }
+
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(204, 201, 220, 0.2);
+        border-top-color: #CCC9DC;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1.5rem;
+    }
+
+    .loading-title {
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .loading-subtitle {
+        color: #94A3B8;
+        font-size: 0.875rem;
+        font-family: 'Arial', sans-serif;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
 </style>

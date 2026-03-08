@@ -1,0 +1,258 @@
+@page "/test/report-template"
+@rendermode RenderMode.InteractiveServer
+@using SponsorPulse.Domain.Models
+@using SponsorPulse.Domain.Entities
+@using SponsorPulse.Infrastructure.Repositories
+
+<PageTitle>Test - Rapport SponsorPulse</PageTitle>
+
+<div class="test-container">
+    <div class="test-header">
+        <h1>🧪 Test du Template SponsorReport</h1>
+        <p>Prévisualisation du rapport PDF avec des données de démo</p>
+        <div class="test-actions">
+            <button class="btn-print" @onclick="PrintReport">
+                <span>🖨️</span> Imprimer / PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="report-preview">
+        @if (reportModel != null)
+        {
+            <SponsorReport Model="reportModel" />
+        }
+        else
+        {
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Chargement du rapport...</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .test-container {
+        min-height: 100vh;
+        background: #1e293b;
+        padding: 2rem;
+    }
+
+    .test-header {
+        max-width: 210mm;
+        margin: 0 auto 2rem;
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .test-header-left h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .test-header-left p {
+        margin: 0;
+        color: #94a3b8;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .test-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'Arial', sans-serif;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    }
+
+    .report-preview {
+        max-width: 210mm;
+        margin: 0 auto;
+    }
+
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        color: #94a3b8;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(99, 102, 241, 0.2);
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @@media print {
+        .test-header {
+            display: none !important;
+        }
+        .test-container {
+            background: white;
+            padding: 0;
+        }
+    }
+</style>
+
+@code {
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+    
+    private ReportModel? reportModel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(500);
+        
+        var demoEvents = StaticDemoRepository.GetDemoEvents();
+        var demoEvent = demoEvents.FirstOrDefault();
+        
+        if (demoEvent != null)
+        {
+            reportModel = new ReportModel
+            {
+                CompanyName = "TechCorp Industries",
+                LogoUrl = null,
+                PrimaryColor = "#6366F1",
+                SecondaryColor = "#8B5CF6",
+                EventName = demoEvent.Name,
+                EventDate = demoEvent.Date,
+                EventPlatform = demoEvent.StreamPlatform,
+                TwitchMetrics = new TwitchMetrics(
+                    demoEvent.ViewerCount ?? 0,
+                    demoEvent.PeakViewers ?? 0,
+                    demoEvent.StreamDuration ?? TimeSpan.Zero,
+                    demoEvent.StartedAt ?? DateTime.MinValue,
+                    demoEvent.GameName ?? "N/A"
+                ),
+                TwitterAnalytics = demoEvent.TwitterAnalytics,
+                StorytellingText = GenerateStorytellingText(demoEvent),
+                AnalysisText = GenerateAnalysisText(demoEvent),
+                OpportunitiesMissed = GenerateOpportunitiesMissed(demoEvent),
+                Suggestions = GenerateSuggestions(demoEvent),
+                PhotoUrls = demoEvent.Media.Select(m => m.Url).Take(5).ToList()
+            };
+        }
+    }
+
+    private void PrintReport()
+    {
+        _ = JS.InvokeVoidAsync("eval", "window.print()");
+    }
+
+    private string GenerateStorytellingText(Event evt)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"L'événement {evt.Name} a marqué un tournant significatif dans la stratégie de sponsoring eSport. ");
+        
+        if (evt.ViewerCount > 50000)
+        {
+            sb.Append($"Avec plus de {evt.ViewerCount:N0} viewers simultanés, l'audience a démontré un engagement exceptionnel. ");
+        }
+        
+        if (evt.TwitterAnalytics != null)
+        {
+            sb.Append($"Sur les réseaux sociaux, {evt.TwitterAnalytics.TotalTweets:N0} tweets et {evt.TwitterAnalytics.TotalEngagement:N0} interactions ");
+            sb.Append($"ont généré une valeur publicitaire équivalente de {evt.TwitterAnalytics.AdValueEquivalent:N0}€. ");
+        }
+        
+        sb.Append($"La plateforme {evt.StreamPlatform} a été le théâtre d'une performance remarquable, ");
+        sb.Append($"positionnant votre marque au cœur de l'expérience eSport.");
+        
+        return sb.ToString();
+    }
+
+    private string GenerateAnalysisText(Event evt)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"Cet événement a confirmé le potentiel du sponsoring eSport comme levier de visibilité. ");
+        sb.Append($"Les metrics Twitch montrent une audience fidèle et engagée. ");
+        
+        if (evt.PeakViewers > evt.ViewerCount * 1.5)
+        {
+            sb.Append($"Le pic d'audience à {evt.PeakViewers:N0} viewers indique des moments forts ayant captivé l'attention. ");
+        }
+        
+        if (evt.TwitterAnalytics != null)
+        {
+            sb.Append($"L'impact Twitter démontre une résonance au-delà du live, avec un multiplicateur viral de {evt.TwitterAnalytics.ViralMultiplier:F2}x.");
+        }
+        
+        return sb.ToString();
+    }
+
+    private List<string> GenerateOpportunitiesMissed(Event evt)
+    {
+        var opportunities = new List<string>();
+        
+        if (evt.ViewerCount < evt.PeakViewers * 0.7)
+        {
+            opportunities.Add("Rétention audience : Optimiser le contenu pendant les creux d'audience");
+        }
+        
+        if (evt.TwitterAnalytics != null && evt.TwitterAnalytics.TotalTweets < 1000)
+        {
+            opportunities.Add("Engagement Twitter : Stimuler les conversations avec des hashtags dédiés");
+        }
+        
+        if (evt.StreamDuration < TimeSpan.FromHours(4))
+        {
+            opportunities.Add("Durée de stream : Étendre le temps d'antenne pour maximiser l'exposition");
+        }
+        
+        if (!opportunities.Any())
+        {
+            opportunities.Add("Aucune opportunité majeure identifiée - performance globale excellente");
+        }
+        
+        return opportunities;
+    }
+
+    private List<string> GenerateSuggestions(Event evt)
+    {
+        var secondaryPlatform = evt.StreamPlatform == "Twitch" ? "YouTube Gaming et TikTok" : "Twitch";
+        
+        return new List<string>
+        {
+            "Intégrer des activations interactives pendant le stream (sondages, giveaways)",
+            "Développer un contenu behind-the-scenes pour prolonger l'engagement post-événement",
+            "Créer un programme d'ambassadeurs parmi les influenceurs les plus engagés",
+            $"Explorer {secondaryPlatform} pour une présence multi-plateformes",
+            "Mettre en place un tracking en temps réel pour optimiser les décisions pendant l'événement"
+        };
+    }
+}

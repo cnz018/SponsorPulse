@@ -21,7 +21,8 @@ public static class StaticDemoRepository
                 description: "League of Legends Championship Spring Finals",
                 date: new DateTime(2026, 4, 15, 18, 0, 0),
                 platform: "Twitch",
-                channelId: "lec"
+                channelId: "lec",
+                slug: "lec2026a"
             ),
             CreateDemoEvent(
                 id: Guid.Parse("550e8400-e29b-41d4-a716-446655440002"),
@@ -29,7 +30,8 @@ public static class StaticDemoRepository
                 description: "Valorant Pro esports competition",
                 date: new DateTime(2026, 3, 20, 16, 30, 0),
                 platform: "Twitch",
-                channelId: "valorantesports"
+                channelId: "valorantesports",
+                slug: "valo2026b"
             ),
             CreateDemoEvent(
                 id: Guid.Parse("550e8400-e29b-41d4-a716-446655440003"),
@@ -37,7 +39,8 @@ public static class StaticDemoRepository
                 description: "Counter-Strike 2 Major Championship",
                 date: new DateTime(2026, 5, 10, 14, 0, 0),
                 platform: "Twitch",
-                channelId: "esl_csgo"
+                channelId: "esl_csgo",
+                slug: "cs2maj26c"
             ),
             CreateDemoEvent(
                 id: Guid.Parse("550e8400-e29b-41d4-a716-446655440004"),
@@ -45,7 +48,8 @@ public static class StaticDemoRepository
                 description: "Path to the International",
                 date: new DateTime(2026, 2, 28, 19, 0, 0),
                 platform: "YouTube",
-                channelId: "dotaesports"
+                channelId: "dotaesports",
+                slug: "dota2i26d"
             ),
             CreateDemoEvent(
                 id: Guid.Parse("550e8400-e29b-41d4-a716-446655440005"),
@@ -53,7 +57,8 @@ public static class StaticDemoRepository
                 description: "Battle Royale World Championship",
                 date: new DateTime(2026, 6, 5, 17, 0, 0),
                 platform: "Twitch",
-                channelId: "pubgesports"
+                channelId: "pubgesports",
+                slug: "pubg2026e"
             )
         };
     }
@@ -99,9 +104,9 @@ public static class StaticDemoRepository
         };
     }
 
-    private static Event CreateDemoEvent(Guid id, string name, string description, DateTime date, string platform, string channelId)
+    private static Event CreateDemoEvent(Guid id, string name, string description, DateTime date, string platform, string channelId, string slug)
     {
-        var evt = new Event(id, name, description, date, platform, channelId, GenerateSlug())
+        var evt = new Event(id, name, description, date, platform, channelId, slug)
         {
             Status = EventStatus.Completed
         };

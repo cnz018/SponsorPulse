@@ -1,9 +1,9 @@
 namespace SponsorPulse.Application.Services;
 
+using Microsoft.Extensions.Options;
+using SponsorPulse.Application.Common.Configuration;
 using SponsorPulse.Domain.Entities;
 using SponsorPulse.Infrastructure.Repositories;
-using SponsorPulse.Application.Common.Configuration;
-using Microsoft.Extensions.Options;
 
 public interface IDemoDataService
 {
@@ -13,16 +13,11 @@ public interface IDemoDataService
     bool IsInDemoMode { get; }
 }
 
-public class DemoDataService : IDemoDataService
+public class DemoDataService(IOptions<DemoModeSettings> options) : IDemoDataService
 {
-    private readonly DemoModeSettings _settings;
+    private readonly DemoModeSettings _settings = options.Value;
 
     public bool IsInDemoMode => _settings.IsDemo;
-
-    public DemoDataService(IOptions<DemoModeSettings> options)
-    {
-        _settings = options.Value;
-    }
 
     public async Task<List<Event>> GetDemoEventsAsync()
     {
@@ -42,6 +37,7 @@ public class DemoDataService : IDemoDataService
         {
             var events = StaticDemoRepository.GetDemoEvents();
             var @event = events.FirstOrDefault(e => e.Slug == slug);
+
             return await Task.FromResult(@event);
         }
 
@@ -62,4 +58,3 @@ public class DemoDataService : IDemoDataService
         return await Task.FromResult((Event?)null);
     }
 }
-

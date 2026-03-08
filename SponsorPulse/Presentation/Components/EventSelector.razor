@@ -1,313 +1,181 @@
 @using SponsorPulse.Domain.Entities
+@using LumexUI.Shared.Icons
+@using Humanizer
 
 <div class="event-selector-container">
-    <!-- Toolbar avec actions groupées -->
-    @if (SelectedEventIds.Count > 1)
-    {
-        <div class="toolbar-grouped-actions mb-4">
-            <div class="toolbar-actions gap-2 flex relative">
-                <button class="btn-grouped" @onclick="ToggleBulkMenu">
-                    Actions groupées
-                </button>
+    <LumexDataGrid Data="@FilteredEvents" SelectionMode="@SelectionMode.Multiple" @bind-SelectedItems="@SelectedEvents"
+                   Hoverable="@true" EmptyContent="@EmptyContent" OnRowClick="RowClickCallback"
+                   Radius="@Radius.Small" Class="w-full">
+        <ToolbarContent>
+            @if (SelectedEvents.Count > 1)
+            {
+                <div class="relative">
+                    <LumexButton Variant="@Variant.Ghost" Size="@Size.Small" OnClick="@ToggleBulkMenu">
+                        Actions
+                    </LumexButton>
 
-                @if (OpenBulkMenu)
-                {
-                    <div class="menu-dropdown" @onclick:stopPropagation="true">
-                        <button class="menu-item" @onclick="() => { OnBulkAnalyze.InvokeAsync(); ToggleBulkMenu(); }">
-                            <span class="icon-analyze">📊</span> Analyser
-                        </button>
-                        <button class="menu-item" @onclick="() => { OnBulkGenerate.InvokeAsync(); ToggleBulkMenu(); }">
-                            <span class="icon-generate">📄</span> Générer PDF
-                        </button>
-                        <hr class="menu-divider" />
-                        <button class="menu-item danger" @onclick="() => { OnBulkDelete.InvokeAsync(); ToggleBulkMenu(); }">
-                            <span class="icon-delete">🗑</span> Supprimer
-                        </button>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    <!-- Tableau des événements -->
-    <div class="events-table glass-panel">
-        @if (Events == null || !Events.Any())
-        {
-            <div class="text-center text-gray-400 py-8">
-                Aucun événement pour le moment.
-            </div>
-        }
-        else
-        {
-            <table class="w-full">
-                <thead>
-                </thead>
-                <tbody>
-                    @foreach (var evt in Events)
+                    @if (OpenBulkMenu)
                     {
-                        <tr class="@GetRowClass(evt.Id)" @onclick="() => ToggleSelection(evt.Id, null)">
-                            <td class="checkbox-col">
-                                <input type="checkbox"
-                                       @onchange="(ChangeEventArgs e) => ToggleSelection(evt.Id, (bool)e.Value!)"
-                                       @onclick:stopPropagation="true" checked="@IsEventSelected(evt.Id)" class="checkbox-input" />
-                            </td>
-                            <td class="col-name">
-                                <div class="event-name">@evt.Name</div>
-                            </td>
-                            <td class="col-date">
-                                <span class="text-gray-400">@evt.Date.ToShortDateString()</span>
-                            </td>
-                            <td class="col-platform">
-                                <span class="platform-badge">@evt.StreamPlatform</span>
-                            </td>
-                            <td class="col-status">
-                                <span class="@GetStatusClass(evt.Status)">@evt.Status</span>
-                            </td>
-                            <td class="col-actions">
-                                <div class="relative">
-                                    <button class="btn-menu" title="Options" @onclick="() => ToggleMenu(evt.Id)"
-                                            @onclick:stopPropagation="true">
-                                        <svg class="icon-dots" viewBox="0 0 24 24" fill="currentColor">
-                                            <circle cx="12" cy="5" r="2" />
-                                            <circle cx="12" cy="12" r="2" />
-                                            <circle cx="12" cy="19" r="2" />
-                                        </svg>
-                                    </button>
-
-                                    @if (OpenMenuId == evt.Id)
-                                    {
-                                        <div class="menu-dropdown" @onclick:stopPropagation="true">
-                                            <button class="menu-item" @onclick="() => OnEdit.InvokeAsync(evt)">
-                                                <span class="icon-edit">✎</span> Éditer
-                                            </button>
-                                            <button class="menu-item" @onclick="() => OnAnalyze.InvokeAsync(evt)">
-                                                <span class="icon-analyze">📊</span> Analyser
-                                            </button>
-                                            <button class="menu-item" @onclick="() => OnGenerate.InvokeAsync(evt)">
-                                                <span class="icon-generate">📄</span> Générer PDF
-                                            </button>
-                                            <hr class="menu-divider" />
-                                            <button class="menu-item danger" @onclick="() => OnDelete.InvokeAsync(evt)">
-                                                <span class="icon-delete">🗑</span> Supprimer
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
+                        <div class="bulk-menu-dropdown" @onclick:stopPropagation="true">
+                            <button class="menu-item" @onclick="() => ExecuteBulkAction(BulkAction.Analyze)">
+                                <span class="icon-analyze">📊</span> Analyser
+                            </button>
+                            <button class="menu-item" @onclick="() => ExecuteBulkAction(BulkAction.Generate)">
+                                <span class="icon-generate">📄</span> Générer PDF
+                            </button>
+                            <hr class="menu-divider" />
+                            <button class="menu-item danger" @onclick="() => ExecuteBulkAction(BulkAction.Delete)">
+                                <span class="icon-delete">🗑</span> Supprimer
+                            </button>
+                        </div>
                     }
-                </tbody>
-            </table>
-        }
-    </div>
+                </div>
+            }
+
+            <LumexTextbox Placeholder="Rechercher par nom ou URL..." Behavior="@InputBehavior.OnInput"
+                          @bind-Value="@SearchQuery" Variant="@InputVariant.Outlined" Class="search-textbox mr-auto" Size="@Size.Medium">
+                <StartContent>
+                    <SearchIcon Size="18" />
+                </StartContent>
+            </LumexTextbox>
+        </ToolbarContent>
+        <ChildContent>
+            <TemplateColumn Title="Événement">
+                <div class="event-info-cell">
+                    <span class="event-name">@context.Name</span>
+                    <span class="event-url">@context.StreamPlatform</span>
+                </div>
+            </TemplateColumn>
+            <TemplateColumn Title="Date de création">
+                <div class="creation-date">
+                    @context.Date.Humanize()
+                </div>
+            </TemplateColumn>
+            <PropertyColumn Property="@(e => e.Status)" Title="Statut">
+                <Content>
+                    <LumexChip Size="@Size.Small" Variant="@ChipVariant.Dot" Color="@GetStatusColor(context.Status)"
+                               Class="@GetStatusClass(context.Status)">
+                        @GetStatusText(context.Status)
+                    </LumexChip>
+                </Content>
+            </PropertyColumn>
+            <TemplateColumn Title="" Align="@Align.End">
+                <div class="relative">
+                    <LumexButton IconOnly="@true" Size="@Size.Small" Variant="@Variant.Light"
+                                 OnClick="@(() => ToggleMenu(context.Id))">
+                        <EllipsisVerticalIcon />
+                    </LumexButton>
+
+                    @if (OpenMenuId == context.Id)
+                    {
+                        <div class="menu-dropdown" @onclick:stopPropagation="true">
+                            <button class="menu-item" @onclick="() => HandleEdit(context)">
+                                <span class="icon-edit">✎</span> Éditer
+                            </button>
+                            <button class="menu-item" @onclick="() => HandleAnalyze(context)">
+                                <span class="icon-analyze">📊</span> Analyser
+                            </button>
+                            <button class="menu-item" @onclick="() => HandleGenerate(context)">
+                                <span class="icon-generate">📄</span> Générer PDF
+                            </button>
+                            <hr class="menu-divider" />
+                            <button class="menu-item text-danger" @onclick="() => HandleDelete(context)">
+                                <span class="icon-delete">🗑</span> Supprimer
+                            </button>
+                        </div>
+                    }
+                </div>
+            </TemplateColumn>
+        </ChildContent>
+    </LumexDataGrid>
 </div>
+
+@if (showEventDetails)
+{
+    <div class="modal-backdrop" @onclick="CloseEventDetails">
+        <div class="modal-content-wrapper" @onclick:stopPropagation>
+            <EventDetails Slug="@SelectedEventSlug" OnClose="CloseEventDetails" OnOpenPdfCustomize="OpenPdfCustomizeFromDetails" />
+        </div>
+    </div>
+}
+
+@if (showAnalyzePage)
+{
+    <div class="modal-backdrop" @onclick="CloseAnalyzePage">
+        <div class="modal-content-wrapper modal-content-large" @onclick:stopPropagation>
+            <EventAnalyze Slug="@SelectedEventSlug" OnClose="CloseAnalyzeAndOpenPdf" />
+        </div>
+    </div>
+}
+
+@if (showPdfCustomizePage)
+{
+    <div class="modal-backdrop" @onclick="ClosePdfCustomizePage">
+        <div class="modal-content-wrapper modal-content-large" @onclick:stopPropagation>
+            <EventPdfCustomize Slug="@SelectedEventSlug" OnClose="ClosePdfCustomizeAndOpenDetails" />
+        </div>
+    </div>
+}
 
 <style>
     .event-selector-container {
+        display: flex;
+        flex-direction: row;
         width: 100%;
     }
 
-    .toolbar-grouped-actions {
+    .search-textbox {
+        max-width: min(250px, 100%);
+    }
+
+    .event-info-cell {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem;
-        border-radius: 12px;
-        background: rgba(59, 130, 246, 0.05);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        animation: slideDownAnimation 0.2s ease-out;
-    }
-
-    @@keyframes slideDownAnimation {
-        from {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .toolbar-info {
-        flex: 1;
-    }
-
-    .toolbar-actions {
-        display: flex;
-    }
-
-    .events-table {
-        border-radius: 12px;
-        background: rgba(30, 41, 59, 0.3);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        overflow: hidden;
-    }
-
-    table {
-        border-collapse: collapse;
-    }
-
-    thead {
-        background: rgba(0, 0, 0, 0.2);
-    }
-
-    th {
-        text-align: left;
-        padding: 1rem;
-        font-weight: 600;
-        color: var(--grey-text);
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    tbody tr {
-        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        transition: background 0.2s;
-        cursor: pointer;
-    }
-
-    tbody tr:hover {
-        background: rgba(255, 255, 255, 0.03);
-    }
-
-    tbody tr.selected {
-        background: rgba(59, 130, 246, 0.1);
-    }
-
-    td {
-        padding: 1rem;
-        color: var(--white);
-        font-size: 0.95rem;
-    }
-
-    .checkbox-col {
-        width: 50px;
-        text-align: center;
-    }
-
-    .col-name {
-        width: 35%;
-    }
-
-    .col-date {
-        width: 15%;
-    }
-
-    .col-platform {
-        width: 12%;
-    }
-
-    .col-status {
-        width: 15%;
-    }
-
-    .col-actions {
-        width: 8%;
-        text-align: center;
-    }
-
-    .checkbox-input {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-        accent-color: var(--lavender);
+        flex-direction: column;
+        gap: 0.25rem;
     }
 
     .event-name {
         font-weight: 500;
         color: var(--white);
+        font-size: 0.95rem;
     }
 
-    .platform-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background: rgba(148, 163, 184, 0.2);
-        border-radius: 4px;
+    .event-url {
         font-size: 0.8rem;
         color: var(--grey-text);
+        opacity: 0.8;
     }
 
-    .status-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-
-    .status-badge.Draft {
-        background: rgba(107, 114, 128, 0.2);
-        color: #9CA3AF;
-    }
-
-    .status-badge.Fetching {
-        background: rgba(59, 130, 246, 0.2);
-        color: #60A5FA;
-    }
-
-    .status-badge.AnalysisReady {
-        background: rgba(34, 197, 94, 0.2);
-        color: #86EFAC;
-    }
-
-    .status-badge.Completed {
-        background: rgba(168, 85, 247, 0.2);
-        color: #D8B4FE;
-    }
-
-    .status-badge.Error {
-        background: rgba(239, 68, 68, 0.2);
-        color: #FCA5A5;
-    }
-
-    .btn-menu {
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    .creation-date {
         color: var(--grey-text);
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        padding: 0;
+        font-size: 0.9rem;
     }
 
-    .btn-menu:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--lavender);
-        border-color: var(--lavender);
-    }
-
-    .icon-dots {
-        width: 16px;
-        height: 16px;
-    }
-
-    .icon-dropdown-arrow {
-        width: 16px;
-        height: 16px;
-        vertical-align: middle;
-        margin-left: 0.5rem;
-        /* Equivalent to ml-2 if Tailwind is used */
+    .bulk-menu-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 4px;
+        background: var(--dark-bg);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        min-width: 180px;
+        overflow: hidden;
     }
 
     .menu-dropdown {
         position: absolute;
         top: 100%;
         right: 0;
-        margin-top: 2px;
+        margin-top: 4px;
         background: var(--dark-bg);
         border: 1px solid rgba(148, 163, 184, 0.2);
         border-radius: 8px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-        z-index: 20;
-        min-width: 180px;
+        z-index: 100;
+        min-width: 200px;
         overflow: hidden;
     }
 
@@ -331,7 +199,7 @@
         color: var(--white);
     }
 
-    .menu-item.danger:hover {
+    .menu-item.text-danger:hover {
         background: rgba(239, 68, 68, 0.15);
         color: #FCA5A5;
     }
@@ -342,72 +210,83 @@
         border-top: 1px solid rgba(148, 163, 184, 0.1);
     }
 
-    .btn-grouped {
-        padding: 0.5rem 1rem;
-        background: rgba(59, 130, 246, 0.2);
-        border: 1px solid rgba(59, 130, 246, 0.4);
-        color: #60A5FA;
-        border-radius: 6px;
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-grouped:hover {
-        background: rgba(59, 130, 246, 0.4);
-        border-color: #60A5FA;
-    }
-
-    .btn-grouped.btn-danger {
-        background: rgba(239, 68, 68, 0.2);
-        border-color: rgba(239, 68, 68, 0.4);
-        color: #FCA5A5;
-    }
-
-    .btn-grouped.btn-danger:hover {
-        background: rgba(239, 68, 68, 0.4);
-        border-color: #FCA5A5;
-    }
-
-    .flex {
-        display: flex;
-    }
-
-    .gap-2 {
-        gap: 0.5rem;
-    }
-
-    .mb-4 {
-        margin-bottom: 1rem;
-    }
-
-    .py-8 {
-        padding: 2rem 0;
-    }
-
-    .text-gray-400 {
-        color: var(--grey-text);
-    }
-
-    .text-white {
-        color: var(--white);
-    }
-
-    .text-sm {
-        font-size: 0.875rem;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
     .relative {
         position: relative;
     }
 
-    .w-full {
+    .status-badge {
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .empty-state-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 3rem 2rem;
+        gap: 1rem;
+    }
+
+    .empty-state-message {
+        color: var(--grey-text);
+        text-align: center;
+        margin: 0;
+    }
+
+    .btn-create-event {
+        background: linear-gradient(135deg, var(--accent-blue) 0%, #2563EB 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-create-event:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-content-wrapper {
         width: 100%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 24px;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content-large {
+        max-width: 1100px;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
 </style>
 
@@ -436,56 +315,153 @@
     [Parameter]
     public EventCallback OnBulkGenerate { get; set; }
 
-    private HashSet<Guid> SelectedEventIds { get; set; } = new();
+    [Parameter]
+    public EventCallback<string> OnNavigateToEvent { get; set; }
+
+    private ICollection<Event> SelectedEvents { get; set; } = new List<Event>();
     private Guid? OpenMenuId { get; set; }
     private bool OpenBulkMenu { get; set; }
+    private string? SearchQuery { get; set; }
+    private bool showEventDetails = false;
+    private bool showAnalyzePage = false;
+    private bool showPdfCustomizePage = false;
+    private string SelectedEventSlug = string.Empty;
+    private DateTime? _lastClickTime;
+    private Guid? _lastClickEventId;
 
-    private void ToggleSelection(Guid eventId, bool? isChecked)
+    private enum BulkAction { Analyze, Generate, Delete }
+
+    private IQueryable<Event> FilteredEvents
     {
-        if (isChecked.HasValue)
+        get
         {
-            if (isChecked.Value)
+            var query = (Events ?? new List<Event>()).AsQueryable();
+
+            if (!string.IsNullOrEmpty(SearchQuery))
             {
-                SelectedEventIds.Add(eventId);
+                query = query.Where(e =>
+                    e.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    e.Slug.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
             }
-            else
-            {
-                SelectedEventIds.Remove(eventId);
-            }
+
+            return query;
         }
-        else if (!SelectedEventIds.Contains(eventId))
+    }
+
+    private RenderFragment EmptyContent => @<div class="empty-state-content">
+        <span class="text-3xl">\(o_o)/</span>
+        <span class="text-xl">Aucun resulat</span>
+        <p class="empty-state-message">Crée un événement et analyse le pour connaitre sa valeur réelle</p>
+        <LumexButton class="btn-create-event" Variant="@Variant.Ghost" OnClick="@(() => OnNavigateToEvent.InvokeAsync("create"))">
+            Créer un événement
+        </LumexButton>
+    </div>;
+
+    private void HandleRowClick(DataGridRowClickEventArgs<Event> args)
+    {
+        var now = DateTime.Now;
+
+        // Check for double-click (within 300ms)
+        if (_lastClickTime.HasValue &&
+            (now - _lastClickTime.Value).TotalMilliseconds < 300 &&
+            _lastClickEventId == args.Item.Id)
         {
-            SelectedEventIds.Add(eventId);
+            // Double-click detected - open event details
+            OpenEventDetails(args.Item.Slug);
+            _lastClickTime = null;
+            _lastClickEventId = null;
         }
         else
         {
-            SelectedEventIds.Remove(eventId);
+            // Single click - just record for potential double-click
+            _lastClickTime = now;
+            _lastClickEventId = args.Item.Id;
         }
+
         StateHasChanged();
     }
 
-    private void ToggleSelectAll(ChangeEventArgs e)
+    private EventCallback<DataGridRowClickEventArgs<Event>> RowClickCallback => new
+EventCallback<DataGridRowClickEventArgs<Event>>(this, HandleRowClick);
+
+    private void HandleEdit(Event evt)
     {
-        if ((bool)e.Value!)
-        {
-            SelectedEventIds.Clear();
-            foreach (var evt in Events ?? new())
-            {
-                SelectedEventIds.Add(evt.Id);
-            }
-        }
-        else
-        {
-            SelectedEventIds.Clear();
-        }
+        // Same behavior as double-click - open event details
+        OpenEventDetails(evt.Slug);
+        OpenMenuId = null;
+    }
+
+    private void HandleAnalyze(Event evt)
+    {
+        SelectedEventSlug = evt.Slug;
+        showAnalyzePage = true;
+        OpenMenuId = null;
         StateHasChanged();
     }
 
-    private bool IsAllSelected => Events?.Any() == true && SelectedEventIds.Count == Events.Count;
+    private void HandleGenerate(Event evt)
+    {
+        SelectedEventSlug = evt.Slug;
+        showPdfCustomizePage = true;
+        OpenMenuId = null;
+        StateHasChanged();
+    }
 
-    private bool IsEventSelected(Guid eventId) => SelectedEventIds.Contains(eventId);
+    private void HandleDelete(Event evt)
+    {
+        OnDelete.InvokeAsync(evt);
+        OpenMenuId = null;
+    }
 
-    private string GetRowClass(Guid eventId) => IsEventSelected(eventId) ? "selected" : "";
+    private void OpenEventDetails(string slug)
+    {
+        SelectedEventSlug = slug;
+        showEventDetails = true;
+        StateHasChanged();
+    }
+
+    private void CloseEventDetails()
+    {
+        showEventDetails = false;
+        SelectedEventSlug = string.Empty;
+        StateHasChanged();
+    }
+
+    private void OpenPdfCustomizeFromDetails(string slug)
+    {
+        showEventDetails = false;
+        SelectedEventSlug = slug;
+        showPdfCustomizePage = true;
+        StateHasChanged();
+    }
+
+    private void CloseAnalyzePage()
+    {
+        showAnalyzePage = false;
+        SelectedEventSlug = string.Empty;
+        StateHasChanged();
+    }
+
+    private void CloseAnalyzeAndOpenPdf()
+    {
+        showAnalyzePage = false;
+        showPdfCustomizePage = true;
+        StateHasChanged();
+    }
+
+    private void ClosePdfCustomizePage()
+    {
+        showPdfCustomizePage = false;
+        SelectedEventSlug = string.Empty;
+        StateHasChanged();
+    }
+
+    private void ClosePdfCustomizeAndOpenDetails()
+    {
+        showPdfCustomizePage = false;
+        showEventDetails = true;
+        StateHasChanged();
+    }
 
     private void ToggleMenu(Guid eventId)
     {
@@ -498,6 +474,44 @@
         StateHasChanged();
     }
 
-    private string GetStatusClass(EventStatus status) =>
-        $"status-badge {status.ToString()}";
+    private async Task ExecuteBulkAction(BulkAction action)
+    {
+        OpenBulkMenu = false;
+        StateHasChanged();
+
+        switch (action)
+        {
+            case BulkAction.Analyze:
+                await OnBulkAnalyze.InvokeAsync();
+                break;
+            case BulkAction.Generate:
+                await OnBulkGenerate.InvokeAsync();
+                break;
+            case BulkAction.Delete:
+                await OnBulkDelete.InvokeAsync();
+                break;
+        }
+    }
+
+    private ThemeColor GetStatusColor(EventStatus status) => status switch
+    {
+        EventStatus.Draft => ThemeColor.Default,
+        EventStatus.Fetching => ThemeColor.Primary,
+        EventStatus.AnalysisReady => ThemeColor.Success,
+        EventStatus.Completed => ThemeColor.Info,
+        EventStatus.Error => ThemeColor.Danger,
+        _ => ThemeColor.Default
+    };
+
+    private string GetStatusClass(EventStatus status) => $"status-badge {status}";
+
+    private string GetStatusText(EventStatus status) => status switch
+    {
+        EventStatus.Draft => "Brouillon",
+        EventStatus.Fetching => "Récupération",
+        EventStatus.AnalysisReady => "Prêt",
+        EventStatus.Completed => "Terminé",
+        EventStatus.Error => "Erreur",
+        _ => status.ToString()
+    };
 }

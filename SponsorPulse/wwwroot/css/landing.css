@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
+  --color-black: #000000;
   --color-ink-black: #0C1821;
   --color-deep-space-blue: #1B2A41;
   --color-charcoal-blue: #324A5F;
@@ -13,6 +14,13 @@
   --border-radius-button: 8px;
   --border-radius-input: 12px;
   --font-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* Main Background Gradient */
+body, .gradient-mesh {
+  background: #000000;
+  background: radial-gradient(at center top, #000000, #1C2A41);
+  min-height: 100dvh;
 }
 
 /* Glassmorphic Effect */
@@ -29,9 +37,9 @@
 }
 
 /* Gradient backgrounds */
-.gradient-mesh {
+/* .gradient-mesh {
   background: linear-gradient(135deg, var(--color-deep-space-blue) 0%, var(--color-ink-black) 100%);
-}
+} */
 
 .gradient-radial {
   background: radial-gradient(circle at 50% 50%, rgba(204, 201, 220, 0.15) 0%, var(--color-ink-black) 100%);
@@ -48,7 +56,15 @@
   background: var(--color-ink-black);
   color: var(--color-white);
   padding: 14px 32px;
-  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.btn-cta-primary-second {
+  background: var(--color-ink-black);
+  color: var(--color-white);
   font-weight: 600;
   transition: all 0.3s ease;
   border: 2px solid transparent;
@@ -57,6 +73,7 @@
 
 .btn-cta-primary:hover {
   background: #1a2d3a;
+  border: 2px solid var(--color-lavender);
   box-shadow: 0 8px 24px rgba(204, 201, 220, 0.15);
   transform: translateY(-2px);
 }
@@ -65,7 +82,6 @@
   background: transparent;
   color: var(--color-white);
   padding: 12px 30px;
-  border-radius: 9999px;
   font-weight: 600;
   transition: all 0.3s ease;
   border: 2px solid var(--color-white);

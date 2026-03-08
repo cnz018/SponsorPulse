@@ -1,0 +1,996 @@
+@using SponsorPulse.Domain.Models
+
+@code {
+    [Parameter]
+    public ReportModel Model { get; set; } = new();
+}
+
+<div class="report-container">
+    @* ==================== PAGE 1: COVER PAGE ==================== *@
+    <div class="page cover-page">
+        <div class="cover-background" style="background-image: url('@(Model.PhotoUrls.FirstOrDefault() ?? "")');"></div>
+        <div class="cover-overlay" style="background: linear-gradient(135deg, @(Model.PrimaryColor)EE 0%, @(Model.SecondaryColor)EE 100%);"></div>
+        
+        <div class="cover-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo" />
+            }
+            else
+            {
+                <div class="company-logo-placeholder" style="color: @(Model.PrimaryColor);">@Model.CompanyName</div>
+            }
+        </div>
+        
+        <div class="cover-content">
+            <div class="cover-decorative" style="background: @(Model.PrimaryColor);"></div>
+            <h1 class="cover-title">Rapport d'Impact<br/>Sponsoring</h1>
+            <div class="cover-event-name">@Model.EventName</div>
+        </div>
+        
+        <div class="cover-footer">
+            <div class="cover-date">@Model.ReportDate.ToString("MMMM yyyy")</div>
+            <div class="cover-company">@Model.CompanyName</div>
+            <div class="sponsor-pulse-branding">
+                <span class="sponsor-pulse-text">Propulsé par</span>
+                <span class="sponsor-pulse-logo">SponsorPulse</span>
+            </div>
+        </div>
+    </div>
+
+    @* ==================== PAGE 2: TABLE OF CONTENTS ==================== *@
+    <div class="page toc-page">
+        <div class="page-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo-small" />
+            }
+        </div>
+        
+        <div class="page-content">
+            <h2 class="section-title" style="color: @(Model.PrimaryColor);">Sommaire</h2>
+            
+            <div class="toc-list">
+                <div class="toc-item">
+                    <span class="toc-section">Vue d'ensemble</span>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page-number">03</span>
+                </div>
+                <div class="toc-item">
+                    <span class="toc-section">Performance Twitch</span>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page-number">04</span>
+                </div>
+                <div class="toc-item">
+                    <span class="toc-section">Performance Twitter</span>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page-number">05</span>
+                </div>
+                <div class="toc-item">
+                    <span class="toc-section">Analyse & Storytelling</span>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page-number">06</span>
+                </div>
+                <div class="toc-item">
+                    <span class="toc-section">Recommandations</span>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page-number">07</span>
+                </div>
+                <div class="toc-item">
+                    <span class="toc-section">Galerie Médias</span>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page-number">08</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <div class="sponsor-pulse-center">Propulsé par SponsorPulse</div>
+        </div>
+    </div>
+
+    @* ==================== PAGE 3: OVERVIEW ==================== *@
+    <div class="page overview-page">
+        <div class="page-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo-small" />
+            }
+        </div>
+        
+        <div class="page-content">
+            <h2 class="section-title" style="color: @(Model.PrimaryColor);">Vue d'ensemble</h2>
+            
+            <div class="overview-grid">
+                <div class="overview-card" style="border-left-color: @(Model.PrimaryColor);">
+                    <div class="overview-label">Plateforme</div>
+                    <div class="overview-value">@Model.EventPlatform</div>
+                </div>
+                <div class="overview-card" style="border-left-color: @(Model.SecondaryColor);">
+                    <div class="overview-label">Date de l'événement</div>
+                    <div class="overview-value">@Model.EventDate.ToString("dd MMMM yyyy")</div>
+                </div>
+                <div class="overview-card highlight" style="background: linear-gradient(135deg, @(Model.PrimaryColor)15 0%, @(Model.SecondaryColor)15 100%);">
+                    <div class="overview-label">Impressions Totales</div>
+                    <div class="overview-value">@Model.TwitterAnalytics?.EstimatedImpressions.ToString("N0")</div>
+                </div>
+            </div>
+            
+            <div class="overview-summary">
+                <p>Ce rapport présente une analyse complète de l'impact de votre sponsoring sur l'événement <strong>@Model.EventName</strong>. 
+                Les données collectées proviennent de deux sources principales : @(Model.EventPlatform) pour les métriques de streaming 
+                et Twitter pour l'engagement social.</p>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <div class="sponsor-pulse-center">Propulsé par SponsorPulse</div>
+        </div>
+    </div>
+
+    @* ==================== PAGE 4: TWITCH METRICS ==================== *@
+    <div class="page metrics-page">
+        <div class="page-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo-small" />
+            }
+        </div>
+        
+        <div class="page-content">
+            <h2 class="section-title" style="color: @(Model.PrimaryColor);">Performance Twitch</h2>
+            
+            @if (Model.TwitchMetrics != null)
+            {
+                <div class="metrics-grid">
+                    <div class="metric-card large" style="border-top-color: @(Model.PrimaryColor);">
+                        <div class="metric-icon">👁️</div>
+                        <div class="metric-value" style="color: @(Model.PrimaryColor);">@Model.TwitchMetrics.ViewerCount.ToString("N0")</div>
+                        <div class="metric-label">Viewers Actuels</div>
+                    </div>
+                    
+                    <div class="metric-card" style="border-top-color: @(Model.SecondaryColor);">
+                        <div class="metric-icon">📈</div>
+                        <div class="metric-value" style="color: @(Model.SecondaryColor);">@Model.TwitchMetrics.PeakViewers.ToString("N0")</div>
+                        <div class="metric-label">Pic de Viewers</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">⏱️</div>
+                        <div class="metric-value">@((int)Model.TwitchMetrics.StreamDuration.TotalHours)h @Model.TwitchMetrics.StreamDuration.Minutes.ToString("D2")</div>
+                        <div class="metric-label">Durée du Stream</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">🎮</div>
+                        <div class="metric-value-small">@Model.TwitchMetrics.GameName</div>
+                        <div class="metric-label">Jeu</div>
+                    </div>
+                </div>
+                
+                <div class="analysis-block">
+                    <h3 class="analysis-title">Analyse de Performance</h3>
+                    <p class="analysis-text">
+                        @(GenerateTwitchAnalysis(Model.TwitchMetrics))
+                    </p>
+                </div>
+            }
+        </div>
+        
+        <div class="page-footer">
+            <div class="sponsor-pulse-center">Propulsé par SponsorPulse</div>
+        </div>
+    </div>
+
+    @* ==================== PAGE 5: TWITTER METRICS ==================== *@
+    <div class="page metrics-page">
+        <div class="page-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo-small" />
+            }
+        </div>
+        
+        <div class="page-content">
+            <h2 class="section-title" style="color: @(Model.PrimaryColor);">Performance Twitter</h2>
+            
+            @if (Model.TwitterAnalytics != null)
+            {
+                <div class="metrics-grid">
+                    <div class="metric-card large" style="border-top-color: @(Model.PrimaryColor);">
+                        <div class="metric-icon">🐦</div>
+                        <div class="metric-value" style="color: @(Model.PrimaryColor);">@Model.TwitterAnalytics.TotalTweets.ToString("N0")</div>
+                        <div class="metric-label">Tweets Totaux</div>
+                    </div>
+                    
+                    <div class="metric-card" style="border-top-color: @(Model.SecondaryColor);">
+                        <div class="metric-icon">❤️</div>
+                        <div class="metric-value" style="color: @(Model.SecondaryColor);">@Model.TwitterAnalytics.TotalEngagement.ToString("N0")</div>
+                        <div class="metric-label">Engagement Total</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">💰</div>
+                        <div class="metric-value">@Model.TwitterAnalytics.AdValueEquivalent.ToString("N0") €</div>
+                        <div class="metric-label">Valeur Publicitaire</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">🚀</div>
+                        <div class="metric-value">x@Model.TwitterAnalytics.ViralMultiplier.ToString("F2")</div>
+                        <div class="metric-label">Multiplicateur Viral</div>
+                    </div>
+                </div>
+                
+                @* Top Tweets *@
+                <div class="top-tweets-section">
+                    <h3 class="subsection-title">Top Tweets</h3>
+                    @foreach (var tweet in Model.TwitterAnalytics.TopTweets.Take(3))
+                    {
+                        <div class="tweet-card">
+                            <div class="tweet-header">
+                                <span class="tweet-author">@tweet.AuthorName</span>
+                                <span class="tweet-handle">@tweet.AuthorHandle</span>
+                                <span class="tweet-followers" style="color: @(Model.SecondaryColor);">@tweet.AuthorFollowersCount.ToString("N0") followers</span>
+                            </div>
+                            <p class="tweet-text">@tweet.Text</p>
+                            <div class="tweet-metrics">
+                                <span>❤️ @tweet.Likes.ToString("N0")</span>
+                                <span>🔁 @tweet.Retweets.ToString("N0")</span>
+                                <span>💬 @tweet.Replies.ToString("N0")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                @* Sentiment Ratio *@
+                @if (Model.TwitterAnalytics.SentimentRatio.Any())
+                {
+                    <div class="sentiment-section">
+                        <h3 class="subsection-title">Sentiment</h3>
+                        @foreach (var sentiment in Model.TwitterAnalytics.SentimentRatio)
+                        {
+                            <div class="sentiment-bar">
+                                <span class="sentiment-label">@sentiment.Key</span>
+                                <div class="sentiment-track">
+                                    <div class="sentiment-fill" style="width: @(sentiment.Value * 100)%; background: @(Model.PrimaryColor);"></div>
+                                </div>
+                                <span class="sentiment-value">@sentiment.Value.ToString("P1")</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+        
+        <div class="page-footer">
+            <div class="sponsor-pulse-center">Propulsé par SponsorPulse</div>
+        </div>
+    </div>
+
+    @* ==================== PAGE 6: ANALYSIS & STORYTELLING ==================== *@
+    <div class="page analysis-page">
+        <div class="page-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo-small" />
+            }
+        </div>
+        
+        <div class="page-content">
+            <h2 class="section-title" style="color: @(Model.PrimaryColor);">Analyse & Storytelling</h2>
+            
+            <div class="storytelling-section">
+                <div class="drop-cap" style="color: @(Model.PrimaryColor); background: @(Model.PrimaryColor)15;">
+                    @(Model.StorytellingText.FirstOrDefault().ToString())
+                </div>
+                <p class="storytelling-text">
+                    @Model.StorytellingText.Substring(1)
+                </p>
+            </div>
+            
+            <div class="analysis-section">
+                <h3 class="analysis-section-title">Synthèse de l'Événement</h3>
+                <p>@Model.AnalysisText</p>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <div class="sponsor-pulse-center">Propulsé par SponsorPulse</div>
+        </div>
+    </div>
+
+    @* ==================== PAGE 7: RECOMMENDATIONS ==================== *@
+    <div class="page recommendations-page">
+        <div class="page-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo-small" />
+            }
+        </div>
+        
+        <div class="page-content">
+            <h2 class="section-title" style="color: @(Model.PrimaryColor);">Recommandations</h2>
+            
+            @* Opportunités Manquées *@
+            <div class="recommendations-section">
+                <h3 class="recommendations-title" style="color: #EF4444;">Opportunités Manquées</h3>
+                <ul class="recommendations-list missed">
+                    @foreach (var item in Model.OpportunitiesMissed)
+                    {
+                        <li class="recommendation-item">
+                            <span class="recommendation-icon">⚠️</span>
+                            <span>@item</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+            
+            @* Suggestions *@
+            <div class="recommendations-section">
+                <h3 class="recommendations-title" style="color: @(Model.PrimaryColor);">Suggestions pour le Prochain Événement</h3>
+                <ul class="recommendations-list suggestions">
+                    @foreach (var item in Model.Suggestions)
+                    {
+                        <li class="recommendation-item">
+                            <span class="recommendation-icon">💡</span>
+                            <span>@item</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <div class="sponsor-pulse-center">Propulsé par SponsorPulse</div>
+        </div>
+    </div>
+
+    @* ==================== PAGE 8: MEDIA GALLERY ==================== *@
+    <div class="page gallery-page">
+        <div class="page-header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName" class="company-logo-small" />
+            }
+        </div>
+        
+        <div class="page-content">
+            <h2 class="section-title" style="color: @(Model.PrimaryColor);">Galerie Médias</h2>
+            
+            @if (Model.PhotoUrls.Any())
+            {
+                <div class="gallery-container gallery-@Math.Min(Model.PhotoUrls.Count, 5)">
+                    @foreach (var photoUrl in Model.PhotoUrls.Take(5))
+                    {
+                        <div class="gallery-item">
+                            <img src="@photoUrl" alt="Event Photo" class="gallery-image" />
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-media">
+                    <p>Aucun média disponible pour cet événement.</p>
+                </div>
+            }
+        </div>
+        
+        <div class="page-footer final-page">
+            <h2 class="sponsor-pulse-final">Propulsé par SponsorPulse</h2>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string GenerateTwitchAnalysis(TwitchMetrics metrics)
+    {
+        var analysis = new System.Text.StringBuilder();
+        
+        analysis.Append($"Avec un pic de {metrics.PeakViewers:N0} viewers simultanés et une durée de stream de {(int)metrics.StreamDuration.TotalHours}h{metrics.StreamDuration.Minutes:D2}, ");
+        analysis.Append($"cet événement a démontré un engagement audience solide. ");
+        
+        if (metrics.PeakViewers > 100000)
+        {
+            analysis.Append("Le seuil des 100K viewers est un indicateur de performance exceptionnel pour un événement eSport. ");
+        }
+        else if (metrics.PeakViewers > 50000)
+        {
+            analysis.Append("Cette audience place l'événement dans le top 20% des streams eSport. ");
+        }
+        
+        analysis.Append($"Le jeu {metrics.GameName} continue de générer un intérêt significatif auprès de la communauté.");
+        
+        return analysis.ToString();
+    }
+}
+
+<style>
+    /* ==================== BASE STYLES ==================== */
+    :root {
+        --primary-color: #6366F1;
+        --secondary-color: #8B5CF6;
+        --text-dark: #1E293B;
+        --text-light: #64748B;
+        --bg-light: #F8FAFC;
+        --white: #FFFFFF;
+        --border-radius: 12px;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .report-container {
+        font-family: 'Georgia', 'Times New Roman', serif;
+        line-height: 1.6;
+        color: var(--text-dark);
+    }
+    
+    .page {
+        width: 210mm;
+        height: 297mm;
+        padding: 20mm;
+        box-sizing: border-box;
+        position: relative;
+        page-break-after: always;
+        background: var(--white);
+    }
+    
+    /* ==================== TYPOGRAPHY ==================== */
+    h1, h2, h3 {
+        font-family: 'Georgia', serif;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+    }
+    
+    h1 { font-size: 3rem; line-height: 1.1; }
+    h2 { font-size: 2rem; }
+    h3 { font-size: 1.25rem; }
+    
+    p {
+        font-family: 'Arial', 'Helvetica', sans-serif;
+        font-size: 11pt;
+        margin: 0 0 1rem 0;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid;
+    }
+    
+    /* ==================== COVER PAGE ==================== */
+    .cover-page {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .cover-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        filter: blur(8px);
+        opacity: 0.3;
+    }
+    
+    .cover-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.9;
+    }
+    
+    .cover-header {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .company-logo {
+        max-width: 200px;
+        max-height: 60px;
+        object-fit: contain;
+    }
+    
+    .company-logo-placeholder {
+        font-size: 1.5rem;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+    }
+    
+    .cover-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 3rem 0;
+    }
+    
+    .cover-decorative {
+        width: 150px;
+        height: 6px;
+        margin: 0 auto 2rem;
+        border-radius: 3px;
+    }
+    
+    .cover-title {
+        color: var(--white);
+        font-size: 4rem;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .cover-event-name {
+        color: var(--white);
+        font-size: 1.5rem;
+        font-family: 'Arial', sans-serif;
+        margin-top: 1rem;
+        opacity: 0.9;
+    }
+    
+    .cover-footer {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: var(--white);
+    }
+    
+    .cover-date {
+        font-size: 1.25rem;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .cover-company {
+        font-size: 1rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+    }
+    
+    .sponsor-pulse-branding {
+        margin-top: 1.5rem;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .sponsor-pulse-text {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        margin-right: 0.5rem;
+    }
+    
+    .sponsor-pulse-logo {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+    
+    /* ==================== PAGE HEADER & FOOTER ==================== */
+    .page-header {
+        position: absolute;
+        top: 15mm;
+        left: 20mm;
+        right: 20mm;
+        height: 60px;
+    }
+    
+    .company-logo-small {
+        max-height: 40px;
+        max-width: 150px;
+        object-fit: contain;
+    }
+    
+    .page-footer {
+        position: absolute;
+        bottom: 15mm;
+        left: 0;
+        right: 0;
+        text-align: center;
+    }
+    
+    .sponsor-pulse-center {
+        font-family: 'Arial', sans-serif;
+        font-size: 0.875rem;
+        color: var(--text-light);
+        letter-spacing: 0.05em;
+    }
+    
+    .sponsor-pulse-final {
+        font-family: 'Arial', sans-serif;
+        font-size: 2rem;
+        color: var(--text-dark);
+        text-align: center;
+        margin: 0;
+    }
+    
+    /* ==================== TABLE OF CONTENTS ==================== */
+    .toc-list {
+        margin-top: 2rem;
+    }
+    
+    .toc-item {
+        display: flex;
+        align-items: baseline;
+        padding: 1rem 0;
+        border-bottom: 1px dashed var(--text-light);
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .toc-section {
+        font-size: 1.125rem;
+        color: var(--text-dark);
+    }
+    
+    .toc-dots {
+        flex: 1;
+        border-bottom: 2px dotted var(--text-light);
+        margin: 0 1rem;
+        position: relative;
+        top: -0.5rem;
+    }
+    
+    .toc-page-number {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+    
+    /* ==================== OVERVIEW ==================== */
+    .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .overview-card {
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        border-left: 4px solid;
+    }
+    
+    .overview-card.highlight {
+        grid-column: span 3;
+    }
+    
+    .overview-label {
+        font-family: 'Arial', sans-serif;
+        font-size: 0.875rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .overview-value {
+        font-family: 'Arial', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-top: 0.5rem;
+    }
+    
+    .overview-summary {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+    }
+    
+    /* ==================== METRICS GRID ==================== */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .metric-card {
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        border-top: 4px solid;
+        text-align: center;
+    }
+    
+    .metric-card.large {
+        grid-column: span 2;
+    }
+    
+    .metric-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-value {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    
+    .metric-value-small {
+        font-family: 'Arial', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+    
+    .metric-label {
+        font-family: 'Arial', sans-serif;
+        font-size: 0.875rem;
+        color: var(--text-light);
+        margin-top: 0.5rem;
+    }
+    
+    /* ==================== ANALYSIS BLOCK ==================== */
+    .analysis-block {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        border-left: 4px solid;
+    }
+    
+    .analysis-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .analysis-text {
+        font-family: 'Arial', sans-serif;
+        font-size: 11pt;
+        line-height: 1.7;
+    }
+    
+    /* ==================== TWEETS ==================== */
+    .top-tweets-section {
+        margin-top: 2rem;
+    }
+    
+    .subsection-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--text-light);
+    }
+    
+    .tweet-card {
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+    }
+    
+    .tweet-header {
+        display: flex;
+        gap: 1rem;
+        align-items: baseline;
+        margin-bottom: 0.75rem;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .tweet-author {
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+    
+    .tweet-handle {
+        color: var(--text-light);
+        font-size: 0.875rem;
+    }
+    
+    .tweet-followers {
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .tweet-text {
+        font-family: 'Arial', sans-serif;
+        font-size: 11pt;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+    
+    .tweet-metrics {
+        display: flex;
+        gap: 1.5rem;
+        font-family: 'Arial', sans-serif;
+        font-size: 0.875rem;
+        color: var(--text-light);
+    }
+    
+    /* ==================== SENTIMENT ==================== */
+    .sentiment-section {
+        margin-top: 2rem;
+    }
+    
+    .sentiment-bar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .sentiment-label {
+        width: 100px;
+        font-size: 0.875rem;
+    }
+    
+    .sentiment-track {
+        flex: 1;
+        height: 12px;
+        background: var(--bg-light);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    
+    .sentiment-fill {
+        height: 100%;
+        border-radius: 6px;
+        transition: width 0.3s;
+    }
+    
+    .sentiment-value {
+        width: 60px;
+        text-align: right;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    /* ==================== STORYTELLING ==================== */
+    .storytelling-section {
+        margin: 2rem 0;
+        padding: 2rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+    }
+    
+    .drop-cap {
+        float: left;
+        font-family: 'Georgia', serif;
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 0.8;
+        padding: 0.5rem;
+        margin-right: 0.5rem;
+        border-radius: 8px;
+    }
+    
+    .storytelling-text {
+        font-family: 'Arial', sans-serif;
+        font-size: 11pt;
+        line-height: 1.8;
+        text-align: justify;
+    }
+    
+    .analysis-section {
+        margin-top: 2rem;
+    }
+    
+    .analysis-section-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    /* ==================== RECOMMENDATIONS ==================== */
+    .recommendations-section {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+    }
+    
+    .recommendations-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .recommendations-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .recommendation-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        font-family: 'Arial', sans-serif;
+        font-size: 11pt;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .recommendation-item:last-child {
+        border-bottom: none;
+    }
+    
+    .recommendation-icon {
+        font-size: 1.25rem;
+    }
+    
+    /* ==================== GALLERY ==================== */
+    .gallery-container {
+        display: grid;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .gallery-1 {
+        grid-template-columns: 1fr;
+    }
+    
+    .gallery-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .gallery-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .gallery-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .gallery-4 .gallery-item:first-child {
+        grid-row: span 2;
+    }
+    
+    .gallery-5 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .gallery-5 .gallery-item:first-child {
+        grid-row: span 2;
+    }
+    
+    .gallery-item {
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+    
+    .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .no-media {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-light);
+        font-family: 'Arial', sans-serif;
+    }
+    
+    /* ==================== PRINT OPTIMIZATIONS ==================== */
+    @@page {
+        size: A4;
+        margin: 0;
+    }
+    
+    @@media print {
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .page {
+            page-break-after: always;
+        }
+    }
+</style>

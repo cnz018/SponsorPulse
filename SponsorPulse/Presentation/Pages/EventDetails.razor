@@ -3,6 +3,8 @@
 @using SponsorPulse.Application.Common.Interfaces
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
+@using SponsorPulse.Infrastructure.Repositories
+@using SponsorPulse.Application.Services
 @using SponsorPulse.Presentation.Components.Twitch
 @using SponsorPulse.Presentation.Components.Twitter
 @using SponsorPulse.Presentation.Components.Media
@@ -10,6 +12,7 @@
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
 @inject IMediaStorageService MediaStorageService
 @inject NavigationManager Navigation
+@inject IDemoDataService DemoDataService
 
 <PageTitle>@(_event?.Name ?? "Détails") - SponsorPulse</PageTitle>
 
@@ -55,7 +58,33 @@
                 {
                     <div class="section mb-6">
                         <h3 class="section-title">Données Stream</h3>
-                        <TwitchFetcher EventToUpdate="@_event" OnDataUpdated="HandleDataUpdated" />
+                        @if (DemoDataService.IsInDemoMode)
+                        {
+                            <div class="demo-twitch-metrics glass-panel p-4">
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <span class="metric-label">Viewers actuels</span>
+                                        <span class="metric-value">@_event.ViewerCount?.ToString("N0")</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Pic de viewers</span>
+                                        <span class="metric-value">@_event.PeakViewers?.ToString("N0")</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Durée</span>
+                                        <span class="metric-value">@(_event.StreamDuration?.Hours)h @(_event.StreamDuration?.Minutes)m</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Jeu</span>
+                                        <span class="metric-value">@_event.GameName</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <TwitchFetcher EventToUpdate="@_event" OnDataUpdated="HandleDataUpdated" />
+                        }
                     </div>
                 }
 
@@ -63,18 +92,79 @@
                 {
                     <div class="section mb-6">
                         <h3 class="section-title">Données Twitter</h3>
-                        <TwitterFetcher EventToUpdate="@_event" OnDataUpdated="HandleDataUpdated" />
+                        @if (DemoDataService.IsInDemoMode && _event.TwitterAnalytics != null)
+                        {
+                            <div class="demo-twitter-metrics glass-panel p-4">
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <span class="metric-label">Total Tweets</span>
+                                        <span class="metric-value">@_event.TwitterAnalytics.TotalTweets.ToString("N0")</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Engagement Total</span>
+                                        <span class="metric-value">@_event.TwitterAnalytics.TotalEngagement.ToString("N0")</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Impressions Estimées</span>
+                                        <span class="metric-value">@_event.TwitterAnalytics.EstimatedImpressions.ToString("N0")</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Valeur Publicitaire</span>
+                                        <span class="metric-value">@_event.TwitterAnalytics.AdValueEquivalent.ToString("C0")</span>
+                                    </div>
+                                </div>
+
+                                @if (_event.TwitterAnalytics.TopTweets?.Any() == true)
+                                {
+                                    <div class="top-tweets-section mt-6">
+                                        <h4 class="tweets-title">Top Tweets</h4>
+                                        <div class="tweets-list">
+                                            @foreach (var tweet in _event.TwitterAnalytics.TopTweets.Take(3))
+                                            {
+                                                <div class="tweet-card">
+                                                    <div class="tweet-header">
+                                                        <span class="tweet-author">@tweet.AuthorName</span>
+                                                        <span class="tweet-handle">@tweet.AuthorHandle</span>
+                                                        <span class="tweet-followers">(@tweet.AuthorFollowersCount.ToString("N0") followers)</span>
+                                                    </div>
+                                                    <p class="tweet-text">@tweet.Text</p>
+                                                    <div class="tweet-metrics">
+                                                        <span>❤️ @tweet.Likes.ToString("N0")</span>
+                                                        <span>🔁 @tweet.Retweets.ToString("N0")</span>
+                                                        <span>💬 @tweet.Replies.ToString("N0")</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (_event.TwitterAnalytics.SentimentRatio?.Any() == true)
+                                {
+                                    <div class="sentiment-section mt-6">
+                                        <h4 class="tweets-title">Sentiment</h4>
+                                        <div class="sentiment-bars">
+                                            @foreach (var sentiment in _event.TwitterAnalytics.SentimentRatio)
+                                            {
+                                                <div class="sentiment-item">
+                                                    <span class="sentiment-label">@sentiment.Key</span>
+                                                    <div class="sentiment-bar-container">
+                                                        <div class="sentiment-bar" style="width: @sentiment.Value%"></div>
+                                                    </div>
+                                                    <span class="sentiment-value">@sentiment.Value.ToString("F1")%</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <TwitterFetcher EventToUpdate="@_event" OnDataUpdated="HandleDataUpdated" />
+                        }
                     </div>
                 }
-
-                @* <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="section">
-                        <h3 class="section-title">ID de la Chaîne</h3>
-                        <div class="code-block">
-                            <code>@_event.ChannelId</code>
-                        </div>
-                    </div>
-                </div> *@
 
                 <div class="section mb-6 mt-8" id="media-section">
                     <h3 class="section-title">Médias Événement (Photos)</h3>
@@ -85,10 +175,10 @@
                                 @foreach (var media in _event.Media)
                                 {
                                     <div class="media-card group relative">
-                                        <img src="@media.Url" alt="@media.OriginalFileName" 
-                                             class="w-full h-32 object-cover rounded-lg border border-white/10" 
+                                        <img src="@media.Url" alt="@media.OriginalFileName"
+                                             class="w-full h-32 object-cover rounded-lg border border-white/10"
                                              @onclick="() => OpenLightbox(media.Url)" />
-                                        
+
                                         <button class="btn-delete-media absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                                 @onclick="() => DeleteMedia(media)" @onclick:stopPropagation>
                                             <span class="icon-small">🗑️</span>
@@ -98,20 +188,24 @@
                                 }
                             </div>
                         }
+                        else if (DemoDataService.IsInDemoMode)
+                        {
+                            <p class="text-gray-400 text-sm">Aucun média en mode démo.</p>
+                        }
                     </div>
-                    
-                    @if (_event.Media.Count < 5)
+
+                    @if (!DemoDataService.IsInDemoMode && _event.Media.Count < 5)
                     {
                         <MediaUploader EventSlug="@_event.Slug" OnUploadCompleted="HandleMediaUploaded" />
                     }
-                    else
+                    else if (_event.Media.Count >= 5)
                     {
                         <p class="text-yellow-500 text-sm">Limite de 5 photos atteinte.</p>
                     }
                 </div>
 
                 <div class="section mt-8 pt-6 border-t border-gray-800">
-                    <button class="btn-action">Générer Rapport</button>
+                    <button class="btn-action" @onclick="OpenPdfCustomize">Générer Rapport</button>
                 </div>
             </div>
         }
@@ -263,16 +357,16 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
     }
-    
+
     /* Media Grid Styles */
     .media-card {
         transition: transform 0.2s;
     }
-    
+
     .media-card:hover {
         transform: scale(1.02);
     }
-    
+
     .icon-small {
         font-size: 0.8rem;
     }
@@ -292,10 +386,148 @@
             transform: translateY(0) scale(1);
         }
     }
+
+    /* Demo Metrics Styles */
+    .demo-twitch-metrics,
+    .demo-twitter-metrics {
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .metric-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .metric-label {
+        font-size: 0.8rem;
+        color: var(--grey-text);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--white);
+    }
+
+    .top-tweets-section,
+    .sentiment-section {
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+        padding-top: 1.5rem;
+    }
+
+    .tweets-title {
+        font-size: 0.9rem;
+        color: var(--grey-text);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+    }
+
+    .tweets-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .tweet-card {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .tweet-header {
+        display: flex;
+        gap: 0.5rem;
+        align-items: baseline;
+        margin-bottom: 0.75rem;
+    }
+
+    .tweet-author {
+        font-weight: 600;
+        color: var(--white);
+    }
+
+    .tweet-handle {
+        color: var(--grey-text);
+        font-size: 0.9rem;
+    }
+
+    .tweet-followers {
+        color: var(--grey-text);
+        font-size: 0.85rem;
+        opacity: 0.7;
+    }
+
+    .tweet-text {
+        color: var(--white);
+        margin-bottom: 0.75rem;
+        line-height: 1.5;
+    }
+
+    .tweet-metrics {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--grey-text);
+    }
+
+    .sentiment-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .sentiment-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sentiment-label {
+        width: 80px;
+        font-size: 0.85rem;
+        color: var(--grey-text);
+    }
+
+    .sentiment-bar-container {
+        flex: 1;
+        height: 8px;
+        background: rgba(148, 163, 184, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .sentiment-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-blue), #60A5FA);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .sentiment-value {
+        width: 50px;
+        text-align: right;
+        font-size: 0.85rem;
+        color: var(--white);
+    }
 </style>
 
 @code {
     [Parameter] public string Slug { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnOpenPdfCustomize { get; set; }
     private Event? _event;
     private bool _isLoading = true;
     private string? _lightboxUrl;
@@ -304,10 +536,48 @@
     {
         try
         {
-            using var context = await DbFactory.CreateDbContextAsync();
-            _event = await context.Events
-                .Include(e => e.Media)
-                .FirstOrDefaultAsync(e => e.Slug == Slug);
+            if (DemoDataService.IsInDemoMode)
+            {
+                Console.WriteLine(Slug);
+
+                // Mode démo: charger depuis StaticDemoRepository
+                _event = await DemoDataService.GetDemoEventBySlugAsync(Slug);
+
+                if (_event is null)
+                {
+                    return;
+                }
+                
+                // Si l'événement n'a pas de TwitterAnalytics, utiliser StaticReportRepository
+                if (string.IsNullOrEmpty(_event.TwitterHashtags))
+                {
+                    // Assigner un hashtag par défaut pour afficher les données Twitter
+                    _event.TwitterHashtags = "#" + _event.Name.Replace(" ", "");
+                    
+                    // Charger les données Twitter depuis StaticReportRepository
+                    var reports = StaticReportRepository.GetAllReports();
+                    if (reports.ContainsKey(_event.Slug))
+                    {
+                        _event.TwitterAnalytics = reports[_event.Slug];
+                    }
+                    else
+                    {
+                        // Utiliser un rapport générique basé sur le nom
+                        _event.TwitterAnalytics = StaticReportRepository.GetCustomEventReport(
+                            _event.Name.Replace(" ", ""),
+                            "@TopInfluencer"
+                        );
+                    }
+                }
+            }
+            else
+            {
+                // Mode normal: charger depuis la base de données
+                using var context = await DbFactory.CreateDbContextAsync();
+                _event = await context.Events
+                    .Include(e => e.Media)
+                    .FirstOrDefaultAsync(e => e.Slug == Slug);
+            }
         }
         finally
         {
@@ -317,7 +587,14 @@
 
     private void GoBack()
     {
-        Navigation.NavigateTo("/");
+        if (OnClose.HasDelegate)
+        {
+            OnClose.InvokeAsync();
+        }
+        else
+        {
+            Navigation.NavigateTo("/");
+        }
     }
 
     private async Task HandleDataUpdated(Event updatedEvent)
@@ -336,7 +613,7 @@
 
         using var context = await DbFactory.CreateDbContextAsync();
         var eventEntity = await context.Events.Include(e => e.Media).FirstAsync(e => e.Id == _event.Id);
-        
+
         foreach (var result in results)
         {
             if (eventEntity.Media.Count >= 5) break;
@@ -350,28 +627,28 @@
             );
             eventEntity.Media.Add(media);
         }
-        
+
         await context.SaveChangesAsync();
         // Reload to ensure we have the latest state (IDs etc)
         _event = eventEntity;
         StateHasChanged();
     }
-    
+
     private async Task DeleteMedia(EventMedia media)
     {
         if (_event == null) return;
-        
+
         // Optimistic UI update
         _event.Media.Remove(media);
         StateHasChanged();
-        
-        try 
+
+        try
         {
             await MediaStorageService.DeleteMediaAsync(media.StorageFileName);
-            
+
             using var context = await DbFactory.CreateDbContextAsync();
             var eventEntity = await context.Events.Include(e => e.Media).FirstAsync(e => e.Id == _event.Id);
-            
+
             // Find and remove by ID
             var mediaToDelete = eventEntity.Media.FirstOrDefault(m => m.Id == media.Id);
             if (mediaToDelete != null)
@@ -387,7 +664,12 @@
             StateHasChanged();
         }
     }
-    
+
     private void OpenLightbox(string url) => _lightboxUrl = url;
     private void CloseLightbox() => _lightboxUrl = null;
+    
+    private void OpenPdfCustomize()
+    {
+        OnOpenPdfCustomize.InvokeAsync(Slug);
+    }
 }

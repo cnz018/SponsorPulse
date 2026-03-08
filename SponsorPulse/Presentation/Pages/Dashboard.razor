@@ -13,12 +13,12 @@
 <PageTitle>Dashboard - SponsorPulse</PageTitle>
 
 <div class="dashboard-content fade-in">
-    <div class="glass-panel header-panel mb-8">
+    @* <div class="glass-panel header-panel mb-8">
         <h1 class="text-3xl font-bold mb-2">Bienvenue sur SponsorPulse</h1>
         <p class="text-gray-400">Générez vos rapports sponsors professionnels en quelques clics.</p>
-    </div>
+    </div> *@
 
-    <div class="stats-grid mb-8">
+    @* <div class="stats-grid mb-8">
         <div class="glass-card">
             <h3>Événements</h3>
             <div class="value">@(events?.Count ?? 0)</div>
@@ -30,12 +30,17 @@
         <div class="glass-card action-card" @onclick="GoToCreate">
             <button class="btn-create">+ Créer un événement</button>
         </div>
+    </div> *@
+    <div class="header-panel mb-8">
+        <h1 class="text-3xl font-bold text-white mb-6">Événements</h1>
+        <LumexButton Class="ml-auto text-white" Variant="@Variant.Ghost" OnClick="GoToCreate">Créer un événement</LumexButton>
     </div>
 
-    <h2 class="text-xl font-bold text-white mb-6">Vos Événements</h2>
+
 
     <EventSelector Events="events" OnEdit="HandleEditEvent" OnDelete="HandleDeleteEvent" OnAnalyze="HandleAnalyzeEvent"
-                   OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze" OnBulkDelete="HandleBulkDelete" />
+                   OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze" OnBulkDelete="HandleBulkDelete"
+                   OnNavigateToEvent="HandleNavigateToEvent" />
 
     @if (showCreateModal)
     {
@@ -138,9 +143,11 @@
 
 
     .header-panel {
-        padding: 2rem;
-        background: linear-gradient(135deg, rgba(50, 74, 95, 0.4) 0%, rgba(12, 24, 33, 0.4) 100%);
+        height: 2rem;
+        background-color: transparent;
         border-radius: 16px;
+        display: flex;
+        align-items: space-around;
     }
 
     .glass-panel-message {
@@ -354,5 +361,13 @@
     {
         await LoadEvents();
         StateHasChanged();
+    }
+
+    private void HandleNavigateToEvent(string action)
+    {
+        if (action == "create")
+        {
+            showCreateModal = true;
+        }
     }
 }
