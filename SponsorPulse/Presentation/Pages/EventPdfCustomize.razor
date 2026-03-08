@@ -3,6 +3,7 @@
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Repositories
 @using SponsorPulse.Application.Services
+@using SponsorPulse.Application.Common.Models
 @using Microsoft.JSInterop
 @inject NavigationManager Navigation
 @inject IDemoDataService DemoDataService
@@ -361,14 +362,15 @@
     public EventCallback OnClose { get; set; }
 
     private Event? currentEvent;
-    private string companyName = "Votre Entreprise";
-    private string primaryColor = "#CCC9DC";
-    private string secondaryColor = "#60A5FA";
+    private string companyName = string.Empty;
+    private string primaryColor = string.Empty;
+    private string secondaryColor = string.Empty;
     private string? uploadedFileName;
     private bool isGenerating = false;
     private bool showPreviewModal = false;
     private string generatedHtml = string.Empty;
     private List<ToastMessage> toasts = new();
+    private DemoSettings? demoSettings;
 
     private class ToastMessage
     {
@@ -388,6 +390,12 @@
             if (currentEvent == null)
                 Navigation.NavigateTo("/dashboard");
         }
+
+        demoSettings = await DemoDataService.GetDemoSettingsAsync();
+        companyName = demoSettings?.OrganizationName ?? "Votre Entreprise";
+        primaryColor = demoSettings?.PrimaryColor ?? "#CCC9DC";
+        secondaryColor = demoSettings?.SecondaryColor ?? "#475569";
+        uploadedFileName = demoSettings?.LogoBase64;
     }
 
     private string FormatDuration(TimeSpan? duration) =>
