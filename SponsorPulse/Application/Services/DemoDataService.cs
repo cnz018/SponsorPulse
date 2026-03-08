@@ -2,6 +2,7 @@ namespace SponsorPulse.Application.Services;
 
 using Microsoft.Extensions.Options;
 using SponsorPulse.Application.Common.Configuration;
+using SponsorPulse.Application.Common.Models;
 using SponsorPulse.Domain.Entities;
 using SponsorPulse.Infrastructure.Repositories;
 
@@ -10,12 +11,15 @@ public interface IDemoDataService
     Task<List<Event>> GetDemoEventsAsync();
     Task<Event?> GetDemoEventBySlugAsync(string slug);
     Task<Event?> GetDemoEventByIdAsync(Guid eventId);
+    Task<DemoSettings?> GetDemoSettingsAsync();
+    Task SaveDemoSettingsAsync(DemoSettings settings);
     bool IsInDemoMode { get; }
 }
 
 public class DemoDataService(IOptions<DemoModeSettings> options) : IDemoDataService
 {
     private readonly DemoModeSettings _settings = options.Value;
+    private static DemoSettings? _cachedSettings;
 
     public bool IsInDemoMode => _settings.IsDemo;
 
@@ -56,5 +60,24 @@ public class DemoDataService(IOptions<DemoModeSettings> options) : IDemoDataServ
 
         // En mode normal, ce serait une requête DB
         return await Task.FromResult((Event?)null);
+    }
+
+    public Task<DemoSettings?> GetDemoSettingsAsync()
+    {
+        // Retourner les paramètres en cache ou les paramètres par défaut
+        if (_cachedSettings == null)
+        {
+            _cachedSettings = new DemoSettings();
+        }
+
+        return Task.FromResult<DemoSettings?>(_cachedSettings);
+    }
+
+    public Task SaveDemoSettingsAsync(DemoSettings settings)
+    {
+        // Sauvegarder les paramètres en cache
+        settings.LastModified = DateTime.UtcNow;
+        _cachedSettings = settings;
+        return Task.CompletedTask;
     }
 }

@@ -9,12 +9,12 @@
     </LumexUser>
     <LumexDivider />
     <LumexNavbarItem Class="w-full">
-        <LumexLink href="" class="nav-item w-full text-lg mb-auto @(IsActive("/") ? "active" : "")">
+        <LumexLink href="/" class="@GetNavClass("/")">
             <i class="bi bi-house mr-2"></i> Dashboard
         </LumexLink>
     </LumexNavbarItem>
     <LumexNavbarItem Class="w-full">
-        <LumexLink href="" class="nav-item w-full text-lg mb-auto @(IsActive("/settings") ? "active" : "")">
+        <LumexLink href="/settings" class="@GetNavClass("/settings")">
             <i class="bi bi-gear mr-2"></i> Settings
         </LumexLink>
     </LumexNavbarItem>
@@ -97,7 +97,12 @@ padding-top: 2rem;
         {
             currentPath = "/" + currentPath;
         }
-        
+
         return currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetNavClass(string path)
+    {
+        return $"nav-item w-full text-lg mb-auto {(IsActive(path) ? "active" : "")}";
     }
 }
