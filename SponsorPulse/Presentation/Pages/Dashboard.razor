@@ -13,30 +13,31 @@
 <PageTitle>Dashboard - SponsorPulse</PageTitle>
 
 <div class="dashboard-content fade-in">
-    @* <div class="glass-panel header-panel mb-8">
-        <h1 class="text-3xl font-bold mb-2">Bienvenue sur SponsorPulse</h1>
-        <p class="text-gray-400">Générez vos rapports sponsors professionnels en quelques clics.</p>
-    </div> *@
-
-    @* <div class="stats-grid mb-8">
-        <div class="glass-card">
-            <h3>Événements</h3>
-            <div class="value">@(events?.Count ?? 0)</div>
-        </div>
-        <div class="glass-card">
-            <h3>Rapports</h3>
-            <div class="value">0</div>
-        </div>
-        <div class="glass-card action-card" @onclick="GoToCreate">
-            <button class="btn-create">+ Créer un événement</button>
-        </div>
-    </div> *@
     <div class="header-panel mb-8">
         <h1 class="text-3xl font-bold text-white mb-6">Événements</h1>
         <LumexButton Class="ml-auto text-white" Variant="@Variant.Ghost" OnClick="GoToCreate">Créer un événement</LumexButton>
     </div>
 
+    @* Stats Cards Section *@
+    @if (dashboardStats != null)
+    {
+        <div class="stats-grid mb-8">
+            <StatCard
+                Title="Pic de Viewers"
+                Value="@dashboardStats.PeakViewers.ToString("N0")"
+                IconUrl="https://api.iconify.design/ic:outline-remove-red-eye.svg" />
 
+            <StatCard
+                Title="Engagement Total"
+                Value="@dashboardStats.TotalEngagement.ToString("N0")"
+                IconUrl="https://api.iconify.design/ic:outline-message.svg" />
+
+            <StatCard
+                Title="Impressions Totales"
+                Value="@FormatImpressions(dashboardStats.TotalImpressions)"
+                IconUrl="https://api.iconify.design/ic:outline-monitor.svg" />
+        </div>
+    }
 
     <EventSelector Events="events" OnEdit="HandleEditEvent" OnDelete="HandleDeleteEvent" OnAnalyze="HandleAnalyzeEvent"
                    OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze" OnBulkDelete="HandleBulkDelete"
@@ -203,6 +204,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
+        margin-bottom: 2rem;
     }
 
     .events-grid {
@@ -210,75 +212,24 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1.5rem;
     }
-
-    .glass-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.2s, background 0.2s;
-        cursor: default;
-        position: relative;
-    }
-
-    /* Stats Card Specifics */
-    .stats-grid .glass-card {
-        min-height: 160px;
-    }
-
-    .glass-card:hover {
-        background: rgba(255, 255, 255, 0.08);
-    }
-
-    .glass-card.action-card {
-        cursor: pointer;
-        border: 1px dashed var(--charcoal-blue);
-    }
-
-    .glass-card.action-card:hover {
-        border-color: var(--lavender);
-        transform: translateY(-4px);
-    }
-
-    .glass-card h3 {
-        margin: 0 0 0.5rem 0;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--grey-text);
-    }
-
-    .stats-grid .glass-card .value {
-        font-size: 3rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, var(--white) 0%, var(--lavender) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .btn-create {
-        background: transparent;
-        border: none;
-        color: var(--lavender);
-        font-weight: 600;
-        font-size: 1.1rem;
-        cursor: pointer;
-        pointer-events: none;
-    }
 </style>
 
 @code {
     private bool showCreateModal = false;
     private List<Event>? events;
     private Event? eventToDelete;
+    private DashboardStats? dashboardStats;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadEvents();
+        await LoadDashboardStats();
+    }
+
+    private async Task LoadDashboardStats()
+    {
+        dashboardStats = await DemoDataService.GetDashboardStatsAsync();
+        StateHasChanged();
     }
 
     private async Task LoadEvents()
@@ -294,6 +245,15 @@
             using var context = await DbFactory.CreateDbContextAsync();
             events = await context.Events.OrderByDescending(e => e.Date).ToListAsync();
         }
+    }
+
+    private string FormatImpressions(long impressions)
+    {
+        if (impressions >= 1_000_000)
+            return $"{impressions / 1_000_000.0:F1}M";
+        if (impressions >= 1_000)
+            return $"{impressions / 1_000.0:F0}K";
+        return impressions.ToString("N0");
     }
 
     private void GoToCreate()

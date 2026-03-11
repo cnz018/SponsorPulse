@@ -152,13 +152,14 @@
                 EventName = demoEvent.Name,
                 EventDate = demoEvent.Date,
                 EventPlatform = demoEvent.StreamPlatform,
-                TwitchMetrics = new TwitchMetrics(
-                    demoEvent.ViewerCount ?? 0,
-                    demoEvent.PeakViewers ?? 0,
-                    demoEvent.StreamDuration ?? TimeSpan.Zero,
-                    demoEvent.StartedAt ?? DateTime.MinValue,
-                    demoEvent.GameName ?? "N/A"
-                ),
+                TwitchMetrics = new TwitchMetrics
+                {
+                    ViewerCount = demoEvent.ViewerCount ?? 0,
+                    PeakViewers = demoEvent.PeakViewers ?? 0,
+                    StreamDuration = demoEvent.StreamDuration ?? TimeSpan.Zero,
+                    StartedAt = demoEvent.StartedAt ?? DateTime.MinValue,
+                    GameName = demoEvent.GameName ?? "N/A"
+                },
                 TwitterAnalytics = demoEvent.TwitterAnalytics,
                 StorytellingText = GenerateStorytellingText(demoEvent),
                 AnalysisText = GenerateAnalysisText(demoEvent),

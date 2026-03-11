@@ -42,11 +42,18 @@
         else
         {
             <div class="event-details">
-                <h1 class="text-3xl font-bold text-white mb-2">@_event.Name</h1>
-                <div class="meta-row mb-8 flex items-center">
-                    <span class="badge">@_event.StreamPlatform</span>
-                    <span class="date">@_event.Date.ToLongDateString()</span>
-                    <span class="slug-tag ml-4 text-xs text-gray-500">#@_event.Slug</span>
+                <h1 class="event-title mb-2">@_event.Name</h1>
+                <div class="meta-row mb-8">
+                    <span class="badge badge-@(_event.StreamPlatform?.ToLower() ?? "default")">
+                        <img src="https://api.iconify.design/@(GetPlatformIcon(_event.StreamPlatform)).svg"
+                             class="badge-platform-icon" alt="" />
+                        @_event.StreamPlatform
+                    </span>
+                    <span class="meta-date">
+                        <img src="https://api.iconify.design/ic:outline-calendar-today.svg" class="meta-icon" alt="" />
+                        @_event.Date.ToLongDateString()
+                    </span>
+                    <span class="meta-slug">#@_event.Slug</span>
                 </div>
 
                 <div class="section mb-6">
@@ -60,25 +67,37 @@
                         <h3 class="section-title">Données Stream</h3>
                         @if (DemoDataService.IsInDemoMode)
                         {
-                            <div class="demo-twitch-metrics glass-panel p-4">
-                                <div class="metrics-grid">
-                                    <div class="metric-item">
-                                        <span class="metric-label">Viewers actuels</span>
-                                        <span class="metric-value">@_event.ViewerCount?.ToString("N0")</span>
+                            <div class="demo-twitch-metrics">
+                                <div class="detail-stats-row">
+                                    <div class="detail-stat-card">
+                                        <div class="dsc-header">
+                                            <img src="https://api.iconify.design/ic:outline-remove-red-eye.svg" class="dsc-icon" alt="" />
+                                            <span class="dsc-label">Viewers Actuels</span>
+                                        </div>
+                                        <span class="dsc-value">@_event.ViewerCount?.ToString("N0")</span>
                                     </div>
-                                    <div class="metric-item">
-                                        <span class="metric-label">Pic de viewers</span>
-                                        <span class="metric-value">@_event.PeakViewers?.ToString("N0")</span>
+                                    <div class="detail-stat-card">
+                                        <div class="dsc-header">
+                                            <img src="https://api.iconify.design/ic:outline-trending-up.svg" class="dsc-icon" alt="" />
+                                            <span class="dsc-label">Pic de Viewers</span>
+                                        </div>
+                                        <span class="dsc-value">@_event.PeakViewers?.ToString("N0")</span>
                                     </div>
-                                    <div class="metric-item">
-                                        <span class="metric-label">Durée</span>
-                                        <span class="metric-value">@(_event.StreamDuration?.Hours)h @(_event.StreamDuration?.Minutes)m</span>
-                                    </div>
-                                    <div class="metric-item">
-                                        <span class="metric-label">Jeu</span>
-                                        <span class="metric-value">@_event.GameName</span>
+                                    <div class="detail-stat-card">
+                                        <div class="dsc-header">
+                                            <img src="https://api.iconify.design/ic:outline-timer.svg" class="dsc-icon" alt="" />
+                                            <span class="dsc-label">Durée</span>
+                                        </div>
+                                        <span class="dsc-value">@(_event.StreamDuration?.Hours)h @(_event.StreamDuration?.Minutes)m</span>
                                     </div>
                                 </div>
+                                @if (!string.IsNullOrEmpty(_event.GameName))
+                                {
+                                    <div class="info-field">
+                                        <span class="info-field-label">Jeu</span>
+                                        <span class="info-field-value">@_event.GameName</span>
+                                    </div>
+                                }
                             </div>
                         }
                         else
@@ -94,23 +113,35 @@
                         <h3 class="section-title">Données Twitter</h3>
                         @if (DemoDataService.IsInDemoMode && _event.TwitterAnalytics != null)
                         {
-                            <div class="demo-twitter-metrics glass-panel p-4">
-                                <div class="metrics-grid">
-                                    <div class="metric-item">
-                                        <span class="metric-label">Total Tweets</span>
-                                        <span class="metric-value">@_event.TwitterAnalytics.TotalTweets.ToString("N0")</span>
+                            <div class="demo-twitter-metrics">
+                                <div class="hero-metric">
+                                    <div class="hero-metric-label">
+                                        <img src="https://api.iconify.design/ic:outline-monetization-on.svg" class="hero-icon" alt="" />
+                                        <span>Valeur Publicitaire</span>
                                     </div>
-                                    <div class="metric-item">
-                                        <span class="metric-label">Engagement Total</span>
-                                        <span class="metric-value">@_event.TwitterAnalytics.TotalEngagement.ToString("N0")</span>
+                                    <span class="hero-metric-value">@_event.TwitterAnalytics.AdValueEquivalent.ToString("C0")</span>
+                                </div>
+                                <div class="detail-stats-row">
+                                    <div class="detail-stat-card">
+                                        <div class="dsc-header">
+                                            <img src="https://api.iconify.design/ic:outline-tag.svg" class="dsc-icon" alt="" />
+                                            <span class="dsc-label">Total Tweets</span>
+                                        </div>
+                                        <span class="dsc-value">@_event.TwitterAnalytics.TotalTweets.ToString("N0")</span>
                                     </div>
-                                    <div class="metric-item">
-                                        <span class="metric-label">Impressions Estimées</span>
-                                        <span class="metric-value">@_event.TwitterAnalytics.EstimatedImpressions.ToString("N0")</span>
+                                    <div class="detail-stat-card">
+                                        <div class="dsc-header">
+                                            <img src="https://api.iconify.design/ic:outline-message.svg" class="dsc-icon" alt="" />
+                                            <span class="dsc-label">Engagement Total</span>
+                                        </div>
+                                        <span class="dsc-value">@_event.TwitterAnalytics.TotalEngagement.ToString("N0")</span>
                                     </div>
-                                    <div class="metric-item">
-                                        <span class="metric-label">Valeur Publicitaire</span>
-                                        <span class="metric-value">@_event.TwitterAnalytics.AdValueEquivalent.ToString("C0")</span>
+                                    <div class="detail-stat-card">
+                                        <div class="dsc-header">
+                                            <img src="https://api.iconify.design/ic:outline-monitor.svg" class="dsc-icon" alt="" />
+                                            <span class="dsc-label">Impressions</span>
+                                        </div>
+                                        <span class="dsc-value">@_event.TwitterAnalytics.EstimatedImpressions.ToString("N0")</span>
                                     </div>
                                 </div>
 
@@ -143,15 +174,21 @@
                                 {
                                     <div class="sentiment-section mt-6">
                                         <h4 class="tweets-title">Sentiment</h4>
-                                        <div class="sentiment-bars">
+                                        <div class="sentiment-stacked-bar">
                                             @foreach (var sentiment in _event.TwitterAnalytics.SentimentRatio)
                                             {
-                                                <div class="sentiment-item">
-                                                    <span class="sentiment-label">@sentiment.Key</span>
-                                                    <div class="sentiment-bar-container">
-                                                        <div class="sentiment-bar" style="width: @sentiment.Value%"></div>
-                                                    </div>
-                                                    <span class="sentiment-value">@sentiment.Value.ToString("F1")%</span>
+                                                <div class="sentiment-segment @GetSentimentSegmentClass(sentiment.Key)"
+                                                     style="width: @sentiment.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                                                     title="@sentiment.Key : @sentiment.Value.ToString("F1")%"></div>
+                                            }
+                                        </div>
+                                        <div class="sentiment-cards">
+                                            @foreach (var sentiment in _event.TwitterAnalytics.SentimentRatio)
+                                            {
+                                                <div class="sentiment-card @GetSentimentCardClass(sentiment.Key)">
+                                                    <span class="sentiment-emoji">@GetSentimentEmoji(sentiment.Key)</span>
+                                                    <span class="sentiment-pct @GetSentimentValueClass(sentiment.Key)">@sentiment.Value.ToString("F1")%</span>
+                                                    <span class="sentiment-card-label">@sentiment.Key</span>
                                                 </div>
                                             }
                                         </div>
@@ -205,7 +242,11 @@
                 </div>
 
                 <div class="section mt-8 pt-6 border-t border-gray-800">
-                    <button class="btn-action" @onclick="OpenPdfCustomize">Générer Rapport</button>
+                    <button class="btn-generate" @onclick="OpenPdfCustomize">
+                        <img src="https://api.iconify.design/ic:outline-picture-as-pdf.svg"
+                             class="btn-generate-icon" alt="" />
+                        Générer Rapport
+                    </button>
                 </div>
             </div>
         }
@@ -266,23 +307,40 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.5rem 0;
-        font-size: 1rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.9rem;
         opacity: 0.8;
-        transition: opacity 0.2s;
+        transition: opacity 0.2s, transform 0.2s, background 0.2s;
+        border-radius: var(--radius-btn);
     }
 
     .back-btn:hover {
         opacity: 1;
+        transform: translateX(-3px);
+        background: rgba(204, 201, 220, 0.08);
     }
 
     .section-title {
         color: var(--grey-text);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-size: 0.75rem;
-        margin-bottom: 0.75rem;
+        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+        margin-bottom: 1rem;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .section-title::before {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 13px;
+        background: var(--lavender);
+        border-radius: 2px;
+        opacity: 0.45;
+        flex-shrink: 0;
     }
 
     .badge {
@@ -297,38 +355,6 @@
 
     .date {
         color: var(--grey-text);
-        margin-left: 1rem;
-    }
-
-    .text-gray-300 {
-        color: #cbd5e1;
-    }
-
-    .text-gray-400 {
-        color: #94a3b8;
-    }
-
-    .text-gray-500 {
-        color: #64748b;
-    }
-
-    .leading-relaxed {
-        line-height: 1.625;
-    }
-
-    .border-t {
-        border-top-width: 1px;
-    }
-
-    .border-gray-800 {
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .pt-6 {
-        padding-top: 1.5rem;
-    }
-
-    .ml-4 {
         margin-left: 1rem;
     }
 
@@ -387,37 +413,126 @@
         }
     }
 
-    /* Demo Metrics Styles */
-    .demo-twitch-metrics,
-    .demo-twitter-metrics {
-        background: rgba(30, 41, 59, 0.5);
-        border-radius: 12px;
-        border: 1px solid rgba(148, 163, 184, 0.2);
-    }
-
-    .metrics-grid {
+    /* Detail Stat Cards */
+    .detail-stats-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.875rem;
     }
 
-    .metric-item {
+    .detail-stat-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 12px;
+        padding: 1rem 1.125rem;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        transition: border-color 0.2s, transform 0.2s;
     }
 
-    .metric-label {
-        font-size: 0.8rem;
+    .detail-stat-card:hover {
+        border-color: rgba(204, 201, 220, 0.22);
+        transform: translateY(-2px);
+    }
+
+    .dsc-header {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .dsc-icon {
+        width: 14px;
+        height: 14px;
+        filter: brightness(0) saturate(100%) invert(65%) sepia(10%) saturate(200%) hue-rotate(194deg) brightness(90%) contrast(90%);
+        flex-shrink: 0;
+    }
+
+    .dsc-label {
+        font-size: 0.67rem;
         color: var(--grey-text);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.07em;
+        font-weight: 600;
     }
 
-    .metric-value {
-        font-size: 1.5rem;
+    .dsc-value {
+        font-size: 1.6rem;
         font-weight: 700;
+        background: linear-gradient(135deg, var(--white) 0%, var(--lavender) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+        padding: 0.1rem 0;
+    }
+
+    /* Inline labeled field (non-numeric values like Jeu) */
+    .info-field {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.75rem;
+        padding: 0.6rem 0.875rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        border: 1px solid rgba(148, 163, 184, 0.07);
+    }
+
+    .info-field-label {
+        font-size: 0.67rem;
+        color: var(--grey-text);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 600;
+        white-space: nowrap;
+        min-width: 2rem;
+    }
+
+    .info-field-value {
+        font-size: 1rem;
+        font-weight: 600;
         color: var(--white);
+    }
+
+    /* Hero metric banner (most commercially important stat) */
+    .hero-metric {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.125rem 1.375rem;
+        margin-bottom: 0.875rem;
+        background: linear-gradient(135deg, rgba(204, 201, 220, 0.07) 0%, rgba(204, 201, 220, 0.02) 100%);
+        border: 1px solid rgba(204, 201, 220, 0.18);
+        border-radius: 12px;
+    }
+
+    .hero-metric-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.7rem;
+        color: var(--grey-text);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+    }
+
+    .hero-icon {
+        width: 16px;
+        height: 16px;
+        filter: brightness(0) saturate(100%) invert(85%) sepia(6%) saturate(19%) hue-rotate(194deg) brightness(94%) contrast(93%);
+    }
+
+    .hero-metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--white) 0%, var(--lavender) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
     }
 
     .top-tweets-section,
@@ -441,10 +556,16 @@
     }
 
     .tweet-card {
-        background: rgba(0, 0, 0, 0.2);
-        padding: 1rem;
-        border-radius: 8px;
-        border: 1px solid rgba(148, 163, 184, 0.1);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .tweet-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(148, 163, 184, 0.15);
     }
 
     .tweet-header {
@@ -483,44 +604,206 @@
         color: var(--grey-text);
     }
 
-    .sentiment-bars {
+    /* Creative Sentiment Layout */
+    .sentiment-stacked-bar {
         display: flex;
-        flex-direction: column;
+        height: 10px;
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        gap: 2px;
+    }
+
+    .sentiment-segment {
+        height: 100%;
+        border-radius: 99px;
+        transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .segment-positive { background: linear-gradient(90deg, #16A34A, #4ADE80); }
+    .segment-neutral  { background: linear-gradient(90deg, #475569, #94A3B8); }
+    .segment-negative { background: linear-gradient(90deg, #DC2626, #F87171); }
+
+    .sentiment-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 0.75rem;
     }
 
-    .sentiment-item {
+    .sentiment-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 1rem 0.75rem;
+        border-radius: 12px;
+        border: 1px solid;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .sentiment-card:hover { transform: translateY(-3px); }
+
+    .card-positive {
+        background: rgba(34, 197, 94, 0.06);
+        border-color: rgba(34, 197, 94, 0.2);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.06);
+    }
+
+    .card-positive:hover { box-shadow: 0 8px 20px rgba(34, 197, 94, 0.12); }
+
+    .card-neutral {
+        background: rgba(148, 163, 184, 0.06);
+        border-color: rgba(148, 163, 184, 0.15);
+    }
+
+    .card-negative {
+        background: rgba(239, 68, 68, 0.06);
+        border-color: rgba(239, 68, 68, 0.2);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.04);
+    }
+
+    .card-negative:hover { box-shadow: 0 8px 20px rgba(239, 68, 68, 0.1); }
+
+    .sentiment-emoji {
+        font-size: 1.6rem;
+        line-height: 1;
+        margin-bottom: 0.1rem;
+    }
+
+    .sentiment-pct {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .value-positive { color: #4ADE80; }
+    .value-neutral   { color: var(--grey-text); }
+    .value-negative  { color: #F87171; }
+
+    .sentiment-card-label {
+        font-size: 0.65rem;
+        color: var(--grey-text);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+    }
+
+    /* ── Event Title ── */
+    .event-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--white) 0%, var(--lavender) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    /* ── Meta Row ── */
+    .meta-row {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.75rem;
+        flex-wrap: wrap;
     }
 
-    .sentiment-label {
-        width: 80px;
-        font-size: 0.85rem;
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 99px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge-twitch {
+        background: rgba(145, 70, 255, 0.15);
+        color: #A970FF;
+        border: 1px solid rgba(145, 70, 255, 0.3);
+    }
+
+    .badge-twitter, .badge-x {
+        background: rgba(29, 155, 240, 0.15);
+        color: #1D9BF0;
+        border: 1px solid rgba(29, 155, 240, 0.3);
+    }
+
+    .badge-default {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60A5FA;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .badge-platform-icon {
+        width: 13px;
+        height: 13px;
+    }
+
+    .badge-twitch .badge-platform-icon {
+        filter: brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(1500%) hue-rotate(250deg) brightness(110%) contrast(100%);
+    }
+
+    .badge-twitter .badge-platform-icon, .badge-x .badge-platform-icon {
+        filter: brightness(0) saturate(100%) invert(52%) sepia(90%) saturate(500%) hue-rotate(185deg) brightness(100%) contrast(102%);
+    }
+
+    .meta-date {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         color: var(--grey-text);
+        font-size: 0.9rem;
     }
 
-    .sentiment-bar-container {
-        flex: 1;
-        height: 8px;
-        background: rgba(148, 163, 184, 0.2);
-        border-radius: 4px;
-        overflow: hidden;
+    .meta-icon {
+        width: 14px;
+        height: 14px;
+        filter: brightness(0) saturate(100%) invert(65%) sepia(10%) saturate(200%) hue-rotate(194deg) brightness(90%) contrast(90%);
+        flex-shrink: 0;
     }
 
-    .sentiment-bar {
-        height: 100%;
-        background: linear-gradient(90deg, var(--accent-blue), #60A5FA);
-        border-radius: 4px;
-        transition: width 0.3s ease;
+    .meta-slug {
+        font-size: 0.75rem;
+        color: var(--grey-text);
+        opacity: 0.55;
+        font-family: monospace;
+        letter-spacing: 0.02em;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 6px;
+        padding: 0.2rem 0.5rem;
     }
 
-    .sentiment-value {
-        width: 50px;
-        text-align: right;
-        font-size: 0.85rem;
-        color: var(--white);
+    /* ── Generate Report Button ── */
+    .btn-generate {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, rgba(204, 201, 220, 0.12) 0%, rgba(204, 201, 220, 0.05) 100%);
+        color: var(--lavender);
+        border: 1px solid rgba(204, 201, 220, 0.25);
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
+        backdrop-filter: blur(8px);
+    }
+
+    .btn-generate:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, rgba(204, 201, 220, 0.2) 0%, rgba(204, 201, 220, 0.09) 100%);
+        border-color: rgba(204, 201, 220, 0.45);
+        box-shadow: 0 8px 24px -4px rgba(204, 201, 220, 0.15);
+    }
+
+    .btn-generate-icon {
+        width: 18px;
+        height: 18px;
+        filter: brightness(0) saturate(100%) invert(85%) sepia(6%) saturate(19%) hue-rotate(194deg) brightness(94%) contrast(93%);
     }
 </style>
 
@@ -672,4 +955,44 @@
     {
         OnOpenPdfCustomize.InvokeAsync(Slug);
     }
+
+    private string GetSentimentSegmentClass(string key) => key.ToLowerInvariant() switch
+    {
+        "positif" => "segment-positive",
+        "neutre"  => "segment-neutral",
+        "négatif" or "negatif" => "segment-negative",
+        _ => "segment-neutral"
+    };
+
+    private string GetSentimentCardClass(string key) => key.ToLowerInvariant() switch
+    {
+        "positif" => "card-positive",
+        "neutre"  => "card-neutral",
+        "négatif" or "negatif" => "card-negative",
+        _ => "card-neutral"
+    };
+
+    private string GetSentimentValueClass(string key) => key.ToLowerInvariant() switch
+    {
+        "positif" => "value-positive",
+        "neutre"  => "value-neutral",
+        "négatif" or "negatif" => "value-negative",
+        _ => "value-neutral"
+    };
+
+    private string GetSentimentEmoji(string key) => key.ToLowerInvariant() switch
+    {
+        "positif" => "😊",
+        "neutre"  => "😐",
+        "négatif" or "negatif" => "😞",
+        _ => "😐"
+    };
+
+    private string GetPlatformIcon(string? platform) => platform?.ToLowerInvariant() switch
+    {
+        "twitch"  => "mdi:twitch",
+        "twitter" => "mdi:twitter",
+        "x"       => "mdi:twitter",
+        _         => "mdi:broadcast"
+    };
 }

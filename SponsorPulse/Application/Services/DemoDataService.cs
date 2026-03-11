@@ -6,6 +6,19 @@ using SponsorPulse.Application.Common.Models;
 using SponsorPulse.Domain.Entities;
 using SponsorPulse.Infrastructure.Repositories;
 
+/// <summary>
+/// Représente les statistiques agrégées pour le dashboard.
+/// </summary>
+public record DashboardStats
+{
+    public int PeakViewers { get; init; }
+    public long TotalEngagement { get; init; }
+    public long TotalImpressions { get; init; }
+    public int TotalEvents { get; init; }
+    public TimeSpan TotalStreamDuration { get; init; }
+    public int AverageViewers { get; init; }
+}
+
 public interface IDemoDataService
 {
     Task<List<Event>> GetDemoEventsAsync();
@@ -13,6 +26,7 @@ public interface IDemoDataService
     Task<Event?> GetDemoEventByIdAsync(Guid eventId);
     Task<DemoSettings?> GetDemoSettingsAsync();
     Task SaveDemoSettingsAsync(DemoSettings settings);
+    Task<DashboardStats> GetDashboardStatsAsync();
     bool IsInDemoMode { get; }
 }
 
@@ -79,5 +93,39 @@ public class DemoDataService(IOptions<DemoModeSettings> options) : IDemoDataServ
         settings.LastModified = DateTime.UtcNow;
         _cachedSettings = settings;
         return Task.CompletedTask;
+    }
+
+    public async Task<DashboardStats> GetDashboardStatsAsync()
+    {
+        var events = await GetDemoEventsAsync();
+
+        if (events == null || events.Count == 0)
+        {
+            return new DashboardStats
+            {
+                PeakViewers = 0,
+                TotalEngagement = 0,
+                TotalImpressions = 0,
+                TotalEvents = 0,
+                TotalStreamDuration = TimeSpan.Zero,
+                AverageViewers = 0
+            };
+        }
+
+        var peakViewers = events.Max(e => e.PeakViewers ?? 0);
+        var totalEngagement = events.Sum(e => e.TwitterAnalytics?.TotalEngagement ?? 0);
+        var totalImpressions = events.Sum(e => e.TwitterAnalytics?.EstimatedImpressions ?? 0);
+        var totalStreamDurationTicks = events.Sum(e => (e.StreamDuration ?? TimeSpan.Zero).Ticks);
+        var totalViewerCount = events.Sum(e => e.ViewerCount ?? 0);
+
+        return new DashboardStats
+        {
+            PeakViewers = peakViewers,
+            TotalEngagement = totalEngagement,
+            TotalImpressions = totalImpressions,
+            TotalEvents = events.Count,
+            TotalStreamDuration = TimeSpan.FromTicks(totalStreamDurationTicks),
+            AverageViewers = totalViewerCount / events.Count
+        };
     }
 }

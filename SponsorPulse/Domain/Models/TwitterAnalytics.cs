@@ -1,6 +1,25 @@
 namespace SponsorPulse.Domain.Models;
 
 /// <summary>
+/// Représente la répartition géographique des impressions.
+/// </summary>
+public record GeographicDistribution(
+    string Country,
+    double Percentage,
+    int Impressions
+);
+
+/// <summary>
+/// Représente un hashtag avec ses performances.
+/// </summary>
+public record TopHashtag(
+    string Tag,
+    int UsageCount,
+    int TotalEngagements,
+    double ReachEstimate
+);
+
+/// <summary>
 /// Représente un tweet du top 3 avec ses métriques principales.
 /// </summary>
 public record TopTweet
@@ -14,6 +33,8 @@ public record TopTweet
     public int Retweets { get; init; }
     public int Replies { get; init; }
     public DateTime CreatedAt { get; init; }
+    public int Impressions { get; init; }
+    public double EngagementRate { get; init; }
 }
 
 /// <summary>
@@ -25,6 +46,8 @@ public record TopInfluencer
     public string Handle { get; init; } = string.Empty;
     public long FollowersCount { get; init; }
     public int TweetCount { get; init; }
+    public double AvgEngagementRate { get; init; }
+    public long EstimatedReach { get; init; }
 }
 
 /// <summary>
@@ -37,10 +60,18 @@ public record TwitterAnalytics
     public List<TopTweet> TopTweets { get; init; } = [];
     public DateRange Period { get; init; } = new();
     public long EstimatedImpressions { get; init; }
+    public long UniqueReach { get; init; }
     public decimal AdValueEquivalent { get; init; }
+    public double EngagementRate { get; init; }
+    public double SentimentScore { get; init; }
     public Dictionary<string, double> SentimentRatio { get; init; } = [];
     public TopInfluencer TopInfluencer { get; init; } = new();
+    public List<TopHashtag> TopHashtags { get; init; } = [];
+    public List<GeographicDistribution> GeographicReach { get; init; } = [];
     public double ViralMultiplier { get; init; }
+    public double ShareOfVoice { get; init; }
+    public decimal EstimatedROI { get; init; }
+    public decimal CPM { get; init; }
 }
 
 /// <summary>

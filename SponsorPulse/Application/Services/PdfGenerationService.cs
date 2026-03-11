@@ -166,13 +166,14 @@ public class PdfGenerationService : IPdfGenerationService
             EventName = @event.Name,
             EventDate = @event.Date,
             EventPlatform = @event.StreamPlatform,
-            TwitchMetrics = new TwitchMetrics(
-                @event.ViewerCount ?? 0,
-                @event.PeakViewers ?? 0,
-                @event.StreamDuration ?? TimeSpan.Zero,
-                @event.StartedAt ?? DateTime.MinValue,
-                @event.GameName ?? "N/A"
-            ),
+            TwitchMetrics = new TwitchMetrics
+            {
+                ViewerCount = @event.ViewerCount ?? 0,
+                PeakViewers = @event.PeakViewers ?? 0,
+                StreamDuration = @event.StreamDuration ?? TimeSpan.Zero,
+                StartedAt = @event.StartedAt ?? DateTime.MinValue,
+                GameName = @event.GameName ?? "N/A"
+            },
             TwitterAnalytics = @event.TwitterAnalytics,
             StorytellingText = GenerateStorytellingText(@event),
             AnalysisText = GenerateAnalysisText(@event),

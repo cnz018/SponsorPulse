@@ -86,13 +86,14 @@ public class TwitchInfrastructureService(
                 {
                     logger.LogInformation("Found LIVE stream for {Channel}", channelName);
                     return Result<TwitchMetrics>.Success(
-                        new TwitchMetrics(
-                            ViewerCount: liveStream.ViewerCount,
-                            PeakViewers: liveStream.ViewerCount, // Live peak is current
-                            StreamDuration: DateTime.UtcNow - liveStream.StartedAt,
-                            StartedAt: liveStream.StartedAt,
-                            GameName: liveStream.GameName
-                        )
+                        new TwitchMetrics
+                        {
+                            ViewerCount = liveStream.ViewerCount,
+                            PeakViewers = liveStream.ViewerCount, // Live peak is current
+                            StreamDuration = DateTime.UtcNow - liveStream.StartedAt,
+                            StartedAt = liveStream.StartedAt,
+                            GameName = liveStream.GameName
+                        }
                     );
                 }
             }
@@ -110,13 +111,14 @@ public class TwitchInfrastructureService(
                 {
                     logger.LogInformation("Found VOD for {Channel}", channelName);
                     return Result<TwitchMetrics>.Success(
-                        new TwitchMetrics(
-                            ViewerCount: lastVideo.ViewCount, // Total views
-                            PeakViewers: 0, // Not available in simple VOD endpoint
-                            StreamDuration: ParseDuration(lastVideo.Duration),
-                            StartedAt: lastVideo.CreatedAt,
-                            GameName: "VOD Archive"
-                        )
+                        new TwitchMetrics
+                        {
+                            ViewerCount = lastVideo.ViewCount, // Total views
+                            PeakViewers = 0, // Not available in simple VOD endpoint
+                            StreamDuration = ParseDuration(lastVideo.Duration),
+                            StartedAt = lastVideo.CreatedAt,
+                            GameName = "VOD Archive"
+                        }
                     );
                 }
             }

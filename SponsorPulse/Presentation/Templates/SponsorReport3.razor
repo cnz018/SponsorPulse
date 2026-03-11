@@ -1,0 +1,550 @@
+@using SponsorPulse.Domain.Models
+
+@code {
+    [Parameter]
+    public required ReportModel Model { get; set; } = new ReportModel();
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SponsorPulse Impact - @Model.CompanyName</title>
+    <style>
+            /* --- DESIGN SYSTEM NÉO-SUISSE --- */
+            :root {
+                --primary:
+                    @Model.PrimaryColor
+                ;
+                --secondary:
+                    @Model.SecondaryColor
+                ;
+                --bg: #FDFDFD;
+                --text-black: #1A1A1A;
+                --text-light: #71717A;
+                --border-color: #E4E4E7;
+            }
+
+            @@page {
+                size: A4;
+                margin: 0;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Inter', sans-serif;
+                background-color: var(--bg);
+                color: var(--text-black);
+                -webkit-print-color-adjust: exact;
+            }
+
+            .serif {
+                font-family: 'Cormorant Garamond', serif;
+            }
+
+            /* --- LAYOUT UTILS --- */
+            .page {
+                position: relative;
+                width: 210mm;
+                height: 297mm;
+                page-break-after: always;
+                overflow: hidden;
+                background: var(--bg);
+            }
+
+            .margin-container {
+                padding: 50px 70px;
+            }
+
+            /* --- ELEMENTS DECORATIFS --- */
+            .color-block {
+                position: absolute;
+                background-color: var(--primary);
+                z-index: 1;
+            }
+
+            /* --- PAGE 1: COVER (ASYMÉTRIE) --- */
+            .cover-left {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 65%;
+                height: 100%;
+                background: #F4F4F5;
+                z-index: 2;
+            }
+
+            .cover-right {
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 35%;
+                height: 100%;
+                background: var(--primary);
+                z-index: 1;
+            }
+
+            .cover-image-container {
+                position: absolute;
+                top: 15%;
+                left: 10%;
+                width: 80%;
+                height: 50%;
+                overflow: hidden;
+                z-index: 5;
+                box-shadow: 20px 20px 0px var(--secondary);
+            }
+
+            .cover-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .cover-text-box {
+                position: absolute;
+                bottom: 10%;
+                left: 10%;
+                z-index: 10;
+            }
+
+            .tagline {
+                font-size: 0.9rem;
+                letter-spacing: 5px;
+                color: var(--text-light);
+                margin-bottom: 10px;
+                text-transform: uppercase;
+            }
+
+            .main-title {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: 4.5rem;
+                line-height: 0.85;
+                margin: 0;
+                font-weight: 300;
+            }
+
+            /* --- PAGE 2: GRID METRICS --- */
+            .section-title {
+                font-size: 3rem;
+                font-family: 'Cormorant Garamond', serif;
+                border-bottom: 1px solid var(--text-black);
+                padding-bottom: 20px;
+                margin-bottom: 60px;
+            }
+
+            .metrics-layout {
+                display: flex;
+                flex-direction: column;
+                gap: 1px;
+                background: var(--border-color);
+            }
+
+            .metric-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                background: var(--bg);
+            }
+
+            .metric-item {
+                padding: 40px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .metric-number {
+                font-size: 5rem;
+                font-weight: 200;
+                line-height: 1;
+                display: block;
+                margin-bottom: 10px;
+            }
+
+            .metric-label {
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                color: var(--text-light);
+            }
+
+            /* --- PAGE 3: EDITORIAL --- */
+            .editorial-grid {
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                gap: 60px;
+                margin-top: 40px;
+            }
+
+            .drop-cap-suisse::first-letter {
+                float: left;
+                font-size: 6rem;
+                line-height: 0.7;
+                margin-right: 15px;
+                margin-top: 10px;
+                font-family: 'Cormorant Garamond', serif;
+                color: var(--primary);
+            }
+
+            .analysis-box {
+                margin-top: 80px;
+                background: #F4F4F5;
+                padding: 40px;
+                border-left: 10px solid var(--secondary);
+            }
+
+            /* --- PAGE 4: GALLERY (GRID RIGIDE) --- */
+            .gallery-suisse {
+                display: grid;
+                grid-template-columns: repeat(12, 1fr);
+                grid-template-rows: repeat(12, 1fr);
+                gap: 10px;
+                height: 750px;
+            }
+
+            .img-box {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .g-1 {
+                grid-column: 1 / 9;
+                grid-row: 1 / 7;
+            }
+
+            .g-2 {
+                grid-column: 9 / 13;
+                grid-row: 1 / 5;
+            }
+
+            .g-3 {
+                grid-column: 1 / 5;
+                grid-row: 7 / 13;
+            }
+
+            .g-4 {
+                grid-column: 5 / 13;
+                grid-row: 7 / 10;
+            }
+
+            .g-5 {
+                grid-column: 5 / 13;
+                grid-row: 10 / 13;
+            }
+
+            /* --- PAGE 5: CONCLUSION --- */
+            .suggestion-list {
+                list-style: none;
+                padding: 0;
+            }
+
+            .suggestion-item {
+                padding: 20px 0;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                align-items: baseline;
+            }
+
+            .item-num {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: 1.5rem;
+                width: 50px;
+                color: var(--primary);
+            }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: COVER -->
+    <div class="page">
+        <div class="cover-left"></div>
+        <div class="cover-right"></div>
+
+        <div class="cover-image-container">
+            @if (Model.PhotoUrls.Any())
+            {
+                <img src="@Model.PhotoUrls.First()" class="cover-image" />
+            }
+            else
+            {
+                <div style="width:100%; height:100%; background: var(--secondary);"></div>
+            }
+        </div>
+
+        <div class="cover-text-box">
+            <div class="tagline">RAPPORT D'IMPACT E-SPORT</div>
+            <h1 class="main-title">@Model.EventName.Replace(" ", "<br/>")</h1>
+            <div style="margin-top: 40px; font-weight: bold; font-size: 1.2rem;">
+                PRÉPARÉ POUR <span style="color: var(--primary);">@Model.CompanyName.ToUpper()</span>
+            </div>
+        </div>
+
+        <div
+            style="position: absolute; bottom: 50px; right: 50px; writing-mode: vertical-rl; transform: rotate(180deg); color: white; letter-spacing: 3px; font-size: 0.8rem;">
+            SPONSORPULSE © @DateTime.Now.Year
+        </div>
+    </div>
+
+    <!-- PAGE 2: METRICS -->
+    <div class="page margin-container">
+        <h2 class="section-title">Analyse Quantitative</h2>
+
+        <div class="metrics-layout">
+            @if (Model.TwitchMetrics != null)
+            {
+                <div class="metric-row">
+                    <div class="metric-item">
+                        <span class="metric-label">Audience Max</span>
+                        <span class="metric-number">@Model.TwitchMetrics.PeakViewers.ToString("N0")</span>
+                        <div style="height: 4px; width: 40px; background: var(--primary);"></div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Viewers Uniques</span>
+                        <span class="metric-number">@Model.TwitchMetrics.UniqueViewers.ToString("N0")</span>
+                        <div style="height: 4px; width: 40px; background: var(--secondary);"></div>
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <div class="metric-item">
+                        <span class="metric-label">Heures de Visionnage</span>
+                        <span class="metric-number">@Model.TwitchMetrics.ViewerHours.ToString("N0")</span>
+                        <span class="metric-label">Total Watch Time</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Engagement</span>
+                        <span class="metric-number">@Model.TwitchMetrics.EngagementRate.ToString("P0")</span>
+                        <span class="metric-label">Taux d'engagement</span>
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <div class="metric-item">
+                        <span class="metric-label">ROI Estimé</span>
+                        <span class="metric-number" style="color: var(--primary); font-size: 3rem;">@Model.TwitchMetrics.EstimatedROI.ToString("C0")</span>
+                        <span class="metric-label">Retour sur investissement</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">CPM</span>
+                        <span class="metric-number">@Model.TwitchMetrics.CPM.ToString("C2")</span>
+                        <span class="metric-label">Coût pour mille</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Model.TwitchMetrics != null && Model.TwitchMetrics.Sponsor.MentionCount > 0)
+        {
+            <div style="margin-top: 60px;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 30px; color: var(--primary);">Exposition Sponsor</h3>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px;">
+                    <div style="border-left: 3px solid var(--primary); padding-left: 20px;">
+                        <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase;">Mentions</div>
+                        <div style="font-size: 2.5rem; font-weight: 200;">@Model.TwitchMetrics.Sponsor.MentionCount</div>
+                    </div>
+                    <div style="border-left: 3px solid var(--secondary); padding-left: 20px;">
+                        <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase;">Temps d'Exposition</div>
+                        <div style="font-size: 2.5rem; font-weight: 200;">@Model.TwitchMetrics.Sponsor.TotalExposureTime.ToString("hh\\:mm")</div>
+                    </div>
+                    <div style="border-left: 3px solid var(--primary); padding-left: 20px;">
+                        <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase;">Logo Impressions</div>
+                        <div style="font-size: 2.5rem; font-weight: 200;">@Model.TwitchMetrics.Sponsor.LogoImpressions.ToString("N0")</div>
+                    </div>
+                    <div style="border-left: 3px solid var(--secondary); padding-left: 20px;">
+                        <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase;">Sentiment Marque</div>
+                        <div style="font-size: 2.5rem; font-weight: 200; color: var(--primary);">@Model.TwitchMetrics.Sponsor.BrandSentimentScore.ToString("P0")</div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.TwitchMetrics != null && Model.TwitchMetrics.Chat.TotalMessages > 0)
+        {
+            <div style="margin-top: 50px; padding: 40px; background: #F4F4F5; border-left: 10px solid var(--primary);">
+                <h4 style="margin-top: 0; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; color: var(--text-light);">Activité Chat</h4>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; margin-top: 20px;">
+                    <div>
+                        <div style="font-size: 0.7rem; color: var(--text-light);">Messages Totaux</div>
+                        <div style="font-size: 2rem; font-weight: 200;">@Model.TwitchMetrics.Chat.TotalMessages.ToString("N0")</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: var(--text-light);">Chatters Uniques</div>
+                        <div style="font-size: 2rem; font-weight: 200;">@Model.TwitchMetrics.Chat.UniqueChatters.ToString("N0")</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: var(--text-light);">Messages/Min</div>
+                        <div style="font-size: 2rem; font-weight: 200;">@Model.TwitchMetrics.Chat.MessagesPerMinute.ToString("N0")</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: var(--text-light);">Nouveaux Followers</div>
+                        <div style="font-size: 2rem; font-weight: 200; color: var(--primary);">@Model.TwitchMetrics.Conversion.NewFollowers.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div style="margin-top: 60px; display: flex; gap: 20px;">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" stroke="var(--border-color)" stroke-width="10" fill="none" />
+                <circle cx="50" cy="50" r="45" stroke="var(--primary)" stroke-width="10" fill="none"
+                        stroke-dasharray="210 282" />
+            </svg>
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+                <span style="font-size: 1.5rem; font-weight: bold;">75% de Part de Voix</span>
+                <span style="color: var(--text-light);">Présence de marque dominante durant le live</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: TWITTER ANALYTICS -->
+    <div class="page margin-container">
+        <h2 class="section-title">Impact Social</h2>
+
+        @if (Model.TwitterAnalytics != null)
+        {
+            <div class="metrics-layout" style="margin-top: 40px;">
+                <div class="metric-row">
+                    <div class="metric-item">
+                        <span class="metric-label">Reach Unique</span>
+                        <span class="metric-number">@Model.TwitterAnalytics.UniqueReach.ToString("N0")</span>
+                        <span class="metric-label">Audience estimée</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Taux d'Engagement</span>
+                        <span class="metric-number">@Model.TwitterAnalytics.EngagementRate.ToString("P0")</span>
+                        <span class="metric-label">Performance</span>
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <div class="metric-item">
+                        <span class="metric-label">Impressions Totales</span>
+                        <span class="metric-number">@Model.TwitterAnalytics.EstimatedImpressions.ToString("N0")</span>
+                        <span class="metric-label">Vues générées</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Valeur Média</span>
+                        <span class="metric-number" style="color: var(--secondary);">@Model.TwitterAnalytics.AdValueEquivalent.ToString("C0")</span>
+                        <span class="metric-label">Équivalent publicitaire</span>
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <div class="metric-item">
+                        <span class="metric-label">ROI Estimé</span>
+                        <span class="metric-number" style="color: var(--primary);">@Model.TwitterAnalytics.EstimatedROI.ToString("C0")</span>
+                        <span class="metric-label">Retour sur investissement</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Part de Voix</span>
+                        <span class="metric-number">@Model.TwitterAnalytics.ShareOfVoice.ToString("P0")</span>
+                        <span class="metric-label">Dominance conversation</span>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.TwitterAnalytics.TopHashtags.Any())
+            {
+                <div style="margin-top: 60px;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 30px; color: var(--primary);">Hashtags Tendances</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                        @foreach (var hashtag in Model.TwitterAnalytics.TopHashtags.Take(3))
+                        {
+                            <div style="padding: 30px; background: #F4F4F5; border-left: 4px solid var(--primary);">
+                                <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 10px;">#@hashtag.Tag</div>
+                                <div style="font-size: 0.85rem; color: var(--text-light);">
+                                    <div>@hashtag.UsageCount.ToString("N0") utilisations</div>
+                                    <div style="margin-top: 5px;">@hashtag.TotalEngagements.ToString("N0") engagements</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.TwitterAnalytics.TopInfluencer.FollowersCount > 0)
+            {
+                <div style="margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #F4F4F5 0%, rgba(139, 92, 246, 0.1) 100%); border-left: 10px solid var(--secondary);">
+                    <h4 style="margin-top: 0; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; color: var(--text-light);">Top Influenceur</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        <div>
+                            <div style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: bold;">@Model.TwitterAnalytics.TopInfluencer.Name</div>
+                            <div style="color: var(--secondary); font-size: 1.1rem;">@@@Model.TwitterAnalytics.TopInfluencer.Handle</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 3rem; font-weight: 200; color: var(--primary);">@Model.TwitterAnalytics.TopInfluencer.FollowersCount.ToString("N0")</div>
+                            <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase;">Followers</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- PAGE 3: STORYTELLING -->
+    <div class="page margin-container">
+        <h2 class="section-title">Le Récit de l'Impact</h2>
+
+        <div class="editorial-grid">
+            <div
+                style="font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; line-height: 1.2; font-style: italic;">
+                "L'intégration de la marque au sein de la compétition a généré une résonance organique sans précédent."
+            </div>
+            <div class="drop-cap-suisse" style="line-height: 1.7; color: #444;">
+                @Model.StorytellingText
+            </div>
+        </div>
+
+        <div class="analysis-box">
+            <h4
+                style="margin-top: 0; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; color: var(--text-light);">
+                L'œil de l'Analyste</h4>
+                <p
+                    style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--text-black); margin-bottom: 0;">
+                    @Model.AnalysisText
+                </p>
+            </div>
+        </div>
+
+        <!-- PAGE 4: GALLERY -->
+        <div class="page margin-container">
+            <h2 class="section-title">Captures Clés</h2>
+
+            <div class="gallery-suisse">
+                @for (int i = 0; i < Math.Min(Model.PhotoUrls.Count, 5); i++)
+                {
+                    <img src="@Model.PhotoUrls[i]" class="img-box g-@(i+1)" />
+                }
+            </div>
+        </div>
+
+        <!-- PAGE 5: STRATEGIE -->
+        <div class="page margin-container">
+            <h2 class="section-title">Opportunités & Croissance</h2>
+
+            <div style="margin-bottom: 60px;">
+                <h3 style="font-size: 1rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 3px;">
+                    Recommandations Stratégiques</h3>
+                    <div class="suggestion-list">
+                        @for (int i = 0; i < Model.Suggestions.Count; i++)
+                        {
+                            <div class="suggestion-item">
+                                <span class="item-num">0@(i+1).</span>
+                                <span style="font-size: 1.1rem;">@Model.Suggestions[i]</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div style="background: var(--primary); color: white; padding: 40px; text-align: center;">
+                    <h3 class="serif" style="font-size: 2rem; margin: 0;">Vers le prochain niveau.</h3>
+                    <p style="opacity: 0.8; margin-top: 10px;">Rapport d'analyse eSport haute fidélité</p>
+                </div>
+
+                <div
+                    style="position: absolute; bottom: 50px; left: 70px; right: 70px; display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-light);">
+                    <span>@Model.CompanyName / @Model.EventName</span>
+                    <span>GÉNÉRÉ PAR SPONSORPULSE</span>
+                    <span>PAGE 05</span>
+                </div>
+            </div>
+
+        </body>
+
+    </html>
