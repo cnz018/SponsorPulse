@@ -29,10 +29,15 @@ public static class InfrastructureDependencyInjection
         services.AddOptions<WaitlistSettings>()
             .Bind(configuration.GetSection("CloudMailin"));
 
+        // Value Calculator Configuration
+        services.AddOptions<ValueCalculatorSettings>()
+            .Bind(configuration.GetSection("ValueCalculator"));
+
         // Application Services
         services.AddScoped<IDemoDataService, DemoDataService>();
         services.AddScoped<IAnalysisSimulatorService, AnalysisSimulatorService>();
         services.AddScoped<IPdfGenerationService, PdfGenerationService>();
+        services.AddScoped<IValueCalculatorService, ValueCalculatorService>();
 
         // Waitlist Service (Singleton pour le compteur)
         services.AddSingleton<IWaitlistService, WaitlistService>();

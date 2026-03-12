@@ -7,6 +7,7 @@
 @using LumexUI.Common
 @using Microsoft.AspNetCore.Components.Web
 @using SponsorPulse.Infrastructure.Services
+@using SponsorPulse.Presentation.Components
 
 <div class="min-h-screen gradient-mesh font-jakarta">
     <LumexNavbar Sticky="@true" Blurred="@false" Bordered="@false" Height="5rem" Class="landing-navbar">
@@ -39,7 +40,7 @@
         </LumexNavbarContent>
     </LumexNavbar>
 
-    <!-- Hero Section -->
+    <!-- Hero Section with Value Calculator -->
     <section class="relative min-h-screen flex items-center justify-center px-4 py-10">
         <!-- Decorative Background Elements -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -47,18 +48,26 @@
             <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
         </div>
 
-        <div class="relative z-10 max-w-3xl mx-auto text-center">
-            <h1 class="hero-title mb-6 text-white font-black">
-                Arrêtez de deviner votre valeur.<br class="hidden sm:block" />
-                <span class="text-gradient">Prouvez-la</span> avec des chiffres.
-            </h1>
-            <p class="hero-subtitle mb-12 mb-12">
-                Générez des rapports impactants à partir de vos stats de streams et réseaux
-                automatiquement pour convaincre vos sponsors.
-            </p>
+        <div class="relative z-10 max-w-7xl mx-auto w-full">
+            <!-- Main Title (centered on mobile, left on desktop) -->
+            <div class="text-center mb-8">
+                <h1 class="hero-title mb-6 text-white font-black">
+                    Arrêtez de deviner votre valeur.<br class="hidden sm:block" />
+                    <span class="text-gradient">Prouvez-la</span> avec des chiffres.
+                </h1>
+                <p class="hero-subtitle mb-12">
+                    Générez des rapports impactants à partir de vos stats de streams et réseaux
+                    automatiquement pour convaincre vos sponsors.
+                </p>
+            </div>
 
-            <!-- Email Input Group with Social Proof -->
-            <div class="waitlist-section mb-12 mt-20 max-w-xl mx-auto">
+            <!-- Value Calculator Component (2 columns on large screens) -->
+            <ValueCalculator 
+                ShowCtaButtons="false"
+                OnValueCalculated="HandleValueCalculated" />
+
+            <!-- Waitlist Section (below calculator on all screens) -->
+            <div class="waitlist-section mt-12">
                 @* Social Proof Label *@
                 <div class="social-proof-label mb-4">
                     <div class="flex items-center justify-center gap-2 mb-2">
@@ -643,6 +652,13 @@
         var target = 1000;
         var percentage = (double)waitlistCount / target * 100;
         return Math.Min(percentage, 100);
+    }
+
+    private void HandleValueCalculated(double value)
+    {
+        // Stocker la valeur calculée pour usage futur (analytics, personnalisation, etc.)
+        // Pour le moment, on log juste pour débogage
+        Console.WriteLine($"Valeur sponsor calculée: {value:C0}");
     }
 
     private async Task NavigateToDemo()
