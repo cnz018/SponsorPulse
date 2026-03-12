@@ -6,12 +6,9 @@
     @* Header Section (visible on large screens in left column) *@
     <div class="calculator-header">
         <h2 class="calculator-title">
-            📊 Calculez votre <span class="text-gradient">valeur sponsor</span>
+            Calculez votre <span class="text-gradient">valeur sponsor</span>
         </h2>
-        <p class="calculator-subtitle">
-            Estimation basée sur les tendances marché 2026
-        </p>
-        
+    
         @if (ShowCtaButtons)
         {
             <div class="calculator-cta-buttons">
@@ -123,7 +120,7 @@
         <div class="result-card @resultCardClass">
             <div class="result-header">
                 <img src="https://api.iconify.design/ic:outline-monetization-on.svg" class="result-icon" alt="" />
-                <span>Votre valeur sponsor estimée</span>
+                <span>Votre valeur sponsor estimée *</span>
             </div>
             
             <div class="result-amount">@FormatCurrency(currentBreakdown.Total)</div>
@@ -153,7 +150,7 @@
             </div>
 
             <div class="result-footer">
-                <p>estimation basée sur les tendances marché 2026</p>
+                <p>* Estimation basée sur les tendances marché 2026</p>
             </div>
         </div>
     </div>

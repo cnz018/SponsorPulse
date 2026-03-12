@@ -56,13 +56,14 @@
         <div class="mobile-menu md:hidden">
             <div class="mobile-menu-content">
                 <LumexNavbarItem>
-                    <LumexLink Href="#features" Class="mobile-nav-link" @onclick="CloseMobileMenu">Fonctionnalités</LumexLink>
+                    <LumexLink Href="#features" Class="mobile-nav-link" @onclick="CloseMobileMenu">Fonctionnalités
+                    </LumexLink>
                 </LumexNavbarItem>
                 <LumexNavbarItem>
                     <LumexLink Href="#faq" Class="mobile-nav-link" @onclick="CloseMobileMenu">FAQ</LumexLink>
                 </LumexNavbarItem>
                 <LumexNavbarItem>
-                    <LumexButton class="btn-cta-primary w-full justify-center" Variant="@Variant.Ghost" 
+                    <LumexButton class="btn-cta-primary w-full justify-center" Variant="@Variant.Ghost"
                                  @onclick="NavigateToDemo" Radius="@Radius.Small">
                         Tester la démo
                     </LumexButton>
@@ -89,423 +90,408 @@
                 <p class="hero-subtitle mb-8 text-xl text-[#94A3B8]">
                     Générez des rapports impactants automatiquement pour convaincre vos sponsors.
                 </p>
-                
+
                 <!-- Waitlist Form - Immediate Conversion -->
-                <div class="waitlist-inline-container max-w-md">
+                <div class="waitlist-inline-container max-w-md mt-8">
                     <div class="waitlist-section mt-0">
                         @* Social Proof Label *@
+                        @if (waitlistCount > 10)
+                            {
                         <div class="social-proof-label mb-4">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="live-indicator"></span>
-                                <span class="proof-text">Déjà <strong class="text-white">@waitlistCount.ToString("N0")</strong> personnes inscrites</span>
+                                <span class="proof-text">Déjà <strong
+                                    class="text-white">@waitlistCount.ToString("N0")</strong> personnes
+                                    inscrites</span>
+                                </div>
+                                <div class="progress-bar-wrapper">
+                                    <div class="progress-bar-fill" style="width: @GetProgressPercentage()%"></div>
+                                </div>
                             </div>
-                            <div class="progress-bar-wrapper">
-                                <div class="progress-bar-fill" style="width: @GetProgressPercentage()%"></div>
-                            </div>
+                            }
+                            @* Waitlist Form *@
+                            @if (!waitlistSubmitted)
+                            {
+                                <div class="waitlist-form-wrapper">
+                                    <div class="waitlist-input-container">
+                                        <LumexTextbox Type="InputType.Email" @bind-Value="waitlistEmail"
+                                                      @onkeypress="HandleEnterKey"                                                  Placeholder="mon.mail@trophype.fr"
+                                                      Class="waitlist-input"                                                  Disabled="waitlistLoading" />
+
+                                        @if (!string.IsNullOrEmpty(waitlistError))
+                                        {
+                                            <p class="waitlist-error">@waitlistError</p>
+                                        }
+                                    </div>
+
+                                    <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary whitespace-nowrap"
+                                                 Radius="@Radius.Small" @onclick="SubmitWaitlist" Disabled="waitlistLoading">
+                                        @if (waitlistLoading)
+                                        {
+                                            <div class="flex items-center gap-2">
+                                                <div class="spinner-small"></div>
+                                                <span>Envoi...</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span>Rejoindre la waitlist</span>
+                                        }
+                                    </LumexButton>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="waitlist-success">
+                                    <div class="success-icon">🎉</div>
+                                    <div class="success-content">
+                                        <p class="success-title">Merci !</p>
+                                        <p class="success-subtitle">Vous êtes inscrit à la waitlist</p>
+                                    </div>
+                                </div>
+                            }
                         </div>
-
-                        @* Waitlist Form *@
-                        @if (!waitlistSubmitted)
-                        {
-                            <div class="waitlist-form-wrapper">
-                                <div class="waitlist-input-container">
-                                    <LumexTextbox Type="InputType.Email" 
-                                                  @bind-Value="waitlistEmail"
-                                                  @onkeypress="HandleEnterKey"
-                                                  Placeholder="mon.mail@trophype.fr"
-                                                  Class="waitlist-input"
-                                                  Disabled="waitlistLoading" />
-                                    
-                                    @if (!string.IsNullOrEmpty(waitlistError))
-                                    {
-                                        <p class="waitlist-error">@waitlistError</p>
-                                    }
-                                </div>
-                                
-                                <LumexButton Variant="@Variant.Ghost" 
-                                             Class="btn-cta-primary whitespace-nowrap" 
-                                             Radius="@Radius.Small"
-                                             @onclick="SubmitWaitlist"
-                                             Disabled="waitlistLoading">
-                                    @if (waitlistLoading)
-                                    {
-                                        <div class="flex items-center gap-2">
-                                            <div class="spinner-small"></div>
-                                            <span>Envoi...</span>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span>Rejoindre la waitlist</span>
-                                    }
-                                </LumexButton>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="waitlist-success">
-                                <div class="success-icon">🎉</div>
-                                <div class="success-content">
-                                    <p class="success-title">Merci !</p>
-                                    <p class="success-subtitle">Vous êtes inscrit à la waitlist</p>
-                                </div>
-                            </div>
-                        }
                     </div>
                 </div>
 
-                <!-- Trust Badges -->
-                <div class="trust-badges mt-12 flex flex-wrap gap-6">
-                    <div class="trust-badge">
-                        <div class="trust-badge-value">100%</div>
-                        <div class="trust-badge-label">Automatisé</div>
-                    </div>
-                    <div class="trust-badge">
-                        <div class="trust-badge-value">5 rapports</div>
-                        <div class="trust-badge-label">Essai gratuit</div>
-                    </div>
-                    <div class="trust-badge">
-                        <div class="trust-badge-value">24/7</div>
-                        <div class="trust-badge-label">Support</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Value Calculator -->
-            <div class="relative">
-                <div class="absolute -inset-4 bg-gradient-to-r from-red-500/10 to-purple-500/10 blur-2xl rounded-full opacity-50"></div>
+                <!-- Right Column: Value Calculator -->
                 <div class="relative">
-                    <ValueCalculator ShowCtaButtons="false" OnValueCalculated="HandleValueCalculated" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Scroll Indicator -->
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
-                </path>
-            </svg>
-        </div>
-    </section>
-
-    <!-- Visual Asset / Product Demo Section -->
-    <section class="relative px-4 py-32">
-        <div class="max-w-6xl mx-auto">
-            <!-- Main Visual Container -->
-            <div class="relative aspect-video rounded-3xl border border-white/10 overflow-hidden gradient-radial">
-                <!-- Floating Metric Cards -->
-                <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
-                    <!-- Card 1: Twitter Reach -->
-                    <div class="floating-animation metric-card absolute -left-4 sm:left-8 top-1/4 w-48 sm:w-56">
-                        <div class="metric-label">Reach Twitter</div>
-                        <div class="flex items-baseline gap-1">
-                            <span class="metric-value">245K</span>
-                            <span class="metric-unit">impressions</span>
-                        </div>
-                        <p class="mt-3 text-xs text-[#94A3B8]">↑ 32% vs dernier déc</p>
-                    </div>
-
-                    <!-- Card 2: Sentiment Analysis -->
-                    <div class="floating-animation metric-card absolute -right-4 sm:right-8 top-1/3 w-48 sm:w-56">
-                        <div class="metric-label">Sentiment</div>
-                        <div class="flex items-baseline gap-2 mt-2">
-                            <span class="text-2xl">😊</span>
-                            <span class="metric-value">94%</span>
-                        </div>
-                        <p class="mt-3 text-xs text-[#94A3B8]">Positif (Tweet Analysis)</p>
-                    </div>
-
-                    <!-- Card 3: Ad Value Equivalent -->
                     <div
-                        class="floating-animation metric-card absolute left-1/2 transform -translate-x-1/2 bottom-1/4 w-48 sm:w-56">
-                        <div class="metric-label">Ad Value Equivalent</div>
-                        <div class="flex items-baseline gap-1">
-                            <span class="metric-value">$18.5K</span>
-                            <span class="metric-unit">USD</span>
-                        </div>
-                        <p class="mt-3 text-xs text-[#94A3B8]">Valeur sponsor estimée</p>
+                        class="absolute -inset-4 bg-gradient-to-r from-red-500/10 to-purple-500/10 blur-2xl rounded-full opacity-50">
                     </div>
-
-                    <!-- Card 4: Twitch Peak Viewers -->
-                    <div class="floating-animation metric-card absolute left-12 bottom-12 w-48 sm:w-56">
-                        <div class="metric-label">Pic Spectateurs</div>
-                        <div class="flex items-baseline gap-1">
-                            <span class="metric-value">8.2K</span>
-                            <span class="metric-unit">viewers</span>
-                        </div>
-                        <p class="mt-3 text-xs text-[#94A3B8]">Dernier stream</p>
-                    </div>
-
-                    <!-- Card 5: Engagement Rate -->
-                    <div class="floating-animation metric-card absolute right-12 bottom-16 w-48 sm:w-56">
-                        <div class="metric-label">Taux Engagement</div>
-                        <div class="flex items-baseline gap-1">
-                            <span class="metric-value">8.7%</span>
-                            <span class="metric-unit">interaction</span>
-                        </div>
-                        <p class="mt-3 text-xs text-[#94A3B8]">↑ 21% vs mois dernier</p>
-                    </div>
-
-                    <!-- Card 6: Total Followers -->
-                    <div class="floating-animation metric-card absolute left-1/3 top-12 w-48 sm:w-56">
-                        <div class="metric-label">Audience Totale</div>
-                        <div class="flex items-baseline gap-1">
-                            <span class="metric-value">125K</span>
-                            <span class="metric-unit">followers</span>
-                        </div>
-                        <p class="mt-3 text-xs text-[#94A3B8]">Twitch + Twitter combined</p>
-                    </div>
-                </div>
-
-                <!-- Center Accent Glow -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="w-80 h-80 bg-[#CCC9DC]/10 rounded-full blur-3xl"></div>
-                </div>
-            </div>
-
-            <!-- Stats Section -->
-            <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                <div class="p-8">
-                    <div class="text-4xl font-bold text-[#CCC9DC] mb-3">100%</div>
-                    <p class="text-[#94A3B8]">Automoatisé</p>
-                </div>
-                <div class="p-8">
-                    <div class="text-4xl font-bold text-[#CCC9DC] mb-3">5 rapports</div>
-                    <p class="text-[#94A3B8]">d'Essai Gratuits</p>
-                </div>
-                <div class="p-8">
-                    <div class="text-4xl font-bold text-[#CCC9DC] mb-3">24/7</div>
-                    <p class="text-[#94A3B8]">Support</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section - Bento Grid -->
-    <section id="features" class="relative px-4 py-20 border-t border-white/10">
-        <div class="max-w-screen-xl mx-auto">
-            <!-- Section Header -->
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-black text-white mb-4">
-                    Une plateforme, <span class="text-gradient">quatre piliers</span>
-                </h2>
-                <p class="text-[#94A3B8] max-w-2xl mx-auto">
-                    Transformez vos données eSport en arguments de vente convaincants.
-                </p>
-            </div>
-            
-            <!-- Bento Grid -->
-            <div class="bento-grid">
-                <!-- Card 1: Analyse Streams (Large - 2x2) -->
-                <div class="bento-card col-span-3 lg:col-span-2 row-span-2 group">
-                    <div class="bento-content">
-                        <span class="badge">Live Data</span>
-                        <h3 class="text-2xl font-bold text-white mt-4">Analyse de Stream</h3>
-                        <p class="text-[#94A3B8] mt-2">
-                            Extraction en temps réel des pics d'audience et de l'engagement du chat.
-                        </p>
-                        <ul class="feature-list mt-4">
-                            <li class="feature-list-item">
-                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
-                                Pics d'audience en temps réel
-                            </li>
-                            <li class="feature-list-item">
-                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
-                                Engagement du chat
-                            </li>
-                            <li class="feature-list-item">
-                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
-                                Durée et fréquence des streams
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="bento-visual">
-                        <div class="visual-placeholder">
-                            <img src="https://api.iconify.design/simple-icons:twitch.svg" class="visual-icon" alt="" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 2: Social Intelligence (Tall - 1x2) -->
-                <div class="bento-card col-span-3 lg:col-span-1 row-span-2 group">
-                    <div class="bento-content">
-                        <span class="badge badge-twitter">X / Twitter</span>
-                        <h3 class="text-xl font-bold text-white mt-4">Social Intelligence</h3>
-                        <p class="text-[#94A3B8] mt-2">
-                            Mesure de portée et analyse de sentiment sur X/Twitter.
-                        </p>
-                        <ul class="feature-list mt-4">
-                            <li class="feature-list-item">
-                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
-                                Analyse de hashtags
-                            </li>
-                            <li class="feature-list-item">
-                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
-                                Sentiment analysis
-                            </li>
-                            <li class="feature-list-item">
-                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
-                                Top influenceurs
-                            </li>
-                            <li class="feature-list-item">
-                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
-                                Répartition géographique
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="bento-visual">
-                        <div class="visual-placeholder">
-                            <img src="https://api.iconify.design/simple-icons:x.svg" class="visual-icon" alt="" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 3: Storytelling IA (Small - 1x1) -->
-                <div class="bento-card col-span-3 lg:col-span-1 group">
-                    <div class="bento-content">
-                        <span class="badge badge-ai">IA</span>
-                        <h3 class="text-xl font-bold text-white mt-4">Storytelling IA</h3>
-                        <p class="text-[#94A3B8] mt-2">
-                            Vos chiffres transformés en argumentaires percutants.
-                        </p>
-                    </div>
-                    <div class="bento-visual">
-                        <div class="visual-placeholder">
-                            <img src="https://api.iconify.design/ic:outline-smart-toy.svg" class="visual-icon" alt="" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 4: Rapports PDF (Wide - 3x1) -->
-                <div class="bento-card col-span-3 lg:col-span-3 group flex-row items-center justify-between">
-                    <div class="bento-content">
-                        <span class="badge badge-pdf">Export</span>
-                        <h3 class="text-xl font-bold text-white mt-4">Rapports PDF Premium</h3>
-                        <p class="text-[#94A3B8] mt-2">
-                            Exportez un dossier complet prêt pour vos rendez-vous sponsors.
-                        </p>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
-                        <img src="https://api.iconify.design/ic:outline-picture-as-pdf.svg" class="pdf-icon" alt="" />
-                        <span class="text-white font-mono text-sm">RAPPORT_SPONSOR_v2.pdf</span>
+                    <div class="relative">
+                        <ValueCalculator ShowCtaButtons="false" OnValueCalculated="HandleValueCalculated" />
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- FAQ Section -->
-    <section id="faq" class="relative px-4 py-32 border-t border-white/10">
-        <div class="max-w-3xl mx-auto">
-            <!-- Section Header -->
-            <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
-                    Questions <span class="text-gradient">fréquentes</span>
-                </h2>
-            </div>
+        </section>
 
-            <!-- FAQ Items -->
-            <div class="max-w-3xl mx-auto py-8">
-                <div class="lumex-components-wrapper">
-                    <LumexAccordion Variant="@AccordionVariant.Bordered" SelectionMode="@SelectionMode.Single"
-                                    ShowDividers="@true" Collapsible="true">
-                        <!-- FAQ Item 1 -->
-                        <LumexAccordionItem Id="faq1" Title="Quelles plateformes sont supportées ?">
-                            <div class="faq-content">
-                                <p class="mb-3">Actuellement, nous supportons :</p>
-                                <ul class="faq-list">
-                                    <li><strong class="text-white">Twitter (X)</strong> - Extraction de tweets,
-                                        hashtags,
-                                        mentions</li>
-                                        <li><strong class="text-white">Twitch</strong> - Statistiques de streams, audience,
-                                            chat
-                                            engagement</li>
-                                        </ul>
-                                        <p class="mt-3 text-sm">YouTube, TikTok, Instagram, Discord sont en feuille de route pour 2026.</p>
-                                    </div>
-                                </LumexAccordionItem>
-
-                                <!-- FAQ Item 2 -->
-                                <LumexAccordionItem Id="faq2" Title="Est-ce que le rapport est personnalisable ?">
-                                    <div class="faq-content">
-                                        <p>Absolument ! Vous pouvez :</p>
-                                        <ul class="faq-list">
-                                            <li>Ajouter votre logo et couleurs de marque</li>
-                                            <li>Exporter en PDF</li>
-                                        </ul>
-                                    </div>
-                                </LumexAccordionItem>
-
-                                <!-- FAQ Item 3 -->
-                                <LumexAccordionItem Id="faq3" Title="Combien de temps dure l'analyse ?">
-                                    <div class="faq-content">
-                                        <p><strong class="text-[#CCC9DC]">Moins de 10 minutes</strong> pour un rapport complet.
-                                        </p>
-                                    </div>
-                                </LumexAccordionItem>
-
-                                <!-- FAQ Item 4 -->
-                                <LumexAccordionItem Id="faq4" Title="Combien ça coûte ?">
-                                    <div class="faq-content">
-                                        <p class="mb-3">Nous sommes actuellement en <strong class="text-white">beta
-                                            fermée</strong>.
-                                        </p>
-                                    </div>
-                                </LumexAccordionItem>
-                            </LumexAccordion>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Last CTA Section -->
-            <section class="relative px-4 py-32">
-                <div class="max-w-4xl mx-auto">
-                    <div class="relative overflow-hidden rounded-3xl p-12 md:p-20 border border-[#CCC9DC]/20 cta-gradient">
-                        <!-- Animated background -->
-                        <div class="absolute inset-0 opacity-40 pointer-events-none">
-                            <div class="absolute top-0 right-0 w-64 h-64 bg-[#CCC9DC]/10 rounded-full blur-3xl animate-pulse">
+        <!-- Visual Asset / Product Demo Section -->
+        <section class="relative px-4 py-32">
+            <div class="max-w-6xl mx-auto">
+                <!-- Main Visual Container -->
+                <div class="relative aspect-video rounded-3xl border border-white/10 overflow-hidden gradient-radial">
+                    <!-- Floating Metric Cards -->
+                    <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+                        <!-- Card 1: Twitter Reach -->
+                        <div class="floating-animation metric-card absolute -left-4 sm:left-8 top-1/4 w-48 sm:w-56">
+                            <div class="metric-label">Reach Twitter</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="metric-value">245K</span>
+                                <span class="metric-unit">impressions</span>
                             </div>
-                            <div class="absolute bottom-0 left-0 w-96 h-96 bg-[#324A5F]/10 rounded-full blur-3xl animate-pulse"
-                                 style="animation-delay: 1s;"></div>
+                            <p class="mt-3 text-xs text-[#94A3B8]">↑ 32% vs dernier déc</p>
                         </div>
 
-                        <!-- Content -->
-                        <div class="relative z-10 text-center">
-                            <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
-                                Prêt à signer votre<br />prochain gros sponsor ?
-                            </h2>
+                        <!-- Card 2: Sentiment Analysis -->
+                        <div class="floating-animation metric-card absolute -right-4 sm:right-8 top-1/3 w-48 sm:w-56">
+                            <div class="metric-label">Sentiment</div>
+                            <div class="flex items-baseline gap-2 mt-2">
+                                <span class="text-2xl">😊</span>
+                                <span class="metric-value">94%</span>
+                            </div>
+                            <p class="mt-3 text-xs text-[#94A3B8]">Positif (Tweet Analysis)</p>
+                        </div>
 
-                            <p class="text-lg text-[#94A3B8] mb-12 max-w-2xl mx-auto">
-                                Rejoignez les organisateurs eSport qui gagnent déjà des contrats avec SponsorPulse.
+                        <!-- Card 3: Ad Value Equivalent -->
+                        <div
+                            class="floating-animation metric-card absolute left-1/2 transform -translate-x-1/2 bottom-1/4 w-48 sm:w-56">
+                            <div class="metric-label">Ad Value Equivalent</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="metric-value">$18.5K</span>
+                                <span class="metric-unit">USD</span>
+                            </div>
+                            <p class="mt-3 text-xs text-[#94A3B8]">Valeur sponsor estimée</p>
+                        </div>
+
+                        <!-- Card 4: Twitch Peak Viewers -->
+                        <div class="floating-animation metric-card absolute left-12 bottom-12 w-48 sm:w-56">
+                            <div class="metric-label">Pic Spectateurs</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="metric-value">8.2K</span>
+                                <span class="metric-unit">viewers</span>
+                            </div>
+                            <p class="mt-3 text-xs text-[#94A3B8]">Dernier stream</p>
+                        </div>
+
+                        <!-- Card 5: Engagement Rate -->
+                        <div class="floating-animation metric-card absolute right-12 bottom-16 w-48 sm:w-56">
+                            <div class="metric-label">Taux Engagement</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="metric-value">8.7%</span>
+                                <span class="metric-unit">interaction</span>
+                            </div>
+                            <p class="mt-3 text-xs text-[#94A3B8]">↑ 21% vs mois dernier</p>
+                        </div>
+
+                        <!-- Card 6: Total Followers -->
+                        <div class="floating-animation metric-card absolute left-1/3 top-12 w-48 sm:w-56">
+                            <div class="metric-label">Audience Totale</div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="metric-value">125K</span>
+                                <span class="metric-unit">followers</span>
+                            </div>
+                            <p class="mt-3 text-xs text-[#94A3B8]">Twitch + Twitter combined</p>
+                        </div>
+                    </div>
+
+                    <!-- Center Accent Glow -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="w-80 h-80 bg-[#CCC9DC]/10 rounded-full blur-3xl"></div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="p-8">
+                        <div class="text-4xl font-bold text-[#CCC9DC] mb-3">100%</div>
+                        <p class="text-[#94A3B8]">Automoatisé</p>
+                    </div>
+                    <div class="p-8">
+                        <div class="text-4xl font-bold text-[#CCC9DC] mb-3">5 rapports</div>
+                        <p class="text-[#94A3B8]">d'Essai Gratuits</p>
+                    </div>
+                    <div class="p-8">
+                        <div class="text-4xl font-bold text-[#CCC9DC] mb-3">24/7</div>
+                        <p class="text-[#94A3B8]">Support</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section - Bento Grid -->
+        <section id="features" class="relative px-4 py-20 border-t border-white/10">
+            <div class="max-w-screen-xl mx-auto">
+                <!-- Section Header -->
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-black text-white mb-4">
+                        Une plateforme, <span class="text-gradient">quatre piliers</span>
+                    </h2>
+                    <p class="text-[#94A3B8] max-w-2xl mx-auto">
+                        Transformez vos données eSport en arguments de vente convaincants.
+                    </p>
+                </div>
+
+                <!-- Bento Grid -->
+                <div class="bento-grid">
+                    <!-- Card 1: Analyse Streams (Large - 2x2) -->
+                    <div class="bento-card col-span-3 lg:col-span-2 row-span-2 group">
+                        <div class="bento-content">
+                            <span class="badge">Stream Data</span>
+                            <h3 class="text-2xl font-bold text-white mt-4">Analyse de Stream</h3>
+                            <p class="text-[#94A3B8] mt-2">
+                                Extraction des pics d'audience et de l'engagement du chat.
                             </p>
-
-                            <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary-second text-lg px-10 mx-auto block">
-                                Rejoindre la waitlist
-                            </LumexButton>
+                            <ul class="feature-list mt-6">
+                                <li class="feature-list-item">
+                                    <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon"
+                                         alt="" />
+                                    Pics d'audience et moments forts
+                                </li>
+                                <li class="feature-list-item">
+                                    <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon"
+                                         alt="" />
+                                    Engagement du chat
+                                </li>
+                                <li class="feature-list-item">
+                                    <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon"
+                                         alt="" />
+                                    Durée des streams et rétention
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bento-visual">
+                            <div class="visual-placeholder">
+                                <img src="https://api.iconify.design/simple-icons:twitch.svg" class="visual-icon" alt="" />
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- Footer Section -->
-            <footer class="border-t border-white/10 py-16 px-4">
-                <div class="max-w-7xl mx-auto">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                        <!-- Brand -->
-                        <div>
-                            <div class="flex items-center gap-2 mb-4">
-                                <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
-                                <span class="text-lg font-bold text-white navbar-brand-text">SponsorPulse</span>
+                    <!-- Card 2: Social Intelligence (Tall - 1x2) -->
+                    <div class="bento-card col-span-3 lg:col-span-1 row-span-2 group">
+                        <div class="bento-content">
+                            <span class="badge badge-twitter">Réseaux Sociaux</span>
+                            <h3 class="text-xl font-bold text-white mt-4">Social Intelligence</h3>
+                            <p class="text-[#94A3B8] mt-2">
+                                Mesure de portée et analyse de sentiment sur les réseaux.
+                            </p>
+                            <ul class="feature-list mt-6">
+                                <li class="feature-list-item">
+                                    <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon"
+                                         alt="" />
+                                    Analyse de hashtags
+                                </li>
+                                <li class="feature-list-item">
+                                    <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon"
+                                         alt="" />
+                                    Analyse des sentiments
+                                </li>
+                                <li class="feature-list-item">
+                                    <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon"
+                                         alt="" />
+                                    Top influenceurs
+                                </li>
+                                <li class="feature-list-item">
+                                    <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon"
+                                         alt="" />
+                                    Répartition géographique
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bento-visual">
+                            <div class="visual-placeholder">
+                                <img src="https://api.iconify.design/simple-icons:x.svg" class="visual-icon" alt="" />
                             </div>
-                            <p class="text-[#94A3B8] text-sm">
-                                Prouvez votre valeur avec des chiffres concrets.
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Storytelling IA (Small - 1x1) -->
+                    <div class="bento-card col-span-3 lg:col-span-1 group">
+                        <div class="bento-content">
+                            <span class="badge badge-ai">IA</span>
+                            <h3 class="text-xl font-bold text-white mt-4">Storytelling IA</h3>
+                            <p class="text-[#94A3B8] mt-2">
+                                Vos chiffres analysés, transformés en argumentaires percutants.
                             </p>
                         </div>
+                        <div class="bento-visual">
+                            <div class="visual-placeholder">
+                                <img src="https://api.iconify.design/ic:outline-smart-toy.svg" class="visual-icon" alt="" />
+                            </div>
+                        </div>
+                    </div>
 
-                        <!-- Product -->
-                        @* <div>
+                    <!-- Card 4: Rapports PDF (Wide - 3x1) -->
+                    <div class="bento-card col-span-3 lg:col-span-3 group flex-row items-center justify-between">
+                        <div class="bento-content">
+                            <span class="badge badge-pdf">Export</span>
+                            <h3 class="text-xl font-bold text-white mt-4">Rapports PDF Premium</h3>
+                            <p class="text-[#94A3B8] mt-2">
+                                Exportez un dossier complet prêt pour vos rendez-vous sponsors.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3 mt-6">
+                            <img src="https://api.iconify.design/ic:outline-picture-as-pdf.svg" class="pdf-icon" alt="" />
+                            <span class="text-white font-mono text-sm">RAPPORT_STREAM_v2.pdf</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="relative px-4 py-32 border-t border-white/10">
+            <div class="max-w-3xl mx-auto">
+                <!-- Section Header -->
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
+                        Questions <span class="text-gradient">fréquentes</span>
+                    </h2>
+                </div>
+
+                <!-- FAQ Items -->
+                <div class="max-w-3xl mx-auto py-8">
+                    <div class="lumex-components-wrapper">
+                        <LumexAccordion Variant="@AccordionVariant.Bordered" SelectionMode="@SelectionMode.Single"
+                                        ShowDividers="@true" Collapsible="true">
+                            <!-- FAQ Item 1 -->
+                            <LumexAccordionItem Id="faq1" Title="Quelles plateformes sont supportées ?">
+                                <div class="faq-content">
+                                    <p class="mb-3">Actuellement, nous supportons :</p>
+                                    <ul class="faq-list">
+                                        <li><strong class="text-white">Twitter (X)</strong> - Extraction de tweets,
+                                            hashtags,
+                                            mentions</li>
+                                            <li><strong class="text-white">Twitch</strong> - Statistiques de streams, audience,
+                                                chat
+                                                engagement</li>
+                                            </ul>
+                                            <p class="mt-3 text-sm">YouTube, TikTok, Instagram, Discord sont en feuille de route
+                                                pour 2026.</p>
+                                            </div>
+                                        </LumexAccordionItem>
+
+                                        <!-- FAQ Item 2 -->
+                                        <LumexAccordionItem Id="faq2" Title="Est-ce que le rapport est personnalisable ?">
+                                            <div class="faq-content">
+                                                <p>Absolument ! Vous pouvez :</p>
+                                                <ul class="faq-list">
+                                                    <li>Ajouter votre logo et couleurs de marque</li>
+                                                    <li>Exporter en PDF</li>
+                                                </ul>
+                                            </div>
+                                        </LumexAccordionItem>
+
+                                        <!-- FAQ Item 3 -->
+                                        <LumexAccordionItem Id="faq3" Title="Combien de temps dure l'analyse ?">
+                                            <div class="faq-content">
+                                                <p><strong class="text-[#CCC9DC]">Moins de 10 minutes</strong> pour un rapport complet.
+                                                </p>
+                                            </div>
+                                        </LumexAccordionItem>
+
+                                        <!-- FAQ Item 4 -->
+                                        <LumexAccordionItem Id="faq4" Title="Combien ça coûte ?">
+                                            <div class="faq-content">
+                                                <p class="mb-3">Nous sommes actuellement en <strong class="text-white">beta
+                                                    fermée</strong>.
+                                                </p>
+                                            </div>
+                                        </LumexAccordionItem>
+                                    </LumexAccordion>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Last CTA Section -->
+                    <section class="relative px-4 py-32">
+                        <div class="max-w-4xl mx-auto">
+                            <div class="relative overflow-hidden rounded-3xl p-12 md:p-20 border border-[#CCC9DC]/20 cta-gradient">
+                                <!-- Animated background -->
+                                <div class="absolute inset-0 opacity-40 pointer-events-none">
+                                    <div class="absolute top-0 right-0 w-64 h-64 bg-[#CCC9DC]/10 rounded-full blur-3xl animate-pulse">
+                                    </div>
+                                    <div class="absolute bottom-0 left-0 w-96 h-96 bg-[#324A5F]/10 rounded-full blur-3xl animate-pulse"
+                                         style="animation-delay: 1s;"></div>
+                                </div>
+
+                                <!-- Content -->
+                                <div class="relative z-10 text-center">
+                                    <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
+                                        Prêt à signer votre<br />prochain gros sponsor ?
+                                    </h2>
+
+                                    <p class="text-lg text-[#94A3B8] mb-12 max-w-2xl mx-auto">
+                                        Rejoignez les organisateurs eSport qui gagnent déjà des contrats avec SponsorPulse.
+                                    </p>
+
+                                    <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary-second text-lg px-10 mx-auto block">
+                                        Rejoindre la waitlist
+                                    </LumexButton>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Footer Section -->
+                    <footer class="border-t border-white/10 py-16 px-4">
+                        <div class="max-w-7xl mx-auto">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                                <!-- Brand -->
+                                <div>
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
+                                        <span class="text-lg font-bold text-white navbar-brand-text">SponsorPulse</span>
+                                    </div>
+                                    <p class="text-[#94A3B8] text-sm">
+                                        Prouvez votre valeur avec des chiffres concrets.
+                                    </p>
+                                </div>
+
+                                <!-- Product -->
+                                @* <div>
                     <h4 class="font-semibold text-white mb-4">Produit</h4>
                     <ul class="space-y-2 text-sm text-[#94A3B8]">
                         <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Fonctionnalités</a></li>
@@ -533,83 +519,83 @@
                         <li><a href="#" class="hover:text-[#CCC9DC] transition-colors">Cookies</a></li>
                     </ul>
                 </div>*@
-                    </div>
+                            </div>
 
-                    <!-- Divider -->
-                    <div class="border-t border-white/10 pt-8">
-                        <div class="flex flex-col md:flex-row justify-between items-center text-sm text-[#94A3B8]">
-                            <p>&copy; 2026 SponsorPulse. Tous droits réservés.</p>
-                            <div class="flex gap-4 mt-4 md:mt-0">
-                                <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
-                                    <LumexPopoverTrigger>
-                                        <button class="social-icon-btn">
-                                            <img src="https://api.iconify.design/logos:x.svg" alt="Twitter"
-                                                 class="social-icon" />
-                                        </button>
-                                    </LumexPopoverTrigger>
-                                    <LumexPopoverContent>
-                                        <span class="popover-text">Twitter</span>
-                                    </LumexPopoverContent>
-                                </LumexPopover>
+                            <!-- Divider -->
+                            <div class="border-t border-white/10 pt-8">
+                                <div class="flex flex-col md:flex-row justify-between items-center text-sm text-[#94A3B8]">
+                                    <p>&copy; 2026 SponsorPulse. Tous droits réservés.</p>
+                                    <div class="flex gap-4 mt-4 md:mt-0">
+                                        <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
+                                            <LumexPopoverTrigger>
+                                                <button class="social-icon-btn">
+                                                    <img src="https://api.iconify.design/logos:x.svg" alt="Twitter"
+                                                         class="social-icon" />
+                                                </button>
+                                            </LumexPopoverTrigger>
+                                            <LumexPopoverContent>
+                                                <span class="popover-text">Twitter</span>
+                                            </LumexPopoverContent>
+                                        </LumexPopover>
 
-                                <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
-                                    <LumexPopoverTrigger>
-                                        <button class="social-icon-btn">
-                                            <img src="https://api.iconify.design/logos:discord-icon.svg" alt="Discord"
-                                                 class="social-icon" />
-                                        </button>
-                                    </LumexPopoverTrigger>
-                                    <LumexPopoverContent>
-                                        <span class="popover-text">Discord</span>
-                                    </LumexPopoverContent>
-                                </LumexPopover>
+                                        <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
+                                            <LumexPopoverTrigger>
+                                                <button class="social-icon-btn">
+                                                    <img src="https://api.iconify.design/logos:discord-icon.svg" alt="Discord"
+                                                         class="social-icon" />
+                                                </button>
+                                            </LumexPopoverTrigger>
+                                            <LumexPopoverContent>
+                                                <span class="popover-text">Discord</span>
+                                            </LumexPopoverContent>
+                                        </LumexPopover>
 
-                                <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
-                                    <LumexPopoverTrigger>
-                                        <button class="social-icon-btn">
-                                            <img src="https://api.iconify.design/logos:github-icon.svg" alt="GitHub"
-                                                 class="social-icon" />
-                                        </button>
-                                    </LumexPopoverTrigger>
-                                    <LumexPopoverContent>
-                                        <span class="popover-text">GitHub</span>
-                                    </LumexPopoverContent>
-                                </LumexPopover>
+                                        <LumexPopover Placement="@PopoverPlacement.Top" Offset="8" ShowArrow="@true">
+                                            <LumexPopoverTrigger>
+                                                <button class="social-icon-btn">
+                                                    <img src="https://api.iconify.design/logos:github-icon.svg" alt="GitHub"
+                                                         class="social-icon" />
+                                                </button>
+                                            </LumexPopoverTrigger>
+                                            <LumexPopoverContent>
+                                                <span class="popover-text">GitHub</span>
+                                            </LumexPopoverContent>
+                                        </LumexPopover>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </footer>
+                    </footer>
 
-            <!-- Loading Modal -->
-            @if (isLoading)
-            {
-                <div class="loading-modal-backdrop" @onclick="CancelLoading">
-                    <div class="loading-modal-content" @onclick:stopPropagation>
-                        <LumexSpinner Size="@Size.Large" Color="@ThemeColor.Primary" />
-                        <h3 class="loading-title">Chargement de la démo...</h3>
-                        <p class="loading-subtitle">Préparation de votre environnement de démonstration</p>
-                    </div>
+                    <!-- Loading Modal -->
+                    @if (isLoading)
+                    {
+                        <div class="loading-modal-backdrop" @onclick="CancelLoading">
+                            <div class="loading-modal-content" @onclick:stopPropagation>
+                                <LumexSpinner Size="@Size.Large" Color="@ThemeColor.Primary" />
+                                <h3 class="loading-title">Chargement de la démo...</h3>
+                                <p class="loading-subtitle">Préparation de votre environnement de démonstration</p>
+                            </div>
+                        </div>
+                    }
                 </div>
-            }
-        </div>
 
 @code {
     private bool isLoading = false;
-    
+
     // Mobile menu state
     private bool isMobileMenuOpen = false;
-    
+
     // Waitlist fields
     private string waitlistEmail = "";
     private bool waitlistSubmitted = false;
     private bool waitlistLoading = false;
     private string? waitlistError;
     private int waitlistCount = 0;
-    
+
     [Inject]
     private IWaitlistService WaitlistService { get; set; } = default!;
-    
+
     [Inject]
     private HttpClient Http { get; set; } = default!;
 
@@ -661,14 +647,14 @@
     private async Task SubmitWaitlist()
     {
         waitlistError = null;
-        
+
         // Validation
         if (string.IsNullOrWhiteSpace(waitlistEmail))
         {
             waitlistError = "Veuillez entrer votre email";
             return;
         }
-        
+
         if (!waitlistEmail.Contains("@") || !waitlistEmail.Contains("."))
         {
             waitlistError = "Veuillez entrer un email valide";
@@ -682,12 +668,12 @@
         {
             // Appel API CloudMailin via le endpoint
             var response = await Http.PostAsJsonAsync("/api/waitlist", new { Email = waitlistEmail });
-            
+
             if (response.IsSuccessStatusCode)
             {
                 waitlistSubmitted = true;
                 waitlistEmail = "";
-                
+
                 // Incrémenter le compteur localement
                 waitlistCount++;
             }
@@ -895,6 +881,7 @@
             opacity: 0;
             transform: translateY(-10px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -931,10 +918,13 @@
     }
 
     @@keyframes pulse-live {
-        0%, 100% {
+
+        0%,
+        100% {
             opacity: 1;
             transform: scale(1);
         }
+
         50% {
             opacity: 0.5;
             transform: scale(1.2);
@@ -1001,9 +991,19 @@
     }
 
     @@keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-4px); }
-        75% { transform: translateX(4px); }
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-4px);
+        }
+
+        75% {
+            transform: translateX(4px);
+        }
     }
 
     .waitlist-success {
@@ -1051,7 +1051,9 @@
     }
 
     @@keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     @@keyframes slideIn {
@@ -1059,6 +1061,7 @@
             opacity: 0;
             transform: translateY(10px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -1069,12 +1072,12 @@
         .waitlist-form-wrapper {
             flex-direction: column;
         }
-        
+
         .waitlist-input-container {
             width: 100%;
             min-width: auto;
         }
-        
+
         .btn-cta-primary {
             width: 100%;
             justify-content: center;
@@ -1439,7 +1442,7 @@
             grid-template-columns: 1fr;
             grid-auto-rows: auto;
         }
-        
+
         .bento-card {
             grid-column: span 1 !important;
             row-span: 1;
