@@ -71,92 +71,112 @@
         </div>
     }
 
-    <!-- Hero Section with Value Calculator -->
-    <section class="relative min-h-screen flex items-center justify-center px-4 py-10">
+    <!-- Hero Section with Value Calculator - 2 Column Layout -->
+    <section class="relative min-h-[90vh] flex items-center px-4 py-20">
         <!-- Decorative Background Elements -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute top-20 left-10 w-72 h-72 bg-red-500/5 rounded-full blur-3xl"></div>
             <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
         </div>
 
-        <div class="relative z-10 max-w-7xl mx-auto w-full">
-            <!-- Main Title (centered on mobile, left on desktop) -->
-            <div class="text-center mb-8">
-                <h1 class="hero-title mb-6 text-white font-black">
-                    Arrêtez de deviner votre valeur.<br class="hidden sm:block" />
+        <div class="max-w-screen-xl mx-auto w-full grid lg:grid-cols-2 gap-16 items-center">
+            <!-- Left Column: Title + Waitlist -->
+            <div class="text-left">
+                <h1 class="hero-title mb-6 text-white font-black leading-tight">
+                    Arrêtez de deviner votre valeur.<br class="hidden lg:block" />
                     <span class="text-gradient">Prouvez-la</span> avec des chiffres.
                 </h1>
-                <p class="hero-subtitle mb-12">
-                    Générez des rapports impactants à partir de vos stats de streams et réseaux
-                    automatiquement pour convaincre vos sponsors.
+                <p class="hero-subtitle mb-8 text-xl text-[#94A3B8]">
+                    Générez des rapports impactants automatiquement pour convaincre vos sponsors.
                 </p>
-            </div>
+                
+                <!-- Waitlist Form - Immediate Conversion -->
+                <div class="waitlist-inline-container max-w-md">
+                    <div class="waitlist-section mt-0">
+                        @* Social Proof Label *@
+                        <div class="social-proof-label mb-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="live-indicator"></span>
+                                <span class="proof-text">Déjà <strong class="text-white">@waitlistCount.ToString("N0")</strong> personnes inscrites</span>
+                            </div>
+                            <div class="progress-bar-wrapper">
+                                <div class="progress-bar-fill" style="width: @GetProgressPercentage()%"></div>
+                            </div>
+                        </div>
 
-            <!-- Value Calculator Component (2 columns on large screens) -->
-            <ValueCalculator 
-                ShowCtaButtons="false"
-                OnValueCalculated="HandleValueCalculated" />
-
-            <!-- Waitlist Section (below calculator on all screens) -->
-            <div class="waitlist-section mt-12">
-                @* Social Proof Label *@
-                <div class="social-proof-label mb-4">
-                    <div class="flex items-center justify-center gap-2 mb-2">
-                        <span class="live-indicator"></span>
-                        <span class="proof-text">Déjà <strong class="text-white">@waitlistCount.ToString("N0")</strong> personnes inscrites</span>
-                    </div>
-                    <div class="progress-bar-wrapper">
-                        <div class="progress-bar-fill" style="width: @GetProgressPercentage()%"></div>
+                        @* Waitlist Form *@
+                        @if (!waitlistSubmitted)
+                        {
+                            <div class="waitlist-form-wrapper">
+                                <div class="waitlist-input-container">
+                                    <LumexTextbox Type="InputType.Email" 
+                                                  @bind-Value="waitlistEmail"
+                                                  @onkeypress="HandleEnterKey"
+                                                  Placeholder="mon.mail@trophype.fr"
+                                                  Class="waitlist-input"
+                                                  Disabled="waitlistLoading" />
+                                    
+                                    @if (!string.IsNullOrEmpty(waitlistError))
+                                    {
+                                        <p class="waitlist-error">@waitlistError</p>
+                                    }
+                                </div>
+                                
+                                <LumexButton Variant="@Variant.Ghost" 
+                                             Class="btn-cta-primary whitespace-nowrap" 
+                                             Radius="@Radius.Small"
+                                             @onclick="SubmitWaitlist"
+                                             Disabled="waitlistLoading">
+                                    @if (waitlistLoading)
+                                    {
+                                        <div class="flex items-center gap-2">
+                                            <div class="spinner-small"></div>
+                                            <span>Envoi...</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span>Rejoindre la waitlist</span>
+                                    }
+                                </LumexButton>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="waitlist-success">
+                                <div class="success-icon">🎉</div>
+                                <div class="success-content">
+                                    <p class="success-title">Merci !</p>
+                                    <p class="success-subtitle">Vous êtes inscrit à la waitlist</p>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
 
-                @* Waitlist Form *@
-                @if (!waitlistSubmitted)
-                {
-                    <div class="waitlist-form-wrapper">
-                        <div class="waitlist-input-container">
-                            <LumexTextbox Type="InputType.Email" 
-                                          @bind-Value="waitlistEmail"
-                                          @onkeypress="HandleEnterKey"
-                                          Placeholder="mon.mail@trophype.fr"
-                                          Class="waitlist-input"
-                                          Disabled="waitlistLoading" />
-                            
-                            @if (!string.IsNullOrEmpty(waitlistError))
-                            {
-                                <p class="waitlist-error">@waitlistError</p>
-                            }
-                        </div>
-                        
-                        <LumexButton Variant="@Variant.Ghost" 
-                                     Class="btn-cta-primary whitespace-nowrap" 
-                                     Radius="@Radius.Small"
-                                     @onclick="SubmitWaitlist"
-                                     Disabled="waitlistLoading">
-                            @if (waitlistLoading)
-                            {
-                                <div class="flex items-center gap-2">
-                                    <div class="spinner-small"></div>
-                                    <span>Envoi...</span>
-                                </div>
-                            }
-                            else
-                            {
-                                <span>Rejoindre la waitlist</span>
-                            }
-                        </LumexButton>
+                <!-- Trust Badges -->
+                <div class="trust-badges mt-12 flex flex-wrap gap-6">
+                    <div class="trust-badge">
+                        <div class="trust-badge-value">100%</div>
+                        <div class="trust-badge-label">Automatisé</div>
                     </div>
-                }
-                else
-                {
-                    <div class="waitlist-success">
-                        <div class="success-icon">🎉</div>
-                        <div class="success-content">
-                            <p class="success-title">Merci !</p>
-                            <p class="success-subtitle">Vous êtes inscrit à la waitlist</p>
-                        </div>
+                    <div class="trust-badge">
+                        <div class="trust-badge-value">5 rapports</div>
+                        <div class="trust-badge-label">Essai gratuit</div>
                     </div>
-                }
+                    <div class="trust-badge">
+                        <div class="trust-badge-value">24/7</div>
+                        <div class="trust-badge-label">Support</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Value Calculator -->
+            <div class="relative">
+                <div class="absolute -inset-4 bg-gradient-to-r from-red-500/10 to-purple-500/10 blur-2xl rounded-full opacity-50"></div>
+                <div class="relative">
+                    <ValueCalculator ShowCtaButtons="false" OnValueCalculated="HandleValueCalculated" />
+                </div>
             </div>
         </div>
 
@@ -262,112 +282,115 @@
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="relative px-4 py-32 border-t border-white/10">
-        <div class="max-w-6xl mx-auto">
+    <!-- Features Section - Bento Grid -->
+    <section id="features" class="relative px-4 py-20 border-t border-white/10">
+        <div class="max-w-screen-xl mx-auto">
             <!-- Section Header -->
-            <div class="text-center mb-20">
-                <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
-                    Transformez vos données eSport en <span class="text-gradient">contrats signés</span>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-black text-white mb-4">
+                    Une plateforme, <span class="text-gradient">quatre piliers</span>
                 </h2>
                 <p class="text-[#94A3B8] max-w-2xl mx-auto">
-                    Une plateforme complète pour transformer vos données de streams en arguments de vente convaincants.
+                    Transformez vos données eSport en arguments de vente convaincants.
                 </p>
             </div>
-
-            <!-- Features Tabs -->
-            <div class="w-full max-w-5xl mx-auto py-8">
-                <LumexTabs Variant="@TabVariant.Underlined" Color="@ThemeColor.Info" Size="@Size.Large">
-                    <!-- Tab 1: Analyse Twitch -->
-                    <LumexTab Id="stream-tab" Title="Analyse Streams">
-                        <div class="feature-tab-content">
-                            <div class="feature-illustration">
-                                <div class="illustration-icon">
-                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                        d="M11 3a1 1 0 0 0-1 1v8H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h7v8a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-8h7a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-7V4a1 1 0 0 0-1-1h-2Z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="feature-text">
-                                <h3 class="feature-title">Analyse stream</h3>
-                                <p class="feature-description">
-                                    Collez l'URL de votre stream. Nous extrayons les pics d'audience et l'engagement
-                                    du
-                                    chat en
-                                    temps réel pour quantifier votre impact.
-                                </p>
-                            </div>
+            
+            <!-- Bento Grid -->
+            <div class="bento-grid">
+                <!-- Card 1: Analyse Streams (Large - 2x2) -->
+                <div class="bento-card col-span-3 lg:col-span-2 row-span-2 group">
+                    <div class="bento-content">
+                        <span class="badge">Live Data</span>
+                        <h3 class="text-2xl font-bold text-white mt-4">Analyse de Stream</h3>
+                        <p class="text-[#94A3B8] mt-2">
+                            Extraction en temps réel des pics d'audience et de l'engagement du chat.
+                        </p>
+                        <ul class="feature-list mt-4">
+                            <li class="feature-list-item">
+                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
+                                Pics d'audience en temps réel
+                            </li>
+                            <li class="feature-list-item">
+                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
+                                Engagement du chat
+                            </li>
+                            <li class="feature-list-item">
+                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
+                                Durée et fréquence des streams
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bento-visual">
+                        <div class="visual-placeholder">
+                            <img src="https://api.iconify.design/simple-icons:twitch.svg" class="visual-icon" alt="" />
                         </div>
-                    </LumexTab>
+                    </div>
+                </div>
 
-                    <!-- Tab 2: Intelligence Réseaux sociaux -->
-                    <LumexTab Id="sn-tab" Title="Intelligence Sociale">
-                        <div class="feature-tab-content">
-                            <div class="feature-illustration">
-                                <div class="illustration-icon">
-                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="feature-text">
-                                <h3 class="feature-title">Réseaux sociaux</h3>
-                                <p class="feature-description">
-                                    Scannez vos hashtags et mots-clés. Mesurez la portée réelle et l'engagement de
-                                    vos
-                                    posts
-                                    sponsorisés avec analyse de sentiment.
-                                </p>
-                            </div>
+                <!-- Card 2: Social Intelligence (Tall - 1x2) -->
+                <div class="bento-card col-span-3 lg:col-span-1 row-span-2 group">
+                    <div class="bento-content">
+                        <span class="badge badge-twitter">X / Twitter</span>
+                        <h3 class="text-xl font-bold text-white mt-4">Social Intelligence</h3>
+                        <p class="text-[#94A3B8] mt-2">
+                            Mesure de portée et analyse de sentiment sur X/Twitter.
+                        </p>
+                        <ul class="feature-list mt-4">
+                            <li class="feature-list-item">
+                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
+                                Analyse de hashtags
+                            </li>
+                            <li class="feature-list-item">
+                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
+                                Sentiment analysis
+                            </li>
+                            <li class="feature-list-item">
+                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
+                                Top influenceurs
+                            </li>
+                            <li class="feature-list-item">
+                                <img src="https://api.iconify.design/ic:outline-check-circle.svg" class="check-icon" alt="" />
+                                Répartition géographique
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bento-visual">
+                        <div class="visual-placeholder">
+                            <img src="https://api.iconify.design/simple-icons:x.svg" class="visual-icon" alt="" />
                         </div>
-                    </LumexTab>
+                    </div>
+                </div>
 
-                    <!-- Tab 3: Storytelling IA -->
-                    <LumexTab Id="ia-tab" Title="Storytelling IA">
-                        <div class="feature-tab-content">
-                            <div class="feature-illustration">
-                                <div class="illustration-icon">
-                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="feature-text">
-                                <h3 class="feature-title">Storytelling IA</h3>
-                                <p class="feature-description">
-                                    L'IA transforme vos chiffres bruts en un argumentaire de vente percutant pour
-                                    les
-                                    marques.
-                                    Rédigé en français naturel et professionnel.
-                                </p>
-                            </div>
+                <!-- Card 3: Storytelling IA (Small - 1x1) -->
+                <div class="bento-card col-span-3 lg:col-span-1 group">
+                    <div class="bento-content">
+                        <span class="badge badge-ai">IA</span>
+                        <h3 class="text-xl font-bold text-white mt-4">Storytelling IA</h3>
+                        <p class="text-[#94A3B8] mt-2">
+                            Vos chiffres transformés en argumentaires percutants.
+                        </p>
+                    </div>
+                    <div class="bento-visual">
+                        <div class="visual-placeholder">
+                            <img src="https://api.iconify.design/ic:outline-smart-toy.svg" class="visual-icon" alt="" />
                         </div>
-                    </LumexTab>
+                    </div>
+                </div>
 
-                    <!-- Tab 4: Rapport PDF Premium -->
-                    <LumexTab Id="pdf-tab" Title="Rapport PDF">
-                        <div class="feature-tab-content">
-                            <div class="feature-illustration">
-                                <div class="illustration-icon">
-                                    <svg class="w-24 h-24 text-[#CCC9DC]" fill="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                        d="M19 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4v2h6v-2h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 16H5V4h14v14zm-5.04-6.71l-2.75 3.54h2.5l2.5-3.29 2.5 3.29h2.5l-2.75-3.54 2.75-3.71h-2.5l-2.5 3.29-2.5-3.29h-2.5l2.75 3.71z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="feature-text">
-                                <h3 class="feature-title">Rapport PDF Premium</h3>
-                                <p class="feature-description">
-                                    Exportez un dossier complet au format PDF avec vos logos et couleurs en quelques
-                                    minutes.
-                                </p>
-                            </div>
-                        </div>
-                    </LumexTab>
-                </LumexTabs>
+                <!-- Card 4: Rapports PDF (Wide - 3x1) -->
+                <div class="bento-card col-span-3 lg:col-span-3 group flex-row items-center justify-between">
+                    <div class="bento-content">
+                        <span class="badge badge-pdf">Export</span>
+                        <h3 class="text-xl font-bold text-white mt-4">Rapports PDF Premium</h3>
+                        <p class="text-[#94A3B8] mt-2">
+                            Exportez un dossier complet prêt pour vos rendez-vous sponsors.
+                        </p>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
+                        <img src="https://api.iconify.design/ic:outline-picture-as-pdf.svg" class="pdf-icon" alt="" />
+                        <span class="text-white font-mono text-sm">RAPPORT_SPONSOR_v2.pdf</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1300,6 +1323,126 @@
         to {
             opacity: 1;
             transform: translateY(0) scale(1);
+        }
+    }
+
+    /* ── Bento Grid Styles ── */
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: minmax(180px, auto);
+        gap: 1.5rem;
+    }
+
+    .bento-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .bento-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .bento-content {
+        flex: 1;
+    }
+
+    .bento-visual {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .visual-placeholder {
+        width: 80px;
+        height: 80px;
+        background: rgba(204, 201, 220, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .visual-icon {
+        width: 48px;
+        height: 48px;
+        filter: brightness(0) saturate(100%) invert(84%) sepia(27%) saturate(744%) hue-rotate(356deg);
+    }
+
+    .badge {
+        background: rgba(204, 201, 220, 0.1);
+        color: #CCC9DC;
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        width: fit-content;
+    }
+
+    .badge-twitter {
+        background: rgba(29, 155, 240, 0.15);
+        color: #1D9BF0;
+    }
+
+    .badge-ai {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ADE80;
+    }
+
+    .badge-pdf {
+        background: rgba(239, 68, 68, 0.15);
+        color: #F87171;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .feature-list-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #94A3B8;
+        font-size: 0.875rem;
+        padding: 0.375rem 0;
+    }
+
+    .check-icon {
+        width: 16px;
+        height: 16px;
+        filter: brightness(0) saturate(100%) invert(60%) sepia(35%) saturate(1200%) hue-rotate(95deg);
+    }
+
+    .pdf-icon {
+        width: 24px;
+        height: 24px;
+        filter: brightness(0) saturate(100%) invert(44%) sepia(21%) saturate(1100%) hue-rotate(317deg);
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .bento-grid {
+            grid-template-columns: 1fr;
+            grid-auto-rows: auto;
+        }
+        
+        .bento-card {
+            grid-column: span 1 !important;
+            row-span: 1;
         }
     }
 </style>
