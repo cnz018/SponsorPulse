@@ -12,12 +12,10 @@
 <div class="min-h-screen gradient-mesh font-jakarta">
     <LumexNavbar Sticky="@true" Blurred="@false" Bordered="@false" Height="5rem" Class="landing-navbar">
         <LumexNavbarBrand>
-            <div class="flex items-center gap-2">
-                <img src="/sp_logo.png" alt="SponsorPulse Logo" class="w-10 h-10 p-1 object-contain" />
-                <span class="text-xl font-bold text-white navbar-brand-text">SponsorPulse</span>
-            </div>
+            <BrandLogo />
         </LumexNavbarBrand>
 
+        @* Desktop Navigation - Hidden on mobile *@
         <LumexNavbarContent Class="hidden md:flex ml-auto">
             <LumexNavbarItem>
                 <LumexLink Href="#features" Class="nav-link">Fonctionnalités</LumexLink>
@@ -25,20 +23,53 @@
             <LumexNavbarItem>
                 <LumexLink Href="#faq" Class="nav-link">FAQ</LumexLink>
             </LumexNavbarItem>
-            <LumexNavbarItem>
-                <LumexLink Href="#" Class="nav-link">Support</LumexLink>
-            </LumexNavbarItem>
         </LumexNavbarContent>
 
-        <LumexNavbarContent Align="@Align.End">
+        @* Desktop CTA Button - Hidden on mobile *@
+        <LumexNavbarContent Align="@Align.End" Class="hidden md:flex">
             <LumexNavbarItem>
-                <LumexButton class="btn-cta-secondary" Variant="@Variant.Ghost" @onclick="@(async () => await NavigateToDemo())"
+                <LumexButton class="btn-cta-secondary" Variant="@Variant.Ghost" @onclick="NavigateToDemo"
                              Radius="@Radius.Small">
                     Tester la démo
                 </LumexButton>
             </LumexNavbarItem>
         </LumexNavbarContent>
+
+        @* Mobile Menu Button - Only visible on small screens *@
+        <LumexNavbarContent Align="@Align.End" Class="md:hidden">
+            <LumexButton IconOnly="@true" Variant="@Variant.Ghost" Class="mobile-menu-btn" @onclick="ToggleMobileMenu">
+                @if (isMobileMenuOpen)
+                {
+                    <img src="https://api.iconify.design/ic:outline-close.svg" class="menu-icon" alt="Fermer" />
+                }
+                else
+                {
+                    <img src="https://api.iconify.design/ic:outline-menu.svg" class="menu-icon" alt="Menu" />
+                }
+            </LumexButton>
+        </LumexNavbarContent>
     </LumexNavbar>
+
+    @* Mobile Menu Dropdown - Only visible on small screens *@
+    @if (isMobileMenuOpen)
+    {
+        <div class="mobile-menu md:hidden">
+            <div class="mobile-menu-content">
+                <LumexNavbarItem>
+                    <LumexLink Href="#features" Class="mobile-nav-link" @onclick="CloseMobileMenu">Fonctionnalités</LumexLink>
+                </LumexNavbarItem>
+                <LumexNavbarItem>
+                    <LumexLink Href="#faq" Class="mobile-nav-link" @onclick="CloseMobileMenu">FAQ</LumexLink>
+                </LumexNavbarItem>
+                <LumexNavbarItem>
+                    <LumexButton class="btn-cta-primary w-full justify-center" Variant="@Variant.Ghost" 
+                                 @onclick="NavigateToDemo" Radius="@Radius.Small">
+                        Tester la démo
+                    </LumexButton>
+                </LumexNavbarItem>
+            </div>
+        </div>
+    }
 
     <!-- Hero Section with Value Calculator -->
     <section class="relative min-h-screen flex items-center justify-center px-4 py-10">
@@ -543,6 +574,9 @@
 @code {
     private bool isLoading = false;
     
+    // Mobile menu state
+    private bool isMobileMenuOpen = false;
+    
     // Waitlist fields
     private string waitlistEmail = "";
     private bool waitlistSubmitted = false;
@@ -555,6 +589,18 @@
     
     [Inject]
     private HttpClient Http { get; set; } = default!;
+
+    private void ToggleMobileMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+        StateHasChanged();
+    }
+
+    private void CloseMobileMenu()
+    {
+        isMobileMenuOpen = false;
+        StateHasChanged();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -769,6 +815,73 @@
     .lumex-components-wrapper [class^="lumex"] {
         position: relative;
         z-index: 100;
+    }
+
+    /* ── Mobile Menu Styles ── */
+    .mobile-menu-btn {
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+
+    .mobile-menu-btn:hover {
+        background: rgba(204, 201, 220, 0.1);
+    }
+
+    .menu-icon {
+        width: 24px;
+        height: 24px;
+        filter: brightness(0) saturate(100%) invert(84%) sepia(27%) saturate(744%) hue-rotate(356deg) brightness(103%) contrast(95%);
+    }
+
+    .mobile-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(12, 24, 33, 0.98);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(204, 201, 220, 0.15);
+        padding: 1rem;
+        animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 999;
+    }
+
+    .mobile-menu-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .mobile-nav-link {
+        display: block;
+        padding: 0.75rem 1rem;
+        color: #94A3B8;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .mobile-nav-link:hover {
+        background: rgba(204, 201, 220, 0.05);
+        color: #CCC9DC;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .landing-navbar {
+            padding: 0 1rem;
+        }
     }
 
     /* ── Waitlist Section Styles ── */

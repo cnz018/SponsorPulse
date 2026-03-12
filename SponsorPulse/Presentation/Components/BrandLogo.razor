@@ -1,0 +1,42 @@
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="brand-logo-wrapper">
+    <img src="/sp_logo.png" alt="SponsorPulse Logo" class="brand-logo" />
+    <span class="brand-text">SponsorPulse</span>
+</div>
+
+<style>
+    .brand-logo-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .brand-logo {
+        width: 2.5rem;
+        height: 2.5rem;
+        object-fit: contain;
+    }
+    
+    .brand-text {
+        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+        font-size: 1.25rem;
+        background: linear-gradient(135deg, #CCC9DC 0%, #94A3B8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    @@media (max-width: 768px) {
+        .brand-logo {
+            width: 2rem;
+            height: 2rem;
+        }
+        
+        .brand-text {
+            font-size: 1.1rem;
+        }
+    }
+</style>

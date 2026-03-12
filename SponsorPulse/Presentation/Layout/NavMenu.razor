@@ -1,7 +1,13 @@
 ﻿@using LumexUI.Common
+@using SponsorPulse.Presentation.Components
 @inject NavigationManager Navigation
 
-<LumexNavbar ">
+<LumexNavbar>
+    @* Brand Logo Section *@
+    <div class="nav-brand">
+        <BrandLogo />
+    </div>
+
     <LumexUser Name="John Doe" Description="HyperCore Gaming" Class="user-area">
         <AvatarContent>
             <LumexAvatar Size="@Size.Large" Src="https://randomuser.me/api/portraits/" Radius=@Radius.Small />
@@ -24,10 +30,17 @@
     nav {
         display: flex;
         flex-direction: column;
+        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
     }
 
     header::before{
         background-color: transparent;
+    }
+
+    .nav-brand {
+        padding: 1.5rem 1.25rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.15);
     }
 
 .user-area {
