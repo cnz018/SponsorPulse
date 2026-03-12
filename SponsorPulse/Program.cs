@@ -5,6 +5,7 @@ using SponsorPulse;
 using SponsorPulse.Infrastructure.Api.Extensions;
 using SponsorPulse.Infrastructure.DependencyInjection;
 using SponsorPulse.Infrastructure.Persistence;
+using SponsorPulse.Infrastructure.Services;
 using SponsorPulse.Presentation;
 using SponsorPulse.Presentation.Services;
 
@@ -67,6 +68,9 @@ app.MapStaticAssets();
 
 // Map Media API endpoints (presigned URLs, etc.)
 app.MapMediaPresignedUrlEndpoints();
+
+// Map Waitlist API endpoint
+app.MapWaitlistEndpoint();
 
 // Map Blazor Components
 app.MapRazorComponents<App>()

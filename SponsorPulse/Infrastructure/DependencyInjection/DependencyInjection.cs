@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SponsorPulse.Application.Common.Configuration;
@@ -19,18 +20,23 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<ITwitchService, TwitchInfrastructureService>();
         services.AddScoped<ITwitterService, TwitterInfrastructureService>();
         services.AddScoped<IStaticReportService, StaticReportService>();
-        
+
         // Demo Mode Configuration
-        services.Configure<DemoModeSettings>(configuration.GetSection("DemoMode") ?? new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            { "DemoMode:IsDemo", "true" }
-        }).Build().GetSection("DemoMode"));
-        
+        services.AddOptions<DemoModeSettings>()
+            .Bind(configuration.GetSection("DemoMode"));
+
+        // CloudMailin Waitlist Configuration
+        services.AddOptions<WaitlistSettings>()
+            .Bind(configuration.GetSection("CloudMailin"));
+
         // Application Services
         services.AddScoped<IDemoDataService, DemoDataService>();
         services.AddScoped<IAnalysisSimulatorService, AnalysisSimulatorService>();
         services.AddScoped<IPdfGenerationService, PdfGenerationService>();
-        
+
+        // Waitlist Service (Singleton pour le compteur)
+        services.AddSingleton<IWaitlistService, WaitlistService>();
+
         services.Configure<XpozSettings>(configuration.GetSection("XpozSettings"));
         services.Configure<R2Settings>(configuration.GetSection("CloudflareR2"));
         services.AddSingleton<IR2ClientFactory, R2ClientFactory>();

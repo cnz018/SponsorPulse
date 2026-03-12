@@ -6,6 +6,7 @@
 @using LumexUI
 @using LumexUI.Common
 @using Microsoft.AspNetCore.Components.Web
+@using SponsorPulse.Infrastructure.Services
 
 <div class="min-h-screen gradient-mesh font-jakarta">
     <LumexNavbar Sticky="@true" Blurred="@false" Bordered="@false" Height="5rem" Class="landing-navbar">
@@ -56,13 +57,66 @@
                 automatiquement pour convaincre vos sponsors.
             </p>
 
-            <!-- Email Input Group -->
-            <div class="flex justify-center mb-12 mt-20 max-w-xl mx-auto items-center">
-                <LumexTextbox Type="InputType.Email" Placeholder="mon.mail@trophype.fr"
-                              Class="w-full px-6 py-3placeholder-gray-400 focus:outline-none focus:bg-white/10 transition-all" />
-                <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary whitespace-nowrap" Radius="@Radius.Small">
-                    Rejoindre la waitlist
-                </LumexButton>
+            <!-- Email Input Group with Social Proof -->
+            <div class="waitlist-section mb-12 mt-20 max-w-xl mx-auto">
+                @* Social Proof Label *@
+                <div class="social-proof-label mb-4">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <span class="live-indicator"></span>
+                        <span class="proof-text">Déjà <strong class="text-white">@waitlistCount.ToString("N0")</strong> personnes inscrites</span>
+                    </div>
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar-fill" style="width: @GetProgressPercentage()%"></div>
+                    </div>
+                </div>
+
+                @* Waitlist Form *@
+                @if (!waitlistSubmitted)
+                {
+                    <div class="waitlist-form-wrapper">
+                        <div class="waitlist-input-container">
+                            <LumexTextbox Type="InputType.Email" 
+                                          @bind-Value="waitlistEmail"
+                                          @onkeypress="HandleEnterKey"
+                                          Placeholder="mon.mail@trophype.fr"
+                                          Class="waitlist-input"
+                                          Disabled="waitlistLoading" />
+                            
+                            @if (!string.IsNullOrEmpty(waitlistError))
+                            {
+                                <p class="waitlist-error">@waitlistError</p>
+                            }
+                        </div>
+                        
+                        <LumexButton Variant="@Variant.Ghost" 
+                                     Class="btn-cta-primary whitespace-nowrap" 
+                                     Radius="@Radius.Small"
+                                     @onclick="SubmitWaitlist"
+                                     Disabled="waitlistLoading">
+                            @if (waitlistLoading)
+                            {
+                                <div class="flex items-center gap-2">
+                                    <div class="spinner-small"></div>
+                                    <span>Envoi...</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span>Rejoindre la waitlist</span>
+                            }
+                        </LumexButton>
+                    </div>
+                }
+                else
+                {
+                    <div class="waitlist-success">
+                        <div class="success-icon">🎉</div>
+                        <div class="success-content">
+                            <p class="success-title">Merci !</p>
+                            <p class="success-subtitle">Vous êtes inscrit à la waitlist</p>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
 
@@ -479,6 +533,25 @@
 
 @code {
     private bool isLoading = false;
+    
+    // Waitlist fields
+    private string waitlistEmail = "";
+    private bool waitlistSubmitted = false;
+    private bool waitlistLoading = false;
+    private string? waitlistError;
+    private int waitlistCount = 0;
+    
+    [Inject]
+    private IWaitlistService WaitlistService { get; set; } = default!;
+    
+    [Inject]
+    private HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialiser le compteur depuis le service
+        waitlistCount = WaitlistService.GetWaitlistCount();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -505,6 +578,71 @@
         }
 
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task SubmitWaitlist()
+    {
+        waitlistError = null;
+        
+        // Validation
+        if (string.IsNullOrWhiteSpace(waitlistEmail))
+        {
+            waitlistError = "Veuillez entrer votre email";
+            return;
+        }
+        
+        if (!waitlistEmail.Contains("@") || !waitlistEmail.Contains("."))
+        {
+            waitlistError = "Veuillez entrer un email valide";
+            return;
+        }
+
+        waitlistLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Appel API CloudMailin via le endpoint
+            var response = await Http.PostAsJsonAsync("/api/waitlist", new { Email = waitlistEmail });
+            
+            if (response.IsSuccessStatusCode)
+            {
+                waitlistSubmitted = true;
+                waitlistEmail = "";
+                
+                // Incrémenter le compteur localement
+                waitlistCount++;
+            }
+            else
+            {
+                waitlistError = "Une erreur est survenue. Réessayez plus tard.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur waitlist: {ex.Message}");
+            waitlistError = "Une erreur est survenue. Réessayez plus tard.";
+        }
+        finally
+        {
+            waitlistLoading = false;
+        }
+    }
+
+    private async Task HandleEnterKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !waitlistLoading)
+        {
+            await SubmitWaitlist();
+        }
+    }
+
+    private double GetProgressPercentage()
+    {
+        // Progress bar vers 1000 inscrits (ajuster selon objectif)
+        var target = 1000;
+        var percentage = (double)waitlistCount / target * 100;
+        return Math.Min(percentage, 100);
     }
 
     private async Task NavigateToDemo()
@@ -615,6 +753,180 @@
     .lumex-components-wrapper [class^="lumex"] {
         position: relative;
         z-index: 100;
+    }
+
+    /* ── Waitlist Section Styles ── */
+    .waitlist-section {
+        width: 100%;
+    }
+
+    .social-proof-label {
+        text-align: center;
+    }
+
+    .proof-text {
+        color: #94A3B8;
+        font-size: 0.875rem;
+    }
+
+    .live-indicator {
+        width: 8px;
+        height: 8px;
+        background: #4ADE80;
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse-live 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse-live {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2);
+        }
+    }
+
+    .progress-bar-wrapper {
+        width: 100%;
+        max-width: 300px;
+        height: 4px;
+        background: rgba(148, 163, 184, 0.2);
+        border-radius: 99px;
+        margin: 0.5rem auto 0;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #CCC9DC 0%, #94A3B8 100%);
+        border-radius: 99px;
+        transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .waitlist-form-wrapper {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .waitlist-input-container {
+        flex: 1;
+        min-width: 280px;
+        position: relative;
+    }
+
+    .waitlist-input {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(204, 201, 220, 0.15);
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .waitlist-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(204, 201, 220, 0.3);
+    }
+
+    .waitlist-input:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .waitlist-error {
+        color: #F87171;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        animation: shake 0.3s ease-in-out;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+    }
+
+    .waitlist-success {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        width: 100%;
+        justify-content: center;
+    }
+
+    .success-icon {
+        font-size: 2rem;
+        line-height: 1;
+    }
+
+    .success-content {
+        text-align: left;
+    }
+
+    .success-title {
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .success-subtitle {
+        color: #94A3B8;
+        font-size: 0.875rem;
+        margin: 0.25rem 0 0 0;
+    }
+
+    .spinner-small {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .waitlist-form-wrapper {
+            flex-direction: column;
+        }
+        
+        .waitlist-input-container {
+            width: 100%;
+            min-width: auto;
+        }
+        
+        .btn-cta-primary {
+            width: 100%;
+            justify-content: center;
+        }
     }
 
     .landing-navbar .navbar-brand-text {
