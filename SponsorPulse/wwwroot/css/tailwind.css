@@ -142,7 +142,6 @@
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --animate-spin: spin 1s linear infinite;
     --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    --animate-bounce: bounce 1s infinite;
     --blur-sm: 8px;
     --blur-md: 12px;
     --blur-lg: 16px;
@@ -605,9 +604,6 @@
   .bottom-1\/4 {
     bottom: calc(1 / 4 * 100%);
   }
-  .bottom-8 {
-    bottom: calc(var(--spacing) * 8);
-  }
   .bottom-12 {
     bottom: calc(var(--spacing) * 12);
   }
@@ -925,9 +921,6 @@
   }
   .mt-8 {
     margin-top: calc(var(--spacing) * 8);
-  }
-  .mt-12 {
-    margin-top: calc(var(--spacing) * 12);
   }
   .mt-20 {
     margin-top: calc(var(--spacing) * 20);
@@ -1514,9 +1507,6 @@
   }
   .animate-blink {
     animation: blink 1.5s infinite both;
-  }
-  .animate-bounce {
-    animation: var(--animate-bounce);
   }
   .animate-enter {
     animation: old-enter 150ms ease-out normal both;
@@ -7900,16 +7890,6 @@ html[dir='rtl'], [data-sonner-toaster][dir='rtl'] {
 @keyframes pulse {
   50% {
     opacity: 0.5;
-  }
-}
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(-25%);
-    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-  }
-  50% {
-    transform: none;
-    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
   }
 }
 @keyframes enter {
