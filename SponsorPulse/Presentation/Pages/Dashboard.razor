@@ -6,9 +6,6 @@
 @using SponsorPulse.Infrastructure.Repositories
 @using SponsorPulse.Application.Services
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.Web
-@using LumexUI
-@using LumexUI.Common
 @inject NavigationManager Navigation
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
 @inject IDemoDataService DemoDataService
@@ -18,83 +15,33 @@
 <div class="dashboard-content fade-in">
     <div class="header-panel mb-8">
         <h1 class="text-3xl font-bold text-white mb-6">Événements</h1>
-        <LumexButton Class="ml-auto text-white" Variant="@Variant.Ghost" OnClick="GoToCreate">Créer un événement
-        </LumexButton>
+        <LumexButton Class="ml-auto text-white" Variant="@Variant.Ghost" OnClick="GoToCreate">Créer un événement</LumexButton>
     </div>
 
     @* Stats Cards Section *@
     @if (dashboardStats != null)
     {
         <div class="stats-grid mb-8">
-            <StatCard Title="Pic de Viewers" Value="@dashboardStats.PeakViewers.ToString("N0")"
-                      IconUrl="https://api.iconify.design/ic:outline-remove-red-eye.svg" />
+            <StatCard
+                Title="Pic de Viewers"
+                Value="@dashboardStats.PeakViewers.ToString("N0")"
+                IconUrl="https://api.iconify.design/ic:outline-remove-red-eye.svg" />
 
-            <StatCard Title="Engagement Total" Value="@dashboardStats.TotalEngagement.ToString("N0")"
-                      IconUrl="https://api.iconify.design/ic:outline-message.svg" />
+            <StatCard
+                Title="Engagement Total"
+                Value="@dashboardStats.TotalEngagement.ToString("N0")"
+                IconUrl="https://api.iconify.design/ic:outline-message.svg" />
 
-            <StatCard Title="Impressions Totales" Value="@FormatImpressions(dashboardStats.TotalImpressions)"
-                      IconUrl="https://api.iconify.design/ic:outline-monitor.svg" />
+            <StatCard
+                Title="Impressions Totales"
+                Value="@FormatImpressions(dashboardStats.TotalImpressions)"
+                IconUrl="https://api.iconify.design/ic:outline-monitor.svg" />
         </div>
     }
 
     <EventSelector Events="events" OnEdit="HandleEditEvent" OnDelete="HandleDeleteEvent" OnAnalyze="HandleAnalyzeEvent"
                    OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze" OnBulkDelete="HandleBulkDelete"
                    OnNavigateToEvent="HandleNavigateToEvent" />
-
-    <div class="waitlist-card mt-8">
-        <div class="waitlist-content">
-            <div class="waitlist-icon">
-                <img src="https://api.iconify.design/ic:outline-mail.svg" alt="" />
-            </div>
-            <div class="waitlist-text">
-                <h3 class="waitlist-title">Rejoignez notre waitlist</h3>
-                <p class="waitlist-description">
-                    Soyez parmi les premiers à accéder à SponsorPulse et découvrez toutes nos fonctionnalités
-                    exclusives.
-                </p>
-            </div>
-        </div>
-
-        @if (!waitlistSubmitted)
-        {
-            <div class="waitlist-form-wrapper">
-                <div class="waitlist-input-container text-gray-400">
-                    <LumexTextbox @bind-Value="waitlistEmail" @onkeypress="HandleEnterKey" Placeholder="mon.mail@exemple.fr"
-                                  Class="waitlist-input" Disabled="waitlistLoading" />
-
-                    @if (!string.IsNullOrEmpty(waitlistError))
-                    {
-                        <p class="waitlist-error">@waitlistError</p>
-                    }
-                </div>
-
-                <LumexButton Class="text-white whitespace-nowrap" Radius="@Radius.Small" @onclick="SubmitWaitlist"
-                             Disabled="waitlistLoading" Variant="@Variant.Ghost">
-                    @if (waitlistLoading)
-                    {
-                        <div class="flex items-center gap-2">
-                            <div class="spinner-small"></div>
-                            <span>Envoi...</span>
-                        </div>
-                    }
-                    else
-                    {
-                        <span>Rejoindre</span>
-                    }
-                </LumexButton>
-            </div>
-        }
-        else
-        {
-            <div class="waitlist-success">
-                <div class="success-icon">🎉</div>
-                <div class="success-content">
-                    <p class="success-title">Merci !</p>
-                    <p class="success-subtitle">Vous êtes inscrit à la waitlist</p>
-                </div>
-            </div>
-        }
-    </div>
 
     @if (showCreateModal)
     {
@@ -265,150 +212,6 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1.5rem;
     }
-
-    /* Waitlist Card */
-    .waitlist-card {
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 16px;
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .waitlist-card:hover {
-        border-color: rgba(148, 163, 184, 0.3);
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%);
-    }
-
-    .waitlist-content {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        width: 65%;
-    }
-
-    .waitlist-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background: rgba(59, 130, 246, 0.15);
-        flex-shrink: 0;
-    }
-
-    .waitlist-icon img {
-        width: 24px;
-        height: 24px;
-        filter: brightness(0) saturate(100%) invert(73%) sepia(74%) saturate(360%) hue-rotate(174deg) brightness(94%) contrast(96%);
-    }
-
-    .waitlist-text {
-        flex: 1;
-    }
-
-    .waitlist-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--white);
-        margin-bottom: 0.25rem;
-    }
-
-    .waitlist-description {
-        font-size: 0.875rem;
-        color: var(--grey-text);
-        line-height: 1.4;
-    }
-
-    .waitlist-form-wrapper {
-        display: flex;
-        align-items: start;
-        gap: 0.75rem;
-        flex: 1;
-        max-width: 400px;
-    }
-
-    .waitlist-input-container {
-        flex: 1;
-        min-width: 400px;
-    }
-
-    .waitlist-input {
-        width: 100%;
-    }
-
-    .waitlist-error {
-        color: #EF4444;
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
-    }
-
-    .btn-cta-primary:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-    }
-
-    .btn-cta-primary:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .waitlist-success {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem 1.5rem;
-        background: rgba(34, 197, 94, 0.1);
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        border-radius: 12px;
-    }
-
-    .success-icon {
-        font-size: 2rem;
-    }
-
-    .success-content {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .success-title {
-        font-weight: 600;
-        color: var(--white);
-        font-size: 1rem;
-    }
-
-    .success-subtitle {
-        font-size: 0.875rem;
-        color: var(--grey-text);
-    }
-
-    .spinner-small {
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top-color: white;
-        border-radius: 50%;
-        animation: spin 0.6s linear infinite;
-    }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    .mt-8 {
-        margin-top: 2rem;
-    }
-
-    .whitespace-nowrap {
-        white-space: nowrap;
-    }
 </style>
 
 @code {
@@ -416,12 +219,6 @@
     private List<Event>? events;
     private Event? eventToDelete;
     private DashboardStats? dashboardStats;
-
-    // Waitlist
-    private string waitlistEmail = "";
-    private bool waitlistSubmitted = false;
-    private bool waitlistLoading = false;
-    private string waitlistError = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -532,39 +329,5 @@
         {
             showCreateModal = true;
         }
-    }
-
-    private async Task HandleEnterKey(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && !waitlistLoading)
-        {
-            await SubmitWaitlist();
-        }
-    }
-
-    private async Task SubmitWaitlist()
-    {
-        if (string.IsNullOrWhiteSpace(waitlistEmail))
-        {
-            waitlistError = "Veuillez entrer une adresse email";
-            return;
-        }
-
-        if (!waitlistEmail.Contains("@"))
-        {
-            waitlistError = "Veuillez entrer une adresse email valide";
-            return;
-        }
-
-        waitlistError = "";
-        waitlistLoading = true;
-        StateHasChanged();
-
-        // TODO: Appeler l'API d'inscription à la waitlist
-        await Task.Delay(1000); // Simulation
-
-        waitlistLoading = false;
-        waitlistSubmitted = true;
-        StateHasChanged();
     }
 }

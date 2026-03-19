@@ -15,32 +15,26 @@ public static class WaitlistApiExtensions
     /// <returns>The web application for further configuration</returns>
     public static WebApplication MapWaitlistEndpoint(this WebApplication app)
     {
-        app.MapPost(
-            "/api/waitlist",
-            async (
-                WaitlistRequest request,
-                IWaitlistService waitlistService,
-                ILogger<WaitlistHandler> logger,
-                CancellationToken cancellationToken
-            ) =>
-            {
-                var handler = new WaitlistHandler();
-                return await handler.HandleJoinWaitlist(
-                    request,
-                    waitlistService,
-                    logger,
-                    cancellationToken
-                );
-            }
-        );
+        app.MapPost("/api/waitlist", async (
+            WaitlistRequest request,
+            IWaitlistService waitlistService,
+            ILogger<WaitlistHandler> logger,
+            CancellationToken cancellationToken
+        ) =>
+        {
+            var handler = new WaitlistHandler();
+            return await handler.HandleJoinWaitlist(
+                request,
+                waitlistService,
+                logger,
+                cancellationToken
+            );
+        });
 
-        app.MapGet(
-            "/api/waitlist/count",
-            (IWaitlistService waitlistService) =>
-            {
-                return Results.Ok(new { count = waitlistService.GetWaitlistCount() });
-            }
-        );
+        app.MapGet("/api/waitlist/count", (IWaitlistService waitlistService) =>
+        {
+            return Results.Ok(new { count = waitlistService.GetWaitlistCount() });
+        });
 
         return app;
     }

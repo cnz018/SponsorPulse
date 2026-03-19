@@ -35,36 +35,6 @@ public class WaitlistService(IOptions<WaitlistSettings> settings, ILogger<Waitli
     {
         try
         {
-            // Validation des paramètres SMTP
-            _logger.LogInformation(
-                "Configuration SMTP: Server={Server}, Port={Port}, Username={Username}, FromEmail={FromEmail}, BccEmail={BccEmail}",
-                _settings.SmtpServer,
-                _settings.SmtpPort,
-                string.IsNullOrEmpty(_settings.Username) ? "(vide)" : "***",
-                _settings.FromEmail,
-                _settings.BccEmail
-            );
-
-            if (string.IsNullOrWhiteSpace(_settings.SmtpServer))
-            {
-                _logger.LogError("SMTP Server n'est pas configuré");
-                IncrementWaitlistCount();
-                return false;
-            }
-
-            // Vérifier que le serveur SMTP ne contient pas de schéma
-            var smtpServer = _settings
-                .SmtpServer.Replace("smtp://", "")
-                .Replace("http://", "")
-                .Replace("https://", "");
-            if (smtpServer != _settings.SmtpServer)
-            {
-                _logger.LogWarning(
-                    "SMTP Server contenait un schéma, corrigé en: {Server}",
-                    smtpServer
-                );
-            }
-
             // Créer le message email
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("SponsorPulse", _settings.FromEmail));
@@ -110,19 +80,19 @@ public class WaitlistService(IOptions<WaitlistSettings> settings, ILogger<Waitli
             <h1>Merci de rejoindre SponsorPulse !</h1>
             <p class='subtitle'>Vous êtes maintenant sur la liste d'attente</p>
         </div>
-
+        
         <div class='content'>
             <p>Bonjour,</p>
-
+            
             <p>Merci d'avoir rejoint la waitlist <span class='highlight'>SponsorPulse</span> ! Vous recevrez :</p>
-
+            
             <ul style='color: #94A3B8; line-height: 1.8;'>
                 <li>Un accès anticipé à la plateforme</li>
                 <li>5 rapports sponsors <strong>gratuits</strong></li>
                 <li>Des conseils pour convaincre vos sponsors</li>
                 <li>Des mises à jour exclusives</li>
             </ul>
-
+            
             <div class='metrics'>
                 <div class='metric'>
                     <div class='metric-value'>+847</div>
@@ -133,13 +103,13 @@ public class WaitlistService(IOptions<WaitlistSettings> settings, ILogger<Waitli
                     <div class='metric-label'>Valeur calculée cette semaine</div>
                 </div>
             </div>
-
+            
             <div class='cta'>
                 <p style='color: #94A3B8; margin-bottom: 20px;'>En attendant, découvrez comment ça marche :</p>
                 <a href='https://sponsorpulse.com/dashboard' class='btn'>Voir une démo →</a>
             </div>
         </div>
-
+        
         <div class='footer'>
             <p>© 2026 SponsorPulse. Tous droits réservés.</p>
             <p>Vous recevez cet email car vous vous êtes inscrit à la waitlist.</p>
@@ -154,23 +124,11 @@ public class WaitlistService(IOptions<WaitlistSettings> settings, ILogger<Waitli
             // Envoyer via CloudMailin SMTP
             using var client = new SmtpClient();
 
-            _logger.LogInformation(
-                "Connexion à {Server}:{Port}...",
-                smtpServer,
-                _settings.SmtpPort
-            );
-
+            // Connexion au serveur SMTP
             await client.ConnectAsync(
-                smtpServer,
+                _settings.SmtpServer,
                 _settings.SmtpPort,
-                SecureSocketOptions.StartTls,
-                CancellationToken.None
-            );
-
-            _logger.LogInformation(
-                "Connecté au serveur SMTP {Server}:{Port}",
-                smtpServer,
-                _settings.SmtpPort
+                SecureSocketOptions.StartTls
             );
 
             // Authentification
@@ -179,38 +137,12 @@ public class WaitlistService(IOptions<WaitlistSettings> settings, ILogger<Waitli
                 && !string.IsNullOrEmpty(_settings.Password)
             )
             {
-                _logger.LogInformation(
-                    "Authentification SMTP avec username: {Username}",
-                    _settings.Username
-                );
-                await client.AuthenticateAsync(
-                    _settings.Username,
-                    _settings.Password,
-                    CancellationToken.None
-                );
-                _logger.LogInformation("Authentification SMTP réussie");
-            }
-            else
-            {
-                _logger.LogWarning("Pas d'authentification SMTP (Username/Password vides)");
+                await client.AuthenticateAsync(_settings.Username, _settings.Password);
             }
 
-            // Envoi - Spécifier explicitement les destinataires pour éviter l'erreur BCC
-            _logger.LogInformation("Envoi de l'email à {Email}...", email);
-
-            // Envoyer uniquement au destinataire principal (To)
-            // Le BCC est exclu de l'envoi pour éviter l'erreur "Envelope recipients do not match headers"
-            var recipients = message.To.OfType<MailboxAddress>().ToList();
-            await client.SendAsync(
-                message,
-                message.From.OfType<MailboxAddress>().First(),
-                recipients
-            );
-
-            _logger.LogInformation("Email envoyé à {Email}", email);
-
+            // Envoi
+            await client.SendAsync(message);
             await client.DisconnectAsync(true);
-            _logger.LogInformation("Déconnecté du serveur SMTP");
 
             _logger.LogInformation($"Email waitlist envoyé à {email}");
 
@@ -221,10 +153,7 @@ public class WaitlistService(IOptions<WaitlistSettings> settings, ILogger<Waitli
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                $"Erreur envoi email waitlist à {email}. Details: {ex.Message}, StackTrace: {ex.StackTrace}"
-            );
+            _logger.LogError(ex, $"Erreur envoi email waitlist à {email}");
 
             // En mode démo/erreur, on incrémente quand même pour la preuve sociale
             IncrementWaitlistCount();

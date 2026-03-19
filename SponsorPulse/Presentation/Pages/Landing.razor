@@ -3,11 +3,9 @@
 @rendermode @(new InteractiveServerRenderMode())
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
-@inject ILogger<Landing> Logger
 @using LumexUI
 @using LumexUI.Common
 @using Microsoft.AspNetCore.Components.Web
-@using Microsoft.Extensions.Logging
 @using SponsorPulse.Infrastructure.Services
 @using SponsorPulse.Presentation.Components
 
@@ -98,18 +96,18 @@
                     <div class="waitlist-section mt-0">
                         @* Social Proof Label *@
                         @if (waitlistCount > 10)
-                        {
-                            <div class="social-proof-label mb-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="live-indicator"></span>
-                                    <span class="proof-text">Déjà <strong
-                                        class="text-white">@waitlistCount.ToString("N0")</strong> personnes
-                                        inscrites</span>
-                                    </div>
-                                    <div class="progress-bar-wrapper">
-                                        <div class="progress-bar-fill" style="width: @GetProgressPercentage()%"></div>
-                                    </div>
+                            {
+                        <div class="social-proof-label mb-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="live-indicator"></span>
+                                <span class="proof-text">Déjà <strong
+                                    class="text-white">@waitlistCount.ToString("N0")</strong> personnes
+                                    inscrites</span>
                                 </div>
+                                <div class="progress-bar-wrapper">
+                                    <div class="progress-bar-fill" style="width: @GetProgressPercentage()%"></div>
+                                </div>
+                            </div>
                             }
                             @* Waitlist Form *@
                             @if (!waitlistSubmitted)
@@ -117,8 +115,8 @@
                                 <div class="waitlist-form-wrapper">
                                     <div class="waitlist-input-container">
                                         <LumexTextbox Type="InputType.Email" @bind-Value="waitlistEmail"
-                                                      @onkeypress="HandleEnterKey" Placeholder="mon.mail@trophype.fr"
-                                                      Class="waitlist-input" Disabled="waitlistLoading" />
+                                                      @onkeypress="HandleEnterKey"                                                  Placeholder="mon.mail@trophype.fr"
+                                                      Class="waitlist-input"                                                  Disabled="waitlistLoading" />
 
                                         @if (!string.IsNullOrEmpty(waitlistError))
                                         {
@@ -598,6 +596,9 @@
     [Inject]
     private IWaitlistService WaitlistService { get; set; } = default!;
 
+    [Inject]
+    private HttpClient Http { get; set; } = default!;
+
     private void ToggleMobileMenu()
     {
         isMobileMenuOpen = !isMobileMenuOpen;
@@ -665,14 +666,8 @@
 
         try
         {
-            // Appel API avec URL absolue pour éviter les problèmes de BaseAddress
-            var baseUri = Navigation.BaseUri.TrimEnd('/');
-            var requestUri = $"{baseUri}/api/waitlist";
-
-            Logger.LogInformation("Envoi requête waitlist à: {Uri}", requestUri);
-
-            using var httpClient = new HttpClient();
-            var response = await httpClient.PostAsJsonAsync(requestUri, new { Email = waitlistEmail });
+            // Appel API CloudMailin via le endpoint
+            var response = await Http.PostAsJsonAsync("/api/waitlist", new { Email = waitlistEmail });
 
             if (response.IsSuccessStatusCode)
             {
@@ -684,14 +679,11 @@
             }
             else
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Logger.LogWarning("Erreur API waitlist: {Status} - {Content}", response.StatusCode, content);
                 waitlistError = "Une erreur est survenue. Réessayez plus tard.";
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Exception waitlist: {Message}", ex.Message);
             Console.WriteLine($"Erreur waitlist: {ex.Message}");
             waitlistError = "Une erreur est survenue. Réessayez plus tard.";
         }
