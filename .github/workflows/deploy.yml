@@ -1,0 +1,43 @@
+name: Deploy Blazor Server to MonsterASP
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+    - name: 🛒 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Configuration de .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: 📦 Installation des dépendances Node
+      run: npm ci
+
+    - name: 🏗️ Build du projet .NET
+      run: dotnet build SponsorPulse/SponsorPulse.csproj -c Release
+
+    - name: 🎨 Build Tailwind CSS
+      run: npm run tailwind:build
+
+    - name: 🚀 Publish
+      run: dotnet publish SponsorPulse/SponsorPulse.csproj -c Release -o ./publish
+
+    - name: 📤 Déploiement via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./publish/  
+        server-dir: /SponsorPulse
