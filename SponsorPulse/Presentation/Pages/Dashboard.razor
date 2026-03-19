@@ -1,0 +1,333 @@
+@page "/dashboard"
+@rendermode RenderMode.InteractiveServer
+@using SponsorPulse.Domain.Entities
+@using SponsorPulse.Infrastructure.Persistence
+@using SponsorPulse.Presentation.Components
+@using SponsorPulse.Infrastructure.Repositories
+@using SponsorPulse.Application.Services
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager Navigation
+@inject IDbContextFactory<SponsorPulseDbContext> DbFactory
+@inject IDemoDataService DemoDataService
+
+<PageTitle>Dashboard - SponsorPulse</PageTitle>
+
+<div class="dashboard-content fade-in">
+    <div class="header-panel mb-8">
+        <h1 class="text-3xl font-bold text-white mb-6">Événements</h1>
+        <LumexButton Class="ml-auto text-white" Variant="@Variant.Ghost" OnClick="GoToCreate">Créer un événement</LumexButton>
+    </div>
+
+    @* Stats Cards Section *@
+    @if (dashboardStats != null)
+    {
+        <div class="stats-grid mb-8">
+            <StatCard
+                Title="Pic de Viewers"
+                Value="@dashboardStats.PeakViewers.ToString("N0")"
+                IconUrl="https://api.iconify.design/ic:outline-remove-red-eye.svg" />
+
+            <StatCard
+                Title="Engagement Total"
+                Value="@dashboardStats.TotalEngagement.ToString("N0")"
+                IconUrl="https://api.iconify.design/ic:outline-message.svg" />
+
+            <StatCard
+                Title="Impressions Totales"
+                Value="@FormatImpressions(dashboardStats.TotalImpressions)"
+                IconUrl="https://api.iconify.design/ic:outline-monitor.svg" />
+        </div>
+    }
+
+    <EventSelector Events="events" OnEdit="HandleEditEvent" OnDelete="HandleDeleteEvent" OnAnalyze="HandleAnalyzeEvent"
+                   OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze" OnBulkDelete="HandleBulkDelete"
+                   OnNavigateToEvent="HandleNavigateToEvent" />
+
+    @if (showCreateModal)
+    {
+        <CreateEvent OnClose="@(() => showCreateModal = false)" OnCreated="HandleEventCreated" />
+    }
+
+    @if (eventToDelete != null)
+    {
+        <div class="modal-backdrop" @onclick="CancelDelete">
+            <div class="modal-content glass-panel" @onclick:stopPropagation>
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-white">Supprimer définitivement</h2>
+                </div>
+
+                <p class="text-gray-300 mb-6">
+                    Etes vous sur de vouloir supprimer cet event <strong>@eventToDelete.Name</strong> ?
+                </p>
+
+                <div class="flex justify-end gap-4">
+                    <button class="btn-cancel" @onclick="CancelDelete">Annuler</button>
+                    <button class="btn-delete-confirm" @onclick="ConfirmDelete">Oui, Supprimer</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .dashboard-content {
+        animation: fadeIn 0.5s ease-out;
+        padding-bottom: 4rem;
+    }
+
+    /* Modal Styles */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-content {
+        width: 90%;
+        max-width: 500px;
+        padding: 2rem;
+        border-radius: 16px;
+        background: var(--dark-bg);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-cancel {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: var(--grey-text);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .btn-cancel:hover {
+        color: var(--white);
+        border-color: var(--grey-text);
+    }
+
+    .btn-delete-confirm {
+        background: #DC2626;
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-delete-confirm:hover {
+        background: #EF4444;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .justify-end {
+        justify-content: flex-end;
+    }
+
+    .gap-4 {
+        gap: 1rem;
+    }
+
+
+    .header-panel {
+        height: 2rem;
+        background-color: transparent;
+        border-radius: 16px;
+        display: flex;
+        align-items: space-around;
+    }
+
+    .glass-panel-message {
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .mb-8 {
+        margin-bottom: 2rem;
+    }
+
+    .mb-6 {
+        margin-bottom: 1.5rem;
+    }
+
+    .mb-2 {
+        margin-bottom: 0.5rem;
+    }
+
+    .text-3xl {
+        font-size: 1.875rem;
+    }
+
+    .text-xl {
+        font-size: 1.25rem;
+    }
+
+    .font-bold {
+        font-weight: 700;
+    }
+
+    .text-gray-400 {
+        color: var(--grey-text);
+    }
+
+    .text-white {
+        color: var(--white);
+    }
+
+    .col-span-full {
+        grid-column: 1 / -1;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .p-8 {
+        padding: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+</style>
+
+@code {
+    private bool showCreateModal = false;
+    private List<Event>? events;
+    private Event? eventToDelete;
+    private DashboardStats? dashboardStats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEvents();
+        await LoadDashboardStats();
+    }
+
+    private async Task LoadDashboardStats()
+    {
+        dashboardStats = await DemoDataService.GetDashboardStatsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadEvents()
+    {
+        if (DemoDataService.IsInDemoMode)
+        {
+            // En mode démo, charger depuis le service qui utilise StaticDemoRepository
+            events = (await DemoDataService.GetDemoEventsAsync()).OrderByDescending(e => e.Date).ToList();
+        }
+        else
+        {
+            // En mode normal, charger depuis la base de données
+            using var context = await DbFactory.CreateDbContextAsync();
+            events = await context.Events.OrderByDescending(e => e.Date).ToListAsync();
+        }
+    }
+
+    private string FormatImpressions(long impressions)
+    {
+        if (impressions >= 1_000_000)
+            return $"{impressions / 1_000_000.0:F1}M";
+        if (impressions >= 1_000)
+            return $"{impressions / 1_000.0:F0}K";
+        return impressions.ToString("N0");
+    }
+
+    private void GoToCreate()
+    {
+        showCreateModal = true;
+    }
+
+    private void HandleEditEvent(Event evt)
+    {
+        // Naviguer vers la page des métrique/détails de l'événement
+        Navigation.NavigateTo($"event/{evt.Slug}/metrics");
+    }
+
+    private void HandleAnalyzeEvent(Event evt)
+    {
+        // Naviguer vers la page d'analyse
+        Navigation.NavigateTo($"event/{evt.Slug}/analyze");
+    }
+
+    private void HandleGenerateEvent(Event evt)
+    {
+        // Naviguer vers la génération PDF
+        Navigation.NavigateTo($"event/{evt.Slug}/pdf-customize");
+    }
+
+    private void HandleDeleteEvent(Event evt)
+    {
+        eventToDelete = evt;
+    }
+
+    private void HandleBulkAnalyze()
+    {
+        // TODO: Analyser les événements sélectionnés
+        Console.WriteLine("Bulk analyze triggered");
+    }
+
+    private void HandleBulkDelete()
+    {
+        // TODO: Afficher une confirmation avant suppression en masse
+        Console.WriteLine("Bulk delete triggered");
+    }
+
+    private void CancelDelete()
+    {
+        eventToDelete = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (eventToDelete == null) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        var evt = await context.Events.FindAsync(eventToDelete.Id);
+        if (evt != null)
+        {
+            context.Events.Remove(evt);
+            await context.SaveChangesAsync();
+        }
+
+        eventToDelete = null;
+        await LoadEvents();
+    }
+
+    private async Task HandleEventCreated()
+    {
+        await LoadEvents();
+        StateHasChanged();
+    }
+
+    private void HandleNavigateToEvent(string action)
+    {
+        if (action == "create")
+        {
+            showCreateModal = true;
+        }
+    }
+}

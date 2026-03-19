@@ -1,0 +1,29 @@
+@code {
+    [Parameter]
+    public int Score { get; set; }
+
+    private string GetScoreColor() =>
+        Score switch
+        {
+            >= 85 => "#22C55E",
+            >= 70 => "#FBBF24",
+            >= 50 => "#F97316",
+            _ => "#EF4444"
+        };
+
+    private string GetScoreLabel() =>
+        Score switch
+        {
+            >= 85 => "Excellent",
+            >= 70 => "Good",
+            >= 50 => "Fair",
+            _ => "Needs Improvement"
+        };
+}
+
+<div
+    style="padding: 1rem; border-radius: 8px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2);">
+    <span style="display: block; font-size: 0.875rem; text-transform: uppercase; color: #94A3B8;">Overall Score</span>
+    <div style="font-size: 2.25rem; font-weight: 700; color: @GetScoreColor(); margin-top: 0.5rem;">@Score</div>
+    <div style="font-size: 0.875rem; color: #94A3B8; margin-top: 0.5rem;">@GetScoreLabel()</div>
+</div>

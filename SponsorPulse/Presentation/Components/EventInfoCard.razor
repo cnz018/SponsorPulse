@@ -1,0 +1,46 @@
+@using SponsorPulse.Domain.Entities
+
+@code {
+    [Parameter]
+    public Event? Event { get; set; }
+
+    private string FormatNumber(int value) =>
+        value switch
+        {
+            >= 1_000_000 => $"{value / 1_000_000:F1}M",
+            >= 1_000 => $"{value / 1_000:F1}K",
+            _ => value.ToString()
+        };
+
+    private string FormatDuration(TimeSpan? duration) =>
+        duration == null ? "N/A" : $"{(int)duration.Value.TotalHours}h {duration.Value.Minutes}m";
+}
+
+@if (Event != null)
+{
+    <div style="padding: 2rem; border-radius: 12px; background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(148, 163, 184, 0.2);">
+        <div style="margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: white; margin: 0;">@Event.Name</h2>
+            <p style="color: #94A3B8; margin: 0.5rem 0 0 0;">@Event.Date.ToString("yyyy-MM-dd HH:mm")</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+            <div>
+                <span style="display: block; font-size: 0.75rem; text-transform: uppercase; color: #94A3B8; margin-bottom: 0.5rem;">Viewers</span>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #CCC9DC;">@FormatNumber(Event.ViewerCount ?? 0)</div>
+            </div>
+            <div>
+                <span style="display: block; font-size: 0.75rem; text-transform: uppercase; color: #94A3B8; margin-bottom: 0.5rem;">Peak</span>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #CCC9DC;">@FormatNumber(Event.PeakViewers ?? 0)</div>
+            </div>
+            <div>
+                <span style="display: block; font-size: 0.75rem; text-transform: uppercase; color: #94A3B8; margin-bottom: 0.5rem;">Duration</span>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #CCC9DC;">@FormatDuration(Event.StreamDuration)</div>
+            </div>
+            <div>
+                <span style="display: block; font-size: 0.75rem; text-transform: uppercase; color: #94A3B8; margin-bottom: 0.5rem;">Game</span>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #CCC9DC;">@(Event.GameName ?? "N/A")</div>
+            </div>
+        </div>
+    </div>
+}

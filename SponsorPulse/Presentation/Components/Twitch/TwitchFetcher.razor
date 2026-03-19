@@ -1,0 +1,267 @@
+@using SponsorPulse.Application.Common.Interfaces
+@using SponsorPulse.Domain.Entities
+@using SponsorPulse.Domain.Models
+@using Microsoft.AspNetCore.Components.Web
+@inject ITwitchService TwitchService
+@inject ILogger<TwitchFetcher> Logger
+
+<div class="twitch-fetcher mb-8">
+    <div class="flex items-center gap-4 mb-4">
+        <div class="flex-grow">
+            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Canal Twitch</label>
+            <div class="flex gap-2">
+                <input type="text" class="sp-input flex-grow" disabled value="@EventToUpdate.ChannelId" />
+
+                <button class="btn-fetch" @onclick="FetchData" disabled="@IsLoading">
+                    @if (IsLoading)
+                    {
+                        <div class="spinner"></div>
+                    }
+                    else
+                    {
+                        <span>Collecter Données</span>
+                    }
+                </button>
+
+                <button class="btn-fetch manual-toggle" @onclick="ToggleManualInput">
+                    @(ShowManualInput ? "Masquer" : (EventToUpdate.Status == EventStatus.AnalysisReady ||
+                    EventToUpdate.Status == EventStatus.Completed ? "Modifier" : "Manuel"))
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (ShowManualInput || !string.IsNullOrEmpty(ErrorMessage))
+    {
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="glass-alert error mb-4">
+                <span class="icon">⚠️</span> @ErrorMessage
+            </div>
+        }
+
+        <!-- Manual Fallback Mode -->
+        <div class="glass-panel p-4 mt-2 border-orange-500/300">
+            <h4 class="text-white text-sm font-bold mb-3">Saisie Manuelle</h4>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Spectateurs
+                        Moyens</label>
+                        <input type="number" class="sp-input" @bind="EventToUpdate.ViewerCount" />
+                    </div>
+                    <div>
+                        <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Pic Spectateurs</label>
+                        <input type="number" class="sp-input" @bind="EventToUpdate.PeakViewers" />
+                    </div>
+                    <div>
+                        <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Durée (HH:mm)</label>
+                        <input type="text" class="sp-input" @bind="StreamDurationString" placeholder="HH:mm" />
+                    </div>
+                    <div>
+                        <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Date début</label>
+                        <input type="datetime-local" class="sp-input" @bind="EventToUpdate.StartedAt" />
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label block text-gray-400 text-xs uppercase font-bold mb-2">Jeu</label>
+                        <input type="text" class="sp-input" @bind="EventToUpdate.GameName" />
+                    </div>
+                </div>
+                <button
+                class="btn-primary mt-4 w-full p-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition"
+                @onclick="SaveManualData">Sauvegarder Manuellement</button>
+            </div>
+        }
+
+        @if (EventToUpdate.Status == EventStatus.Completed || EventToUpdate.Status == EventStatus.AnalysisReady)
+        {
+            <div class="glass-panel success p-4 mt-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <h4 class="text-green-400 text-sm font-bold mb-2">✅ Données Collectées</h4>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-400 block text-xs">Jeu</span>
+                        <span class="text-white font-mono">@EventToUpdate.GameName</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block text-xs">Viewers</span>
+                        <span class="text-white font-mono">@EventToUpdate.ViewerCount</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block text-xs">Durée</span>
+                        <span class="text-white font-mono">@(EventToUpdate.StreamDuration?.ToString(@"hh\:mm") ??
+                                                                            "--:--")</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <style>
+            .twitch-fetcher {
+                background: rgba(0, 0, 0, 0.2);
+                padding: 1.5rem;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .sp-input {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: white;
+                padding: 0.75rem;
+                border-radius: 8px;
+                width: 100%;
+            }
+
+            .btn-fetch {
+                background: var(--accent-blue);
+                color: white;
+                border: none;
+                padding: 0 1.5rem;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 160px;
+                height: 42px;
+                transition: background 0.2s;
+            }
+
+            .btn-fetch:hover:not(:disabled) {
+                background: #2563EB;
+                /* Slightly lighter blue */
+            }
+
+            .btn-fetch:disabled {
+                opacity: 0.7;
+                cursor: wait;
+                background: #1e3a8a;
+            }
+
+            .spinner {
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
+            }
+
+            .manual-toggle {
+                margin-left: 0.5rem;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                min-width: 100px;
+            }
+
+            .manual-toggle:hover:not(:disabled) {
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .glass-alert {
+                padding: 1rem;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .glass-alert.error {
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.2);
+                color: #FCA5A5;
+            }
+
+            @@keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+
+@code {
+    [Parameter] public Event EventToUpdate { get; set; } = default!;
+    [Parameter] public EventCallback<Event> OnDataUpdated { get; set; }
+
+    private bool IsLoading = false;
+    private bool ShowManualInput = false;
+    private string? ErrorMessage;
+
+    // Helper for binding TimeSpan to text input
+    private string StreamDurationString
+    {
+        get => EventToUpdate.StreamDuration?.ToString(@"hh\:mm") ?? "";
+        set
+        {
+            if (TimeSpan.TryParse(value, out var ts))
+            {
+                EventToUpdate.StreamDuration = ts;
+            }
+            else
+            {
+                // Optionally handle invalid input, or just don't set
+            }
+        }
+    }
+
+    private void ToggleManualInput()
+    {
+        ShowManualInput = !ShowManualInput;
+        if (!ShowManualInput) ErrorMessage = null; // Clear error if hiding manual input
+    }
+
+    private async Task FetchData()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+
+        try
+        {
+            // Simulate status update immediately
+            EventToUpdate.Status = EventStatus.Fetching;
+
+            var result = await TwitchService.GetStreamMetricsAsync(EventToUpdate.ChannelId);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                var metrics = result.Value;
+
+                // Update Entity
+                EventToUpdate.ViewerCount = metrics.ViewerCount;
+                EventToUpdate.PeakViewers = metrics.PeakViewers;
+                EventToUpdate.StreamDuration = metrics.StreamDuration;
+                EventToUpdate.StartedAt = metrics.StartedAt;
+                EventToUpdate.GameName = metrics.GameName;
+                EventToUpdate.Status = EventStatus.AnalysisReady;
+
+                await OnDataUpdated.InvokeAsync(EventToUpdate);
+            }
+            else
+            {
+                ErrorMessage = result.ErrorMessage ?? "Erreur inconnue lors de l'appel Twitch.";
+                EventToUpdate.Status = EventStatus.Error; // Or Draft if we want to allow retry
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "UI Fetch Error");
+            ErrorMessage = "Erreur technique: " + ex.Message;
+            EventToUpdate.Status = EventStatus.Error;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task SaveManualData()
+    {
+        // Simple manual save trigger
+        EventToUpdate.Status = EventStatus.AnalysisReady;
+        // Hide manual input on save
+        ShowManualInput = false;
+        await OnDataUpdated.InvokeAsync(EventToUpdate);
+        ErrorMessage = null; // Clear error on successful manual save
+    }
+}

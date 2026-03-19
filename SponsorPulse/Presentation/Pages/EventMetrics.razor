@@ -1,0 +1,149 @@
+@page "/event/{Slug}/metrics"
+@rendermode RenderMode.InteractiveServer
+@using SponsorPulse.Domain.Entities
+@using SponsorPulse.Infrastructure.Repositories
+@inject NavigationManager Navigation
+
+<style>
+    .card-bg {
+        background: rgba(30, 41, 59, 0.3);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+
+    .metric-card {
+        background: rgba(59, 130, 246, 0.05);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        color: #60A5FA;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+</style>
+
+<PageTitle>Metrics</PageTitle>
+
+<div style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <div
+        style="padding: 2rem; background: linear-gradient(135deg, rgba(50, 74, 95, 0.4) 0%, rgba(12, 24, 33, 0.4) 100%); border-radius: 16px; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.875rem; font-weight: 700; color: white; margin: 0 0 0.5rem 0;">@eventName</h1>
+        <p style="color: #94A3B8; margin: 0;">Twitch &amp; Twitter Metrics</p>
+    </div>
+
+    @if (currentEvent == null)
+    {
+        <div style="padding: 3rem; text-align: center; color: #94A3B8;">Loading...</div>
+    }
+    else
+    {
+        <!-- Twitch Metrics -->
+        <div class="card-bg" style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 1.5rem;">Twitch Metrics</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                @foreach (var (label, value) in GetTwitchMetrics())
+                {
+                    <div class="metric-card">
+                        <span            style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94A3B8;">@label</span>
+                        <div style="font-size: 1.875rem; font-weight: 700; color: #CCC9DC; margin: 0.5rem 0;">@value</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Twitter Metrics -->
+        @if (currentEvent.TwitterAnalytics != null)
+        {
+            <div class="card-bg">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 1.5rem;">Twitter Analytics</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div class="metric-card">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; color: #94A3B8;">Impressions</span>
+                        <div style="font-size: 1.875rem; font-weight: 700; color: #CCC9DC; margin: 0.5rem 0;">
+                            @FormatNumber((int)currentEvent.TwitterAnalytics.EstimatedImpressions)</div>
+                        </div>
+                        <div class="metric-card">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: #94A3B8;">Tweets</span>
+                            <div style="font-size: 1.875rem; font-weight: 700; color: #CCC9DC; margin: 0.5rem 0;">
+                                @currentEvent.TwitterAnalytics.TotalTweets</div>
+                            </div>
+                            <div class="metric-card">
+                                <span style="font-size: 0.75rem; text-transform: uppercase; color: #94A3B8;">Engagement</span>
+                                <div style="font-size: 1.875rem; font-weight: 700; color: #CCC9DC; margin: 0.5rem 0;">
+                                    @FormatNumber(currentEvent.TwitterAnalytics.TotalEngagement)</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Action -->
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                        <button class="btn-secondary" @onclick="() => Navigate(AnalyzePage)">Analyze</button>
+                        <button
+                        style="background: #CCC9DC; border: none; color: #0C1821; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                        @onclick="() => Navigate(CustomizePage)">Generate PDF</button>
+                    </div>
+                }
+            </div>
+
+@code {
+    [Parameter]
+    public string? Slug { get; set; }
+
+    private const string AnalyzePage = "analyze";
+    private const string CustomizePage = "pdf-customize";
+    private Event? currentEvent;
+    private string eventName = "Event";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Slug))
+        {
+            Navigation.NavigateTo("/dashboard");
+            return;
+        }
+
+        var events = StaticDemoRepository.GetDemoEvents();
+        currentEvent = events.FirstOrDefault(e => e.Slug == Slug);
+
+        if (currentEvent == null)
+        {
+            Navigation.NavigateTo("/dashboard");
+            return;
+        }
+
+        eventName = currentEvent.Name;
+    }
+
+    private List<(string, string)> GetTwitchMetrics() => new()
+    {
+        ("Viewers", FormatNumber(currentEvent?.ViewerCount ?? 0)),
+        ("Peak", FormatNumber(currentEvent?.PeakViewers ?? 0)),
+        ("Duration", FormatDuration(currentEvent?.StreamDuration)),
+        ("Game", currentEvent?.GameName ?? "N/A")
+    };
+
+    private string FormatNumber(int value) =>
+        value switch
+        {
+            >= 1_000_000 => $"{value / 1_000_000:F1}M",
+            >= 1_000 => $"{value / 1_000:F1}K",
+            _ => value.ToString()
+        };
+
+    private string FormatDuration(TimeSpan? duration) =>
+        duration switch
+        {
+            null => "N/A",
+            _ => $"{(int)duration.Value.TotalHours}h {duration.Value.Minutes}m"
+        };
+
+    private void Navigate(string page) => Navigation.NavigateTo($"/event/{Slug}/{page}");
+}

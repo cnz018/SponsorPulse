@@ -1,0 +1,112 @@
+@layer base {
+  :root {
+    --color-ink-black: #0C1821;
+    --color-deep-space-blue: #1B2A41;
+    --color-charcoal-blue: #324A5F;
+    --color-lavender: #CCC9DC;
+    --color-grey-text: #94A3B8;
+    --color-grey-muted: #475569;
+    --color-white: #F8FAFC;
+  }
+
+  body {
+    @apply bg-[#0C1821] text-[#F8FAFC] font-sans;
+    font-family: 'Inter', 'Gilroy', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl;
+  }
+
+  .glass-overlay {
+    @apply bg-black/40 backdrop-blur-lg;
+  }
+
+  .gradient-mesh {
+    @apply bg-gradient-to-br from-[#1B2A41] to-[#0C1821];
+  }
+
+  .gradient-radial {
+    background: radial-gradient(circle at 50% 50%, rgba(204, 201, 220, 0.15) 0%, #0C1821 100%);
+  }
+
+  .btn-cta-primary {
+    @apply px-8 py-3 rounded-full font-semibold transition-all duration-200 ease-in-out;
+    @apply bg-black text-white hover:bg-gray-900 hover:shadow-lg hover:shadow-[rgba(204,201,220,0.15)];
+    @apply border-2 border-transparent;
+  }
+
+  .btn-cta-primary:hover {
+    @apply -translate-y-0.5;
+  }
+
+  .btn-cta-secondary {
+    @apply px-8 py-3 rounded-full font-semibold transition-all duration-200 ease-in-out;
+    @apply bg-transparent text-white border-2 border-white;
+    @apply hover:bg-white/10 hover:shadow-lg hover:shadow-[rgba(204,201,220,0.15)];
+  }
+
+  .btn-cta-secondary:hover {
+    @apply -translate-y-0.5;
+  }
+
+  .hero-title {
+    @apply text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tighter;
+  }
+
+  .hero-subtitle {
+    @apply text-lg sm:text-xl text-[#94A3B8] leading-relaxed max-w-2xl mx-auto;
+  }
+
+  .metric-card {
+    @apply bg-white/5 backdrop-blur-2xl border border-[rgba(204,201,220,0.2)];
+    @apply rounded-xl p-5 transition-all duration-300 transform;
+    @apply hover:-translate-y-2 hover:shadow-xl hover:shadow-[rgba(204,201,220,0.2)];
+  }
+
+  .metric-label {
+    @apply text-xs uppercase tracking-widest text-[#475569];
+  }
+
+  .metric-value {
+    @apply text-3xl font-bold text-[#CCC9DC] mt-2;
+  }
+
+  .metric-unit {
+    @apply text-sm text-[#94A3B8] ml-1;
+  }
+
+  .nav-link {
+    @apply text-[#94A3B8] transition-colors duration-300 no-underline font-medium;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    @apply text-[#CCC9DC];
+  }
+}
+
+@layer utilities {
+  .floating-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .floating-animation:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+
+  .floating-animation:nth-child(3) {
+    animation-delay: 1s;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0);
+  }
+  50% {
+    transform: translateY(-12px) translateX(2px);
+  }
+}

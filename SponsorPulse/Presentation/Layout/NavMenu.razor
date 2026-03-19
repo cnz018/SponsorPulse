@@ -1,0 +1,121 @@
+﻿@using LumexUI.Common
+@using SponsorPulse.Presentation.Components
+@inject NavigationManager Navigation
+
+<LumexNavbar>
+    @* Brand Logo Section *@
+    <div class="nav-brand">
+        <BrandLogo />
+    </div>
+
+    <LumexUser Name="John Doe" Description="HyperCore Gaming" Class="user-area">
+        <AvatarContent>
+            <LumexAvatar Size="@Size.Large" Src="https://randomuser.me/api/portraits/" Radius=@Radius.Small />
+        </AvatarContent>
+    </LumexUser>
+    <LumexDivider />
+    <LumexNavbarItem Class="w-full">
+        <LumexLink href="/" class="@GetNavClass("/")">
+            <i class="bi bi-house mr-2"></i> Dashboard
+        </LumexLink>
+    </LumexNavbarItem>
+    <LumexNavbarItem Class="w-full">
+        <LumexLink href="/settings" class="@GetNavClass("/settings")">
+            <i class="bi bi-gear mr-2"></i> Settings
+        </LumexLink>
+    </LumexNavbarItem>
+</LumexNavbar>
+
+<style>
+    nav {
+        display: flex;
+        flex-direction: column;
+        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+
+    header::before{
+        background-color: transparent;
+    }
+
+    .nav-brand {
+        padding: 1.5rem 1.25rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+.user-area {
+        display: flex;
+padding-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .logo-area img {
+        width: 32px;
+        height: 32px;
+        margin-right: 8px;
+    }
+
+    .logo-nav {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: var(--white);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: var(--grey-text);
+        text-decoration: none;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+        margin-bottom: 4px;
+    }
+
+    .nav-item:hover {
+        background: var(--glass-bg);
+        color: var(--white);
+    }
+
+    .nav-item.active {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        color: var(--white);
+        border-left: 3px solid #10B981;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .icon {
+        margin-right: 12px;
+        font-size: 1.1rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 1px solid var(--grey-text);
+        border-radius: 4px;
+        display: inline-block;
+    }
+</style>
+
+@code {
+    private bool IsActive(string path)
+    {
+        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (string.IsNullOrEmpty(currentPath))
+        {
+            currentPath = "/";
+        }
+        else
+        {
+            currentPath = "/" + currentPath;
+        }
+
+        return currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetNavClass(string path)
+    {
+        return $"nav-item w-full text-lg mb-auto {(IsActive(path) ? "active" : "")}";
+    }
+}

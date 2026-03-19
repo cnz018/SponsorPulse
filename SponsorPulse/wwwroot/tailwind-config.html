@@ -1,0 +1,42 @@
+<!-- SponsorPulse Landing Page - Tailwind Configuration -->
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          'ink': {
+            black: '#0C1821',
+            darkspace: '#1B2A41',
+            charcoal: '#324A5F',
+          },
+          'accent': {
+            lavender: '#CCC9DC',
+            'charcoal-blue': '#324A5F',
+          },
+          'neutral': {
+            'grey-text': '#94A3B8',
+            'grey-muted': '#475569',
+            white: '#F8FAFC',
+          },
+        },
+        fontFamily: {
+          sans: ['Inter', 'Gilroy', 'system-ui', 'sans-serif'],
+        },
+        borderRadius: {
+          card: '16px',
+          button: '8px',
+          input: '12px',
+        },
+        animation: {
+          float: 'float 6s ease-in-out infinite',
+        },
+        keyframes: {
+          float: {
+            '0%, 100%': { transform: 'translateY(0px)' },
+            '50%': { transform: 'translateY(-12px)' },
+          },
+        },
+      },
+    },
+  }
+</script>

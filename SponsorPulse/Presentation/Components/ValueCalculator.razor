@@ -1,0 +1,637 @@
+@using SponsorPulse.Application.Services
+@using SponsorPulse.Application.Common.Configuration
+@inject IValueCalculatorService CalculatorService
+
+<div class="value-calculator-container">
+    @* Header Section (visible on large screens in left column) *@
+    <div class="calculator-header">
+        <h2 class="calculator-title">
+            Calculez votre <span class="text-gradient">valeur sponsor</span>
+        </h2>
+    
+        @if (ShowCtaButtons)
+        {
+            <div class="calculator-cta-buttons">
+                <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary" @onclick="OnJoinWaitlist" Radius="@Radius.Small">
+                    Rejoindre la waitlist
+                </LumexButton>
+                <LumexButton Variant="@Variant.Ghost" Class="btn-cta-secondary" @onclick="OnSeeDemo" Radius="@Radius.Small">
+                    Voir la démo
+                </LumexButton>
+            </div>
+        }
+    </div>
+
+    @* Calculator Section (right column on large screens) *@
+    <div class="calculator-section">
+        @* Sliders Grid *@
+        <div class="sliders-grid">
+            @* AMA Slider *@
+            <div class="slider-item">
+                <div class="slider-header">
+                    <div class="slider-label">
+                        <img src="https://api.iconify.design/ic:outline-remove-red-eye.svg" class="slider-icon twitch-icon" alt="" />
+                        <span>AMA (Average Minute Audience)</span>
+                    </div>
+                    <span class="slider-value">@FormatNumber(currentAMA)</span>
+                </div>
+                <input type="range" 
+                       class="slider twitch-slider"
+                       min="@minValues.AMA" 
+                       max="@maxValues.AMA" 
+                       step="@stepValues.AMA"
+                       value="@currentAMA"
+                       @oninput="HandleAmaChanged" />
+            </div>
+
+            @* Stream Hours Slider *@
+            <div class="slider-item">
+                <div class="slider-header">
+                    <div class="slider-label">
+                        <img src="https://api.iconify.design/ic:outline-timer.svg" class="slider-icon" alt="" />
+                        <span>Heures de stream / mois</span>
+                    </div>
+                    <span class="slider-value">@currentStreamHours h</span>
+                </div>
+                <input type="range" 
+                       class="slider hours-slider"
+                       min="@minValues.StreamHours" 
+                       max="@maxValues.StreamHours" 
+                       step="@stepValues.StreamHours"
+                       value="@currentStreamHours"
+                       @oninput="HandleHoursChanged" />
+            </div>
+
+            @* Engagement Rate Slider *@
+            <div class="slider-item">
+                <div class="slider-header">
+                    <div class="slider-label">
+                        <img src="https://api.iconify.design/ic:outline-trending-up.svg" class="slider-icon success-icon" alt="" />
+                        <span>Taux d'engagement (%)</span>
+                    </div>
+                    <span class="slider-value">@currentEngagementRate.ToString("F1")%</span>
+                </div>
+                <input type="range" 
+                       class="slider er-slider"
+                       min="@minValues.EngagementRate" 
+                       max="@maxValues.EngagementRate" 
+                       step="@stepValues.EngagementRate"
+                       value="@currentEngagementRate"
+                       @oninput="HandleErChanged" />
+            </div>
+
+            @* Social Reach Slider *@
+            <div class="slider-item">
+                <div class="slider-header">
+                    <div class="slider-label">
+                        <img src="https://api.iconify.design/simple-icons:x.svg" class="slider-icon twitter-icon" alt="" />
+                        <span>Portée Sociale (X/Twitter)</span>
+                    </div>
+                    <span class="slider-value">@FormatNumber(currentSocialReach)</span>
+                </div>
+                <input type="range" 
+                       class="slider social-slider"
+                       min="@minValues.SocialReach" 
+                       max="@maxValues.SocialReach" 
+                       step="@stepValues.SocialReach"
+                       value="@currentSocialReach"
+                       @oninput="HandleSocialReachChanged" />
+            </div>
+
+            @* Exclusive Toggle *@
+            <div class="slider-item">
+                <div class="exclusive-toggle">
+                    <div class="toggle-label">
+                        <img src="https://api.iconify.design/ic:outline-star.svg" class="slider-icon exclusive-icon" alt="" />
+                        <div>
+                            <span class="toggle-title">Streameur exclusif</span>
+                            <span class="toggle-description">Unique dans sa catégorie (bonus @((coefficients.ExclusiveBonus * 100).ToString("F0"))%)</span>
+                        </div>
+                    </div>
+                    <input type="checkbox" 
+                           class="exclusive-checkbox"
+                           checked="@isExclusive"
+                           @onchange="HandleExclusiveChanged" />
+                </div>
+            </div>
+        </div>
+
+        @* Result Card *@
+        <div class="result-card @resultCardClass">
+            <div class="result-header">
+                <img src="https://api.iconify.design/ic:outline-monetization-on.svg" class="result-icon" alt="" />
+                <span>Votre valeur sponsor estimée *</span>
+            </div>
+            
+            <div class="result-amount">@FormatCurrency(currentBreakdown.Total)</div>
+            <div class="result-subtitle">/ campagne</div>
+
+            @* Breakdown Details *@
+            <div class="result-breakdown">
+                <div class="breakdown-item">
+                    <span class="breakdown-label">AMA (@currentAMA × @currentStreamHours h × @coefficients.AMA.ToString("F2")€)</span>
+                    <span class="breakdown-value">@FormatCurrency(currentBreakdown.AmaRevenue)</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Engagement (@currentEngagementRate.ToString("F1") × @coefficients.EngagementRate.ToString("F0")€)</span>
+                    <span class="breakdown-value">@FormatCurrency(currentBreakdown.EngagementValue)</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Portée Sociale (@FormatNumber(currentSocialReach) × @coefficients.SocialReach.ToString("F2")€)</span>
+                    <span class="breakdown-value">@FormatCurrency(currentBreakdown.SocialReachValue)</span>
+                </div>
+                @if (isExclusive)
+                {
+                    <div class="breakdown-item breakdown-bonus">
+                        <span class="breakdown-label">Bonus exclusivité (@(coefficients.ExclusiveBonus * 100).ToString("F0"))%</span>
+                        <span class="breakdown-value">@FormatCurrency(currentBreakdown.ExclusiveBonus)</span>
+                    </div>
+                }
+            </div>
+
+            <div class="result-footer">
+                <p>* Estimation basée sur les tendances marché 2026</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool ShowCtaButtons { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnJoinWaitlist { get; set; }
+
+    [Parameter]
+    public EventCallback OnSeeDemo { get; set; }
+
+    [Parameter]
+    public EventCallback<double> OnValueCalculated { get; set; }
+
+    private ValueCalculatorSettings settings = new();
+    private DefaultValuesSettings defaultValues = new();
+    private MinValuesSettings minValues = new();
+    private MaxValuesSettings maxValues = new();
+    private StepValuesSettings stepValues = new();
+    private CoefficientsSettings coefficients = new();
+
+    private int currentAMA;
+    private int currentStreamHours;
+    private double currentEngagementRate;
+    private int currentSocialReach;
+    private bool isExclusive;
+
+    private ValueCalculatorBreakdown currentBreakdown = new();
+    private string resultCardClass = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Charger configuration depuis appsettings.json
+        settings = CalculatorService.GetSettings();
+        defaultValues = settings.DefaultValues;
+        minValues = settings.MinValues;
+        maxValues = settings.MaxValues;
+        stepValues = settings.StepValues;
+        coefficients = settings.Coefficients;
+
+        // Initialiser avec valeurs par défaut
+        currentAMA = defaultValues.AMA;
+        currentStreamHours = defaultValues.StreamHours;
+        currentEngagementRate = defaultValues.EngagementRate;
+        currentSocialReach = defaultValues.SocialReach;
+        isExclusive = defaultValues.IsExclusive;
+
+        // Calcul initial
+        CalculateValue();
+    }
+
+    private void HandleAmaChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            currentAMA = value;
+            CalculateValue();
+        }
+    }
+
+    private void HandleHoursChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            currentStreamHours = value;
+            CalculateValue();
+        }
+    }
+
+    private void HandleErChanged(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out var value))
+        {
+            currentEngagementRate = value;
+            CalculateValue();
+        }
+    }
+
+    private void HandleSocialReachChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            currentSocialReach = value;
+            CalculateValue();
+        }
+    }
+
+    private void HandleExclusiveChanged(ChangeEventArgs e)
+    {
+        if (e.Value is bool value)
+        {
+            isExclusive = value;
+            CalculateValue();
+        }
+    }
+
+    private void CalculateValue()
+    {
+        currentBreakdown = CalculatorService.GetBreakdown(
+            currentAMA,
+            currentStreamHours,
+            currentEngagementRate,
+            currentSocialReach,
+            isExclusive
+        );
+
+        // Animation de la carte de résultat
+        resultCardClass = "result-updated";
+        StateHasChanged();
+        
+        Task.Run(async () =>
+        {
+            await Task.Delay(300);
+            await InvokeAsync(() =>
+            {
+                resultCardClass = "";
+                StateHasChanged();
+            });
+        });
+
+        // Callback vers le parent
+        OnValueCalculated.InvokeAsync(currentBreakdown.Total);
+    }
+
+    private string FormatNumber(int value)
+    {
+        if (value >= 1_000_000)
+            return $"{value / 1_000_000.0:F1}M";
+        if (value >= 1_000)
+            return $"{value / 1_000.0:F0}K";
+        return value.ToString("N0");
+    }
+
+    private string FormatCurrency(double value)
+    {
+        return value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+    }
+}
+
+<style>
+    .value-calculator-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        width: 100%;
+    }
+
+    @@media (min-width: 1024px) {
+        .value-calculator-container {
+            grid-template-columns: 40% 60%;
+        }
+    }
+
+    .calculator-header {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .calculator-title {
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .calculator-subtitle {
+        font-size: 1rem;
+        color: #94A3B8;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .calculator-cta-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .calculator-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .sliders-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+        border: 1px solid rgba(204, 201, 220, 0.15);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
+    .slider-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .slider-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .slider-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #94A3B8;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .slider-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .twitch-icon {
+        filter: brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(1500%) hue-rotate(250deg) brightness(110%) contrast(100%);
+    }
+
+    .twitter-icon {
+        filter: brightness(0) saturate(100%) invert(73%) sepia(74%) saturate(360%) hue-rotate(174deg) brightness(94%) contrast(96%);
+    }
+
+    .success-icon {
+        filter: brightness(0) saturate(100%) invert(60%) sepia(35%) saturate(1200%) hue-rotate(95deg) brightness(95%) contrast(90%);
+    }
+
+    .exclusive-icon {
+        filter: brightness(0) saturate(100%) invert(84%) sepia(27%) saturate(744%) hue-rotate(356deg) brightness(103%) contrast(95%);
+    }
+
+    .slider-value {
+        color: #CCC9DC;
+        font-size: 1.125rem;
+        font-weight: 700;
+        min-width: 80px;
+        text-align: right;
+    }
+
+    .slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 8px;
+        border-radius: 99px;
+        background: rgba(148, 163, 184, 0.2);
+        outline: none;
+        cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+    }
+
+    .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .exclusive-toggle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+    }
+
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+    }
+
+    .toggle-title {
+        display: block;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .toggle-description {
+        display: block;
+        color: #94A3B8;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .exclusive-checkbox {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 44px;
+        height: 24px;
+        background: rgba(148, 163, 184, 0.3);
+        border-radius: 99px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+        outline: none;
+    }
+
+    .exclusive-checkbox::before {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.2s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .exclusive-checkbox:checked {
+        background: linear-gradient(90deg, #FBBF24 0%, #F59E0B 100%);
+    }
+
+    .exclusive-checkbox:checked::before {
+        transform: translateX(20px);
+    }
+
+    /* Result Card */
+    .result-card {
+        background: linear-gradient(135deg, rgba(204, 201, 220, 0.15) 0%, rgba(50, 74, 95, 0.1) 100%);
+        border: 1px solid rgba(204, 201, 220, 0.3);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .result-updated {
+        animation: resultPulse 0.3s ease-out;
+    }
+
+    @@keyframes resultPulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(204, 201, 220, 0.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        color: #94A3B8;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .result-icon {
+        width: 20px;
+        height: 20px;
+        filter: brightness(0) saturate(100%) invert(84%) sepia(27%) saturate(744%) hue-rotate(356deg) brightness(103%) contrast(95%);
+    }
+
+    .result-amount {
+        font-size: clamp(2.5rem, 6vw, 3.5rem);
+        font-weight: 800;
+        background: linear-gradient(135deg, #CCC9DC 0%, #94A3B8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+    }
+
+    .result-subtitle {
+        color: #94A3B8;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .result-breakdown {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(204, 201, 220, 0.15);
+        text-align: left;
+    }
+
+    .breakdown-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .breakdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .breakdown-bonus {
+        background: rgba(251, 191, 36, 0.1);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-top: 0.75rem;
+        border-bottom: none !important;
+    }
+
+    .breakdown-label {
+        color: #94A3B8;
+        font-size: 0.875rem;
+    }
+
+    .breakdown-value {
+        color: #CCC9DC;
+        font-weight: 600;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .result-footer {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(204, 201, 220, 0.1);
+    }
+
+    .result-footer p {
+        color: #94A3B8;
+        font-size: 0.75rem;
+        margin: 0;
+        text-align: center;
+    }
+
+    @@media (max-width: 768px) {
+        .calculator-section {
+            gap: 1.5rem;
+        }
+
+        .sliders-grid {
+            padding: 1rem;
+        }
+
+        .result-card {
+            padding: 1.5rem;
+        }
+
+        .breakdown-label {
+            font-size: 0.75rem;
+        }
+
+        .breakdown-value {
+            font-size: 0.8rem;
+        }
+    }
+</style>

@@ -1,0 +1,646 @@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using SponsorPulse.Application.Common.Interfaces
+@using SponsorPulse.Application.Common.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using SponsorPulse.Presentation.Services
+@inject PresignedUrlApiService PresignedUrlService
+@inject HttpClient HttpClient
+@inject ILogger<MediaUploader> Logger
+
+<div class="media-uploader-container">
+    <div class="upload-zone @(_isDragging ? "dragging" : "")"
+         @ondragenter="HandleDragEnter"
+         @ondragleave="HandleDragLeave"
+         @ondragover="HandleDragEnter"
+         @ondrop="HandleDrop">
+        
+        <InputFile id="fileInput" OnChange="HandleFileSelected" Multiple class="hidden-input" accept=".jpg,.jpeg,.png,.webp" />
+        <label for="fileInput" class="upload-label">
+            <div class="upload-content">
+                <span class="upload-icon">📷</span>
+                <p class="upload-text">Glissez-déposez vos photos ici ou cliquez pour parcourir</p>
+                <p class="upload-hint">JPG, PNG, WEBP (Max 5Mo, Max 5 photos)</p>
+            </div>
+        </label>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="error-message">
+            ⚠️ @_errorMessage
+        </div>
+    }
+
+    @if (_selectedFiles.Any())
+    {
+        <div class="file-list">
+            @foreach (var file in _selectedFiles)
+            {
+                <div class="file-item">
+                    <div class="file-info" @onclick="() => OpenPreview(file)">
+                       <span class="file-name">@file.Name</span>
+                       <span class="file-size">@FormatSize(file.Size)</span>
+                    </div>
+                    <button class="btn-remove" @onclick="() => RemoveFile(file)" disabled="@_isUploading">✕</button>
+                </div>
+            }
+        </div>
+
+        @if (_isUploading)
+        {
+            <div class="progress-container">
+                <div class="progress-bar-background">
+                    <div class="progress-bar-fill" style="width: @(_uploadProgress)%"></div>
+                </div>
+                <div class="progress-text">
+                    <span>Envoi en cours...</span>
+                    <span class="progress-percentage">@_uploadProgress%</span>
+                </div>
+            </div>
+        }
+    }
+        
+    @if (_selectedFiles.Any())
+    {
+        <div class="actions">
+            <button class="btn-upload" @onclick="UploadFiles" disabled="@_isUploading">
+                @if (_isUploading)
+                {
+                    <span class="spinner"></span> <span>Envoi en cours...</span>
+                }
+                else
+                {
+                    <span>Uploader @_selectedFiles.Count fichier(s)</span>
+                }
+            </button>
+        </div>
+    }
+</div>
+
+@if (_previewFile != null)
+{
+    <div class="lightbox-overlay" @onclick="ClosePreview">
+        <div class="lightbox-content" @onclick:stopPropagation>
+            <img src="@_previewUrl" alt="Preview" />
+            <button class="btn-close-lightbox" @onclick="ClosePreview">✕</button>
+        </div>
+    </div>
+}
+
+<style>
+    .media-uploader-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .upload-zone {
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        background: rgba(50, 74, 95, 0.2);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        position: relative;
+        min-height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-zone.dragging {
+        background: rgba(50, 74, 95, 0.4);
+        border-color: var(--accent-blue, #3B82F6);
+    }
+
+    .upload-zone:hover {
+        background: rgba(50, 74, 95, 0.3);
+    }
+    
+    .hidden-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 10;
+        left: 0;
+        top: 0;
+    }
+
+    .upload-label {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        pointer-events: none;
+    }
+
+    .upload-content {
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .upload-icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+        color: #F8FAFC;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .upload-hint {
+        color: #94A3B8;
+        font-size: 0.8rem;
+    }
+
+    .error-message {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #FCA5A5;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .file-list {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .file-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.75rem;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .file-info {
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    
+    .file-info:hover .file-name {
+        text-decoration: underline;
+    }
+
+    .file-name {
+        color: #F8FAFC;
+        font-size: 0.9rem;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis; 
+    }
+
+    .file-size {
+        color: #94A3B8;
+        font-size: 0.75rem;
+    }
+
+    .btn-remove {
+        background: transparent;
+        border: none;
+        color: #94A3B8;
+        cursor: pointer;
+        padding: 0.5rem;
+        font-size: 1.2rem;
+        transition: color 0.2s;
+    }
+
+    .btn-remove:hover {
+        color: #EF4444;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-upload {
+        background: #3B82F6;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-upload:hover:not(:disabled) {
+        background: #2563EB;
+    }
+
+    .btn-upload:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Lightbox */
+    .lightbox-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+    }
+
+    .lightbox-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .btn-close-lightbox {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: white;
+        background: transparent;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .progress-bar-background {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3B82F6, #1D4ED8);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        position: relative;
+    }
+
+    .progress-bar-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+        );
+        animation: shimmer 1.5s infinite;
+    }
+
+    @@keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .progress-text {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #94A3B8;
+    }
+
+    .progress-percentage {
+        font-weight: 600;
+        color: #3B82F6;
+    }
+</style>
+
+@code {
+    [Parameter] public string EventSlug { get; set; } = string.Empty;
+    [Parameter] public EventCallback<List<UploadedMediaResult>> OnUploadCompleted { get; set; }
+
+    private const int MaxAllowedFiles = 5;
+    private const long MaxFileSize = 1024 * 1024 * 5; // 5MB
+    private readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+
+    private bool _isDragging;
+    private bool _isUploading;
+    private string? _errorMessage;
+    private List<IBrowserFile> _selectedFiles = new();
+    private int _uploadProgress = 0;
+    private Dictionary<string, string> _fileErrors = new(); // Track per-file errors
+    
+    // Preview variables
+    private IBrowserFile? _previewFile;
+    private string? _previewUrl;
+
+    private void HandleDragEnter() => _isDragging = true;
+    private void HandleDragLeave() => _isDragging = false;
+
+    private void HandleDrop(DragEventArgs e)
+    {
+        _isDragging = false;
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        _errorMessage = null;
+        var newFiles = new List<IBrowserFile>();
+
+        try
+        {
+            var files = e.GetMultipleFiles(MaxAllowedFiles);
+            
+            foreach (var file in files)
+            {
+                if (ValidateFile(file))
+                {
+                    if (_selectedFiles.Count + newFiles.Count < MaxAllowedFiles)
+                    {
+                        if (!_selectedFiles.Any(f => f.Name == file.Name && f.Size == file.Size))
+                        {
+                            newFiles.Add(file);
+                        }
+                    }
+                    else
+                    {
+                        _errorMessage = $"Vous ne pouvez pas ajouter plus de {MaxAllowedFiles} fichiers.";
+                        break;
+                    }
+                }
+            }
+            
+            if (newFiles.Any())
+            {
+                _selectedFiles.AddRange(newFiles);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error selecting files");
+            _errorMessage = $"Erreur lors de la sélection : {ex.Message}";
+        }
+    }
+
+    private bool ValidateFile(IBrowserFile file)
+    {
+        if (file.Size > MaxFileSize)
+        {
+            _errorMessage = $"Le fichier {file.Name} dépasse la taille limite de 5Mo.";
+            return false;
+        }
+
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        {
+             _errorMessage = $"Le format du fichier {file.Name} n'est pas supporté (JPG, PNG, WEBP uniquement).";
+             return false;
+        }
+
+        return true;
+    }
+
+    private void RemoveFile(IBrowserFile file)
+    {
+        _selectedFiles.Remove(file);
+        if (_selectedFiles.Count == 0) _errorMessage = null;
+    }
+
+    private string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / 1024.0 / 1024.0:F1} MB";
+    }
+    
+    private async Task OpenPreview(IBrowserFile file)
+    {
+        try 
+        {
+            if (file.Size > MaxFileSize) return;
+
+            var resizedImage = await file.RequestImageFileAsync(file.ContentType, 800, 600);
+            var buffer = new byte[resizedImage.Size];
+            await resizedImage.OpenReadStream(MaxFileSize).ReadAsync(buffer);
+            var base64 = Convert.ToBase64String(buffer);
+            _previewUrl = $"data:{file.ContentType};base64,{base64}";
+            _previewFile = file;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error creating preview");
+        }
+    }
+    
+    private void ClosePreview()
+    {
+        _previewFile = null;
+        _previewUrl = null;
+    }
+
+    private async Task UploadFiles()
+    {
+        if (!_selectedFiles.Any()) return;
+
+        _isUploading = true;
+        _uploadProgress = 0;
+        _errorMessage = null;
+        _fileErrors.Clear();
+        var uploadedResults = new List<UploadedMediaResult>();
+        var totalFiles = _selectedFiles.Count;
+
+        try
+        {
+            // Step 1: Get presigned URLs for all files in parallel
+            var presignedUrlTasks = _selectedFiles.Select(file =>
+                GetPresignedUrlAsync(file)
+            ).ToList();
+
+            var presignedUrls = await Task.WhenAll(presignedUrlTasks);
+
+            // Step 2: Upload files in parallel to presigned URLs with retry logic
+            var uploadTasks = presignedUrls.Select((presigned, index) =>
+                UploadFileToR2Async(presigned, _selectedFiles[index])
+            ).ToList();
+
+            var results = new List<UploadedMediaResult?>();
+            int completedUploads = 0;
+
+            foreach (var uploadTask in uploadTasks)
+            {
+                try
+                {
+                    var result = await uploadTask;
+                    results.Add(result);
+                    completedUploads++;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Individual file upload failed");
+                    results.Add(null);
+                    completedUploads++;
+                }
+
+                // Update progress
+                _uploadProgress = (int)((completedUploads / (double)totalFiles) * 100);
+                StateHasChanged();
+            }
+
+            // Step 3: Collect successful uploads
+            uploadedResults.AddRange(results.Where(r => r != null).Cast<UploadedMediaResult>());
+
+            // Step 4: Report results
+            if (uploadedResults.Any())
+            {
+                _selectedFiles.Clear();
+                await OnUploadCompleted.InvokeAsync(uploadedResults);
+            }
+
+            if (_fileErrors.Any())
+            {
+                _errorMessage = $"{_fileErrors.Count} fichier(s) n'a(ont) pas pu être uploadé(s).";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Upload failed");
+            _errorMessage = "Une erreur est survenue lors de l'envoi des fichiers.";
+        }
+        finally
+        {
+            _isUploading = false;
+            _uploadProgress = 0;
+        }
+    }
+
+    private async Task<PresignedUrlResponse> GetPresignedUrlAsync(IBrowserFile file)
+    {
+        try
+        {
+            // Call Azure Function to get presigned URL
+            Logger.LogInformation($"Requesting presigned URL for {file.Name} from Azure Function");
+            
+            var presignedUrl = await PresignedUrlService.GetPresignedUrlAsync(
+                file.Name,
+                file.ContentType,
+                EventSlug
+            );
+            
+            Logger.LogInformation($"Successfully received presigned URL for {file.Name}");
+            return presignedUrl;
+        }
+        catch (Exception ex)
+        {
+            _fileErrors[file.Name] = $"Failed to get presigned URL: {ex.Message}";
+            Logger.LogError(ex, "Error getting presigned URL from Azure Function");
+            throw;
+        }
+    }
+
+    private async Task<UploadedMediaResult?> UploadFileToR2Async(
+        PresignedUrlResponse presigned,
+        IBrowserFile file,
+        int maxRetries = 3
+    )
+    {
+        int delay = 500;
+        int attempt = 0;
+
+        while (attempt < maxRetries)
+        {
+            try
+            {
+                using var stream = file.OpenReadStream(MaxFileSize);
+                using var content = new StreamContent(stream);
+                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+                // Add headers from presigned URL response
+                foreach (var header in presigned.Headers)
+                {
+                    content.Headers.Add(header.Key, header.Value);
+                }
+
+                // PUT to presigned URL
+                var response = await HttpClient.PutAsync(presigned.Url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new UploadedMediaResult(
+                        presigned.Url,
+                        presigned.FileName,
+                        file.Name,
+                        file.Size,
+                        file.ContentType
+                    );
+                }
+
+                attempt++;
+                if (attempt < maxRetries)
+                {
+                    await Task.Delay(delay);
+                    delay *= 2; // Exponential backoff
+                }
+            }
+            catch (Exception ex) when (attempt < maxRetries - 1)
+            {
+                attempt++;
+                await Task.Delay(delay);
+                delay *= 2;
+                Logger.LogWarning($"Upload attempt {attempt} failed for {file.Name}: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                _fileErrors[file.Name] = $"Upload failed after {maxRetries} retries: {ex.Message}";
+                throw;
+            }
+        }
+
+        throw new Exception($"Upload failed for {file.Name} after {maxRetries} attempts.");
+    }
+}

@@ -1,0 +1,44 @@
+@code {
+    private Dictionary<string, int> scores = new()
+    {
+        { "Engagement", 75 },
+        { "Retention", 82 },
+        { "Peak Hours", 68 },
+        { "Hashtag Reach", 90 },
+        { "Influencer Impact", 78 }
+    };
+
+    [Parameter]
+    public Dictionary<string, int>? InitialScores { get; set; }
+
+    [Parameter]
+    public EventCallback<Dictionary<string, int>> OnScoresChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (InitialScores != null)
+            scores = new Dictionary<string, int>(InitialScores);
+    }
+
+    private async Task UpdateSlider(string label, int value)
+    {
+        if (scores.ContainsKey(label))
+        {
+            scores[label] = value;
+            await OnScoresChanged.InvokeAsync(scores);
+        }
+    }
+
+    public int GetOverallScore() => (int)scores.Values.Average();
+}
+
+<div>
+    @foreach (var (label, value) in scores)
+    {
+        <div style="margin-bottom: 1.5rem;">
+            <span style="display: block; font-size: 0.875rem; color: #94A3B8; margin-bottom: 0.5rem;">@label: @value</span>
+            <input type="range" value="@value" @onchange="e => UpdateSlider(label, (int)e.Value!)" min="0" max="100"
+                   style="width: 100%; cursor: pointer;" />
+        </div>
+    }
+</div>

@@ -1,0 +1,836 @@
+@using SponsorPulse.Domain.Entities
+@using LumexUI.Shared.Icons
+@using Humanizer
+
+<div class="event-selector-container">
+    @* Quick Filters *@
+    <div class="quick-filters mb-4">
+        @foreach (var filter in _filterOptions)
+        {
+            <button class="filter-btn @(_currentFilter == filter.Status ? "active" : "")"
+                    @onclick="() => ApplyFilter(filter.Status)">
+                @filter.Label (@GetFilteredCount(filter.Status))
+            </button>
+        }
+    </div>
+
+    <LumexDataGrid Data="@FilteredEvents" SelectionMode="@SelectionMode.Multiple" @bind-SelectedItems="@SelectedEvents"
+                   Hoverable="@true" EmptyContent="@EmptyContent" OnRowClick="RowClickCallback" Radius="@Radius.Medium"
+                   Shadow="@Shadow.Medium" Class="w-full"
+                   Classes="@(new DataGridSlots { Thead = "hidden", Wrapper = "event-table-wrapper", Tbody = "border rounded-[10px] border-[#4A5F7A]/50 divide-y divide-white-500/50" })">
+        <ToolbarContent>
+            @if (SelectedEvents.Count > 1)
+            {
+                <div class="relative">
+                    <LumexButton Variant="@Variant.Ghost" Size="@Size.Small" Class="text-white" OnClick="@ToggleBulkMenu">
+                        Actions groupés
+                    </LumexButton>
+
+                    @if (OpenBulkMenu)
+                    {
+                        <div class="bulk-menu-dropdown" @onclick:stopPropagation="true">
+                            <button class="menu-item" @onclick="() => ExecuteBulkAction(BulkAction.Analyze)">
+                                <span class="icon-analyze">📊</span> Analyser
+                            </button>
+                            <button class="menu-item" @onclick="() => ExecuteBulkAction(BulkAction.Generate)">
+                                <span class="icon-generate">📄</span> Générer PDF
+                            </button>
+                            <hr class="menu-divider" />
+                            <button class="menu-item danger" @onclick="() => ExecuteBulkAction(BulkAction.Delete)">
+                                <span class="icon-delete">🗑</span> Supprimer
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+            <LumexTextbox Placeholder="Rechercher par nom ou URL..." Behavior="@InputBehavior.OnInput"
+                          @bind-Value="@SearchQuery" Variant="@InputVariant.Outlined" Class="search-textbox mr-auto"
+                          Size="@Size.Medium">
+                <StartContent>
+                    <SearchIcon Size="18" />
+                </StartContent>
+            </LumexTextbox>
+        </ToolbarContent>
+        <ChildContent>
+            @* Colonne 1 : Identité Événement *@
+            <TemplateColumn Title="Événement">
+                <div class="event-info-cell">
+                    <span class="event-name">@context.Name</span>
+                    <div class="event-meta">
+                        <span class="platform-badge @GetPlatformClass(context.StreamPlatform)">
+                            <img src="https://api.iconify.design/@(GetPlatformIcon(context.StreamPlatform)).svg" 
+                                 class="platform-icon" alt="" />
+                            @context.StreamPlatform
+                        </span>
+                        @if (!string.IsNullOrEmpty(context.GameName))
+                        {
+                            <span class="game-separator">•</span>
+                            <span class="game-name">@context.GameName</span>
+                        }
+                    </div>
+                </div>
+            </TemplateColumn>
+            @* Colonne 2 : Date Humanize *@
+            <TemplateColumn Title="Date">
+                <div class="date-cell">
+                    <img src="https://api.iconify.design/ic:outline-calendar-today.svg" class="date-icon" alt="" />
+                    <span class="date-text">@context.Date.Humanize()</span>
+                </div>
+            </TemplateColumn>
+            @* Colonne 3 : Statut *@
+            <PropertyColumn Property="@(e => e.Status)" Title="Statut">
+                <Content>
+                    <LumexChip Size="@Size.Small" Variant="@ChipVariant.Dot" Color="@GetStatusColor(context.Status)"
+                               Class="@GetStatusClass(context.Status)">
+                        @GetStatusText(context.Status)
+                    </LumexChip>
+                </Content>
+            </PropertyColumn>
+            @* Colonne 4 : Métriques *@
+            <TemplateColumn Title="Métriques">
+                <div class="metrics-cell">
+                    @if (context.ViewerCount.HasValue || context.PeakViewers.HasValue)
+                    {
+                        <div class="metric-group twitch-metrics">
+                            @if (context.ViewerCount.HasValue)
+                            {
+                                <span class="metric-item">
+                                    <img src="https://api.iconify.design/ic:outline-remove-red-eye.svg" class="metric-icon" alt="" />
+                                    @FormatNumber(context.ViewerCount.Value)
+                                </span>
+                            }
+                            @if (context.PeakViewers.HasValue)
+                            {
+                                <span class="metric-item">
+                                    <img src="https://api.iconify.design/ic:outline-trending-up.svg" class="metric-icon" alt="" />
+                                    @FormatNumber(context.PeakViewers.Value)
+                                </span>
+                            }
+                        </div>
+                    }
+                    @if (context.TwitterAnalytics != null)
+                    {
+                        <div class="metric-group twitter-metrics">
+                            <span class="metric-item">
+                                <img src="https://api.iconify.design/ic:outline-message.svg" class="metric-icon twitter-icon" alt="" />
+                                @(context.TwitterAnalytics.EngagementRate * 100).ToString("F1")%
+                            </span>
+                            <span class="metric-item">
+                                <img src="https://api.iconify.design/ic:outline-monitor.svg" class="metric-icon twitter-icon" alt="" />
+                                @FormatImpressions(context.TwitterAnalytics.EstimatedImpressions)
+                            </span>
+                        </div>
+                    }
+                    @if (!context.ViewerCount.HasValue && !context.PeakViewers.HasValue && context.TwitterAnalytics == null)
+                    {
+                        <span class="no-metrics">—</span>
+                    }
+                </div>
+            </TemplateColumn>
+            @* Colonne 5 : Actions *@
+            <TemplateColumn Title="" Align="@Align.End">
+                <div class="relative">
+                    <LumexButton IconOnly="@true" Size="@Size.Small" Variant="@Variant.Light"
+                                 OnClick="@(() => ToggleMenu(context.Id))">
+                        <EllipsisVerticalIcon />
+                    </LumexButton>
+
+                    @if (OpenMenuId == context.Id)
+                    {
+                        <div class="menu-dropdown" @onclick:stopPropagation="true">
+                            <button class="menu-item" @onclick="() => HandleEdit(context)">
+                                <span class="icon-edit">✎</span> Éditer
+                            </button>
+                            <button class="menu-item" @onclick="() => HandleAnalyze(context)">
+                                <span class="icon-analyze">📊</span> Analyser
+                            </button>
+                            <button class="menu-item" @onclick="() => HandleGenerate(context)">
+                                <span class="icon-generate">📄</span> Générer PDF
+                            </button>
+                            <hr class="menu-divider" />
+                            <button class="menu-item text-danger" @onclick="() => HandleDelete(context)">
+                                <span class="icon-delete">🗑</span> Supprimer
+                            </button>
+                        </div>
+                    }
+                </div>
+            </TemplateColumn>
+        </ChildContent>
+    </LumexDataGrid>
+</div>
+
+@if (showEventDetails)
+{
+    <div class="modal-backdrop" @onclick="CloseEventDetails">
+        <div class="modal-content-wrapper" @onclick:stopPropagation>
+            <EventDetails Slug="@SelectedEventSlug" OnClose="CloseEventDetails"
+                          OnOpenPdfCustomize="OpenPdfCustomizeFromDetails" />
+        </div>
+    </div>
+}
+
+@if (showAnalyzePage)
+{
+    <div class="modal-backdrop" @onclick="CloseAnalyzePage">
+        <div class="modal-content-wrapper modal-content-large" @onclick:stopPropagation>
+            <EventAnalyze Slug="@SelectedEventSlug" OnClose="CloseAnalyzeAndOpenPdf" />
+        </div>
+    </div>
+}
+
+@if (showPdfCustomizePage)
+{
+    <div class="modal-backdrop" @onclick="ClosePdfCustomizePage">
+        <div class="modal-content-wrapper modal-content-large" @onclick:stopPropagation>
+            <EventPdfCustomize Slug="@SelectedEventSlug" OnClose="ClosePdfCustomizeAndOpenDetails" />
+        </div>
+    </div>
+}
+
+<style>
+    .event-selector-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    /* Quick Filters */
+    .quick-filters {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 99px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: transparent;
+        color: var(--grey-text);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+        border-color: rgba(204, 201, 220, 0.4);
+        color: var(--white);
+    }
+
+    .filter-btn.active {
+        background: rgba(204, 201, 220, 0.1);
+        border-color: rgba(204, 201, 220, 0.3);
+        color: var(--white);
+    }
+
+    .event-table-wrapper {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+        box-shadow:
+            0 25px 50px -12px rgba(0, 0, 0, 0.4),
+            0 12px 24px -8px rgba(0, 0, 0, 0.3),
+            0 0 1px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Match TR corner rounding to the table's 10px border-radius */
+    .event-selector-container tbody tr:first-child td:first-child {
+        border-top-left-radius: 10px;
+    }
+
+    .event-selector-container tbody tr:first-child td:last-child {
+        border-top-right-radius: 10px;
+    }
+
+    .event-selector-container tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 10px;
+    }
+
+    .event-selector-container tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 10px;
+    }
+
+    thead {
+        display: none;
+    }
+
+    .toolbar-base:first-child(div) {
+        margin-left: auto;
+        margin-right: 0 !important;
+    }
+
+    .search-textbox {
+        max-width: min(375px, 100%);
+        margin-left: 0 !important;
+    }
+
+    .event-info-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .event-name {
+        font-weight: 600;
+        color: var(--white);
+        font-size: 0.95rem;
+    }
+
+    .event-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .platform-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.625rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .platform-badge.twitch {
+        background: rgba(145, 70, 255, 0.15);
+        color: #A970FF;
+        border: 1px solid rgba(145, 70, 255, 0.3);
+    }
+
+    .platform-badge.x,
+    .platform-badge.twitter {
+        background: rgba(29, 155, 240, 0.15);
+        color: #1D9BF0;
+        border: 1px solid rgba(29, 155, 240, 0.3);
+    }
+
+    .platform-badge.default {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60A5FA;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .platform-icon {
+        width: 13px;
+        height: 13px;
+    }
+
+    .platform-badge.twitch .platform-icon {
+        filter: brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(1500%) hue-rotate(250deg) brightness(110%) contrast(100%);
+    }
+
+    .platform-badge.x .platform-icon,
+    .platform-badge.twitter .platform-icon {
+        filter: brightness(0) saturate(100%) invert(73%) sepia(74%) saturate(360%) hue-rotate(174deg) brightness(94%) contrast(96%);
+    }
+
+    .game-separator {
+        color: var(--grey-text);
+        opacity: 0.6;
+        font-size: 0.75rem;
+    }
+
+    .game-name {
+        color: var(--grey-text);
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+
+    .date-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--grey-text);
+        font-size: 0.85rem;
+    }
+
+    .date-icon {
+        width: 14px;
+        height: 14px;
+        filter: brightness(0) saturate(100%) invert(65%) sepia(10%) saturate(200%) hue-rotate(194deg) brightness(90%) contrast(90%);
+    }
+
+    .date-text {
+        color: var(--grey-text);
+    }
+
+    .metrics-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+
+    .metric-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .metric-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.8rem;
+        color: var(--grey-text);
+        white-space: nowrap;
+    }
+
+    .metric-icon {
+        width: 14px;
+        height: 14px;
+        filter: brightness(0) saturate(100%) invert(65%) sepia(10%) saturate(200%) hue-rotate(194deg) brightness(90%) contrast(90%);
+    }
+
+    .metric-icon.twitter-icon {
+        filter: brightness(0) saturate(100%) invert(73%) sepia(74%) saturate(360%) hue-rotate(174deg) brightness(94%) contrast(96%);
+    }
+
+    .twitch-metrics .metric-item {
+        color: var(--grey-text);
+    }
+
+    .twitter-metrics .metric-item {
+        color: var(--grey-text);
+    }
+
+    .no-metrics {
+        color: var(--grey-text);
+        opacity: 0.5;
+        font-size: 0.9rem;
+    }
+
+    .bulk-menu-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 4px;
+        background: var(--dark-bg);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        min-width: 180px;
+        overflow: hidden;
+    }
+
+    .menu-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 4px;
+        background: var(--dark-bg);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        min-width: 200px;
+        overflow: hidden;
+    }
+
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        text-align: left;
+        padding: 0.75rem 1rem;
+        background: transparent;
+        border: none;
+        color: var(--grey-text);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .menu-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--white);
+    }
+
+    .menu-item.text-danger:hover {
+        background: rgba(239, 68, 68, 0.15);
+        color: #FCA5A5;
+    }
+
+    .menu-divider {
+        margin: 0.5rem 0;
+        border: none;
+        border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .relative {
+        position: relative;
+    }
+
+    .status-badge {
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .empty-state-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 3rem 2rem;
+        gap: 1rem;
+    }
+
+    .empty-state-message {
+        color: var(--grey-text);
+        text-align: center;
+        margin: 0;
+    }
+
+    .btn-create-event {
+        background: linear-gradient(135deg, var(--accent-blue) 0%, #2563EB 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-create-event:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-content-wrapper {
+        width: 100%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 24px;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content-large {
+        max-width: 1100px;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public List<Event>? Events { get; set; }
+
+    [Parameter]
+    public EventCallback<Event> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<Event> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<Event> OnAnalyze { get; set; }
+
+    [Parameter]
+    public EventCallback<Event> OnGenerate { get; set; }
+
+    [Parameter]
+    public EventCallback OnBulkAnalyze { get; set; }
+
+    [Parameter]
+    public EventCallback OnBulkDelete { get; set; }
+
+    [Parameter]
+    public EventCallback OnBulkGenerate { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnNavigateToEvent { get; set; }
+
+    private ICollection<Event> SelectedEvents { get; set; } = new List<Event>();
+    private Guid? OpenMenuId { get; set; }
+    private bool OpenBulkMenu { get; set; }
+    private string? SearchQuery { get; set; }
+    private EventStatus? _currentFilter = null;
+    private bool showEventDetails = false;
+    private bool showAnalyzePage = false;
+    private bool showPdfCustomizePage = false;
+    private string SelectedEventSlug = string.Empty;
+    private DateTime? _lastClickTime;
+    private Guid? _lastClickEventId;
+
+    private enum BulkAction { Analyze, Generate, Delete }
+
+    private readonly List<(string Label, EventStatus? Status)> _filterOptions = new()
+    {
+        ("Tous", null),
+        ("Brouillon", EventStatus.Draft),
+        ("Récupération", EventStatus.Fetching),
+        ("Prêt", EventStatus.AnalysisReady),
+        ("Terminé", EventStatus.Completed),
+        ("Erreur", EventStatus.Error)
+    };
+
+    private IQueryable<Event> FilteredEvents
+    {
+        get
+        {
+            var query = (Events ?? new List<Event>()).AsQueryable();
+
+            // Apply status filter
+            if (_currentFilter.HasValue)
+            {
+                query = query.Where(e => e.Status == _currentFilter.Value);
+            }
+
+            // Apply search filter
+            if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                query = query.Where(e =>
+                    e.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    e.Slug.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return query;
+        }
+    }
+
+    private int GetFilteredCount(EventStatus? status)
+    {
+        var events = Events;
+        if (events == null || !events.Any()) return 0;
+        return status.HasValue 
+            ? events.Count(e => e.Status == status.Value) 
+            : events.Count;
+    }
+
+    private void ApplyFilter(EventStatus? status)
+    {
+        _currentFilter = status;
+        StateHasChanged();
+    }
+
+    private RenderFragment EmptyContent => @<div class="empty-state-content">
+        <span class="text-3xl">\(o_o)/</span>
+        <span class="text-xl">Aucun resulat</span>
+        <p class="empty-state-message">Crée un événement et analyse le pour connaitre sa valeur réelle</p>
+        <LumexButton class="btn-create-event" Variant="@Variant.Ghost"
+                     OnClick="@(() => OnNavigateToEvent.InvokeAsync("create"))">
+            Créer un événement
+        </LumexButton>
+    </div>;
+
+    private void HandleRowClick(DataGridRowClickEventArgs<Event> args)
+    {
+        var now = DateTime.Now;
+
+        // Check for double-click (within 300ms)
+        if (_lastClickTime.HasValue &&
+            (now - _lastClickTime.Value).TotalMilliseconds < 300 &&
+            _lastClickEventId == args.Item.Id)
+        {
+            // Double-click detected - open event details
+            OpenEventDetails(args.Item.Slug);
+            _lastClickTime = null;
+            _lastClickEventId = null;
+        }
+        else
+        {
+            // Single click - just record for potential double-click
+            _lastClickTime = now;
+            _lastClickEventId = args.Item.Id;
+        }
+
+        StateHasChanged();
+    }
+
+    private EventCallback<DataGridRowClickEventArgs<Event>> RowClickCallback => new
+EventCallback<DataGridRowClickEventArgs<Event>>(this, HandleRowClick);
+
+    private void HandleEdit(Event evt)
+    {
+        // Same behavior as double-click - open event details
+        OpenEventDetails(evt.Slug);
+        OpenMenuId = null;
+    }
+
+    private void HandleAnalyze(Event evt)
+    {
+        SelectedEventSlug = evt.Slug;
+        showAnalyzePage = true;
+        OpenMenuId = null;
+        StateHasChanged();
+    }
+
+    private void HandleGenerate(Event evt)
+    {
+        SelectedEventSlug = evt.Slug;
+        showPdfCustomizePage = true;
+        OpenMenuId = null;
+        StateHasChanged();
+    }
+
+    private void HandleDelete(Event evt)
+    {
+        OnDelete.InvokeAsync(evt);
+        OpenMenuId = null;
+    }
+
+    private void OpenEventDetails(string slug)
+    {
+        SelectedEventSlug = slug;
+        showEventDetails = true;
+        StateHasChanged();
+    }
+
+    private void CloseEventDetails()
+    {
+        showEventDetails = false;
+        SelectedEventSlug = string.Empty;
+        StateHasChanged();
+    }
+
+    private void OpenPdfCustomizeFromDetails(string slug)
+    {
+        showEventDetails = false;
+        SelectedEventSlug = slug;
+        showPdfCustomizePage = true;
+        StateHasChanged();
+    }
+
+    private void CloseAnalyzePage()
+    {
+        showAnalyzePage = false;
+        SelectedEventSlug = string.Empty;
+        StateHasChanged();
+    }
+
+    private void CloseAnalyzeAndOpenPdf()
+    {
+        showAnalyzePage = false;
+        showPdfCustomizePage = true;
+        StateHasChanged();
+    }
+
+    private void ClosePdfCustomizePage()
+    {
+        showPdfCustomizePage = false;
+        SelectedEventSlug = string.Empty;
+        StateHasChanged();
+    }
+
+    private void ClosePdfCustomizeAndOpenDetails()
+    {
+        showPdfCustomizePage = false;
+        showEventDetails = true;
+        StateHasChanged();
+    }
+
+    private void ToggleMenu(Guid eventId)
+    {
+        OpenMenuId = OpenMenuId == eventId ? null : eventId;
+    }
+
+    private void ToggleBulkMenu()
+    {
+        OpenBulkMenu = !OpenBulkMenu;
+        StateHasChanged();
+    }
+
+    private async Task ExecuteBulkAction(BulkAction action)
+    {
+        OpenBulkMenu = false;
+        StateHasChanged();
+
+        switch (action)
+        {
+            case BulkAction.Analyze:
+                await OnBulkAnalyze.InvokeAsync();
+                break;
+            case BulkAction.Generate:
+                await OnBulkGenerate.InvokeAsync();
+                break;
+            case BulkAction.Delete:
+                await OnBulkDelete.InvokeAsync();
+                break;
+        }
+    }
+
+    private ThemeColor GetStatusColor(EventStatus status) => status switch
+    {
+        EventStatus.Draft => ThemeColor.Default,
+        EventStatus.Fetching => ThemeColor.Primary,
+        EventStatus.AnalysisReady => ThemeColor.Success,
+        EventStatus.Completed => ThemeColor.Info,
+        EventStatus.Error => ThemeColor.Danger,
+        _ => ThemeColor.Default
+    };
+
+    private string GetStatusClass(EventStatus status) => $"status-badge {status}";
+
+    private string GetStatusText(EventStatus status) => status switch
+    {
+        EventStatus.Draft => "Brouillon",
+        EventStatus.Fetching => "Récupération",
+        EventStatus.AnalysisReady => "Prêt",
+        EventStatus.Completed => "Terminé",
+        EventStatus.Error => "Erreur",
+        _ => status.ToString()
+    };
+
+    private string GetPlatformClass(string? platform) => platform?.ToLower() switch
+    {
+        "twitch" => "twitch",
+        "x" => "x",
+        "twitter" => "twitter",
+        _ => "default"
+    };
+
+    private string GetPlatformIcon(string? platform) => platform?.ToLower() switch
+    {
+        "twitch" => "simple-icons:twitch",
+        "x" => "simple-icons:x",
+        "twitter" => "simple-icons:x",
+        _ => "ic:outline-live-tv"
+    };
+
+    private string FormatNumber(int value)
+    {
+        if (value >= 1_000_000)
+            return $"{value / 1_000_000.0:F1}M";
+        if (value >= 1_000)
+            return $"{value / 1_000.0:F0}K";
+        return value.ToString("N0");
+    }
+
+    private string FormatImpressions(long impressions)
+    {
+        if (impressions >= 1_000_000)
+            return $"{impressions / 1_000_000.0:F1}M";
+        if (impressions >= 1_000)
+            return $"{impressions / 1_000.0:F0}K";
+        return impressions.ToString("N0");
+    }
+}
