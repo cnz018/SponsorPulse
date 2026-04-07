@@ -417,3 +417,7 @@ FodyWeavers.xsd
 *.msm
 *.msp
 docs/AGENT.md
+scripts/create_notion_page.js
+.continue/agents/new-config.yaml
+docs/NOTION_BACKLOG_SPONSORPULSE.md
+docs/PLAN_SIMULATION_FETCHING.md
