@@ -1,9 +1,9 @@
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Domain.Entities;
 using SponsorPulse.Infrastructure.Persistence;
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 
 namespace SponsorPulse.Infrastructure.Services;
 
@@ -79,7 +79,9 @@ public class TwitchAuthStateService : ITwitchAuthStateService
     public async Task RemoveByTwitchUserIdAsync(string twitchUserId)
     {
         using var ctx = _dbFactory.CreateDbContext();
-        var existing = await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t => t.TwitchUserId == twitchUserId);
+        var existing = await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t =>
+            t.TwitchUserId == twitchUserId
+        );
         if (existing != null)
         {
             ctx.TwitchAuthTokens.Remove(existing);
@@ -102,21 +104,27 @@ public class TwitchAuthStateService : ITwitchAuthStateService
         // Attempt refresh
         try
         {
-            var clientId = _configuration["Twitch:ClientId"]; 
-            var clientSecret = _configuration["Twitch:ClientSecret"]; 
+            var clientId = _configuration["Twitch:ClientId"];
+            var clientSecret = _configuration["Twitch:ClientSecret"];
             using var client = _httpFactory.CreateClient();
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["client_id"] = clientId,
-                ["client_secret"] = clientSecret,
-                ["grant_type"] = "refresh_token",
-                ["refresh_token"] = token.RefreshToken!
-            });
+            var content = new FormUrlEncodedContent(
+                new Dictionary<string, string>
+                {
+                    ["client_id"] = clientId,
+                    ["client_secret"] = clientSecret,
+                    ["grant_type"] = "refresh_token",
+                    ["refresh_token"] = token.RefreshToken!,
+                }
+            );
 
             var resp = await client.PostAsync("https://id.twitch.tv/oauth2/token", content);
             if (!resp.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to refresh Twitch token for user {User}: {Status}", twitchUserId, resp.StatusCode);
+                _logger.LogWarning(
+                    "Failed to refresh Twitch token for user {User}: {Status}",
+                    twitchUserId,
+                    resp.StatusCode
+                );
                 return token.AccessToken; // return old if present
             }
 

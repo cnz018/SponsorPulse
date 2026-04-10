@@ -59,7 +59,7 @@ public static class StaticDemoRepository
                 platform: "Twitch",
                 channelId: "pubgesports",
                 slug: "pubg2026e"
-            )
+            ),
         };
     }
 
@@ -141,7 +141,7 @@ public static class StaticDemoRepository
             ViewerHours = viewerHours,
             EngagementRate = engagementRate,
             EstimatedROI = estimatedRoi,
-            CPM = cpm
+            CPM = cpm,
         };
     }
 
@@ -152,7 +152,9 @@ public static class StaticDemoRepository
         var totalTweets = random.Next(500, 2000);
         var totalEngagement = random.Next(50000, 250000);
         var estimatedImpressions = random.Next(500000, 2500000);
-        var uniqueReach = (long)(estimatedImpressions * random.NextDouble() * 0.4 + estimatedImpressions * 0.3);
+        var uniqueReach = (long)(
+            estimatedImpressions * random.NextDouble() * 0.4 + estimatedImpressions * 0.3
+        );
         var adValueEquivalent = random.Next(10000, 50000);
         var engagementRate = totalEngagement / (double)estimatedImpressions;
         var sentimentScore = random.Next(60, 90) / 100.0;
@@ -181,25 +183,49 @@ public static class StaticDemoRepository
                 UsageCount: random.Next(2000, 8000),
                 TotalEngagements: random.Next(20000, 80000),
                 ReachEstimate: random.Next(50000, 200000)
-            )
+            ),
         };
 
         // Generate geographic distribution
         var geographicReach = new List<GeographicDistribution>
         {
-            new GeographicDistribution("France", random.Next(25, 40) / 100.0, (int)(estimatedImpressions * 0.3)),
-            new GeographicDistribution("Germany", random.Next(15, 25) / 100.0, (int)(estimatedImpressions * 0.2)),
-            new GeographicDistribution("United Kingdom", random.Next(10, 20) / 100.0, (int)(estimatedImpressions * 0.15)),
-            new GeographicDistribution("Spain", random.Next(8, 15) / 100.0, (int)(estimatedImpressions * 0.1)),
-            new GeographicDistribution("Other", random.Next(10, 20) / 100.0, (int)(estimatedImpressions * 0.25))
+            new GeographicDistribution(
+                "France",
+                random.Next(25, 40) / 100.0,
+                (int)(estimatedImpressions * 0.3)
+            ),
+            new GeographicDistribution(
+                "Germany",
+                random.Next(15, 25) / 100.0,
+                (int)(estimatedImpressions * 0.2)
+            ),
+            new GeographicDistribution(
+                "United Kingdom",
+                random.Next(10, 20) / 100.0,
+                (int)(estimatedImpressions * 0.15)
+            ),
+            new GeographicDistribution(
+                "Spain",
+                random.Next(8, 15) / 100.0,
+                (int)(estimatedImpressions * 0.1)
+            ),
+            new GeographicDistribution(
+                "Other",
+                random.Next(10, 20) / 100.0,
+                (int)(estimatedImpressions * 0.25)
+            ),
         };
 
         // Generate top tweets with engagement rate
-        var topTweets = GenerateTopTweets(random).Select(t => t with
-        {
-            Impressions = t.Likes * random.Next(50, 150),
-            EngagementRate = (t.Likes + t.Retweets + t.Replies) / (double)(t.Likes * 100)
-        }).ToList();
+        var topTweets = GenerateTopTweets(random)
+            .Select(t =>
+                t with
+                {
+                    Impressions = t.Likes * random.Next(50, 150),
+                    EngagementRate = (t.Likes + t.Retweets + t.Replies) / (double)(t.Likes * 100),
+                }
+            )
+            .ToList();
 
         // Generate top influencers with enhanced metrics
         var topInfluencers = GenerateTopInfluencers(random);
@@ -207,7 +233,10 @@ public static class StaticDemoRepository
         var topInfluencerEnhanced = topInfluencer with
         {
             AvgEngagementRate = random.Next(3, 8) / 100.0,
-            EstimatedReach = (long)(topInfluencer.FollowersCount * random.NextDouble() * 0.5 + topInfluencer.FollowersCount * 0.3)
+            EstimatedReach = (long)(
+                topInfluencer.FollowersCount * random.NextDouble() * 0.5
+                + topInfluencer.FollowersCount * 0.3
+            ),
         };
 
         return new TwitterAnalytics
@@ -230,22 +259,30 @@ public static class StaticDemoRepository
             Period = new DateRange
             {
                 StartDate = DateTime.UtcNow.AddDays(-7),
-                EndDate = DateTime.UtcNow
+                EndDate = DateTime.UtcNow,
             },
             SentimentRatio = new Dictionary<string, double>
             {
                 { "positive", 0.72 },
                 { "neutral", 0.20 },
-                { "negative", 0.08 }
-            }
+                { "negative", 0.08 },
+            },
         };
     }
 
-    private static Event CreateDemoEvent(Guid id, string name, string description, DateTime date, string platform, string channelId, string slug)
+    private static Event CreateDemoEvent(
+        Guid id,
+        string name,
+        string description,
+        DateTime date,
+        string platform,
+        string channelId,
+        string slug
+    )
     {
         var evt = new Event(id, name, description, date, platform, channelId, slug)
         {
-            Status = EventStatus.Completed
+            Status = EventStatus.Completed,
         };
 
         // Populate Twitch metrics
@@ -271,22 +308,22 @@ public static class StaticDemoRepository
                 Name = "ProStreamers",
                 Handle = "@ProStreamers",
                 FollowersCount = 450000,
-                TweetCount = 34
+                TweetCount = 34,
             },
             new()
             {
                 Name = "GamingNews",
                 Handle = "@GamingNews",
                 FollowersCount = 890000,
-                TweetCount = 28
+                TweetCount = 28,
             },
             new()
             {
                 Name = "EsportsAnalyst",
                 Handle = "@EsportsAnalyst",
                 FollowersCount = 320000,
-                TweetCount = 21
-            }
+                TweetCount = 21,
+            },
         };
     }
 
@@ -304,19 +341,20 @@ public static class StaticDemoRepository
                 Likes = 12450,
                 Retweets = 5680,
                 Replies = 2341,
-                CreatedAt = DateTime.UtcNow.AddHours(-2)
+                CreatedAt = DateTime.UtcNow.AddHours(-2),
             },
             new()
             {
                 AuthorName = "EsportsCaster",
                 AuthorHandle = "@EsportsCaster",
                 AuthorFollowersCount = 234000,
-                Text = "That play was LEGENDARY! I've never seen anything like it in 10 years of casting.",
+                Text =
+                    "That play was LEGENDARY! I've never seen anything like it in 10 years of casting.",
                 Url = "https://twitter.com/EsportsCaster/status/1234567891",
                 Likes = 18900,
                 Retweets = 8234,
                 Replies = 3456,
-                CreatedAt = DateTime.UtcNow.AddHours(-1)
+                CreatedAt = DateTime.UtcNow.AddHours(-1),
             },
             new()
             {
@@ -328,8 +366,8 @@ public static class StaticDemoRepository
                 Likes = 25670,
                 Retweets = 12340,
                 Replies = 4567,
-                CreatedAt = DateTime.UtcNow
-            }
+                CreatedAt = DateTime.UtcNow,
+            },
         };
 
         return tweets;
@@ -337,7 +375,16 @@ public static class StaticDemoRepository
 
     private static string GetRandomGameName(Random random)
     {
-        var games = new[] { "League of Legends", "Valorant", "Counter-Strike 2", "Dota 2", "PUBG", "Street Fighter 6", "Overwatch 2" };
+        var games = new[]
+        {
+            "League of Legends",
+            "Valorant",
+            "Counter-Strike 2",
+            "Dota 2",
+            "PUBG",
+            "Street Fighter 6",
+            "Overwatch 2",
+        };
         return games[random.Next(games.Length)];
     }
 
@@ -345,12 +392,12 @@ public static class StaticDemoRepository
     {
         const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         var result = new System.Text.StringBuilder(7);
-        
+
         for (int i = 0; i < 7; i++)
         {
             result.Append(chars[Seeded.Next(chars.Length)]);
         }
-        
+
         return result.ToString();
     }
 }

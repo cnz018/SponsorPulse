@@ -1,9 +1,9 @@
 namespace SponsorPulse.Application.Services;
 
+using Microsoft.Extensions.Options;
+using SponsorPulse.Application.Common.Configuration;
 using SponsorPulse.Domain.Entities;
 using SponsorPulse.Domain.Models;
-using SponsorPulse.Application.Common.Configuration;
-using Microsoft.Extensions.Options;
 
 public interface IPdfGenerationService
 {
@@ -38,7 +38,10 @@ public class PdfGenerationService : IPdfGenerationService
         _settings = options.Value;
     }
 
-    public async Task<PdfGenerationResult> GeneratePdfAsync(Event @event, PdfCustomizationOptions options)
+    public async Task<PdfGenerationResult> GeneratePdfAsync(
+        Event @event,
+        PdfCustomizationOptions options
+    )
     {
         try
         {
@@ -81,13 +84,15 @@ public class PdfGenerationService : IPdfGenerationService
     public async Task<string> GetPdfPreviewHtmlAsync(Event @event, PdfCustomizationOptions options)
     {
         var reportModel = await BuildReportModelAsync(@event, options);
-        
+
         // In demo mode, we return the full HTML with the report template
         var suggestionsHtml = string.Concat(reportModel.Suggestions.Select(s => $"<li>{s}</li>"));
-        var impressionsStr = reportModel.TwitterAnalytics?.EstimatedImpressions.ToString("N0") ?? "N/A";
+        var impressionsStr =
+            reportModel.TwitterAnalytics?.EstimatedImpressions.ToString("N0") ?? "N/A";
         var generatedDate = DateTime.Now.ToString("dd/MM/yyyy à HH:mm");
-        
-        var html = $@"
+
+        var html =
+            $@"
 <!DOCTYPE html>
 <html lang=""fr"">
 <head>
@@ -155,7 +160,10 @@ public class PdfGenerationService : IPdfGenerationService
         return await Task.FromResult(html);
     }
 
-    public async Task<ReportModel> BuildReportModelAsync(Event @event, PdfCustomizationOptions options)
+    public async Task<ReportModel> BuildReportModelAsync(
+        Event @event,
+        PdfCustomizationOptions options
+    )
     {
         return new ReportModel
         {
@@ -172,100 +180,127 @@ public class PdfGenerationService : IPdfGenerationService
                 PeakViewers = @event.PeakViewers ?? 0,
                 StreamDuration = @event.StreamDuration ?? TimeSpan.Zero,
                 StartedAt = @event.StartedAt.HasValue
-                    ? new DateTimeOffset(DateTime.SpecifyKind(@event.StartedAt.Value, DateTimeKind.Utc))
+                    ? new DateTimeOffset(
+                        DateTime.SpecifyKind(@event.StartedAt.Value, DateTimeKind.Utc)
+                    )
                     : DateTimeOffset.MinValue,
-                GameName = @event.GameName ?? "N/A"
+                GameName = @event.GameName ?? "N/A",
             },
             TwitterAnalytics = @event.TwitterAnalytics,
             StorytellingText = GenerateStorytellingText(@event),
             AnalysisText = GenerateAnalysisText(@event),
             OpportunitiesMissed = GenerateOpportunitiesMissed(@event),
             Suggestions = GenerateSuggestions(@event),
-            PhotoUrls = @event.Media.Select(m => m.Url).Take(5).ToList()
+            PhotoUrls = @event.Media.Select(m => m.Url).Take(5).ToList(),
         };
     }
 
     private string GenerateStorytellingText(Event evt)
     {
         var sb = new System.Text.StringBuilder();
-        
-        sb.Append($"L'événement {evt.Name} a marqué un tournant significatif dans la stratégie de sponsoring eSport. ");
-        
+
+        sb.Append(
+            $"L'événement {evt.Name} a marqué un tournant significatif dans la stratégie de sponsoring eSport. "
+        );
+
         if (evt.ViewerCount > 50000)
         {
-            sb.Append($"Avec plus de {evt.ViewerCount:N0} viewers simultanés, l'audience a démontré un engagement exceptionnel. ");
+            sb.Append(
+                $"Avec plus de {evt.ViewerCount:N0} viewers simultanés, l'audience a démontré un engagement exceptionnel. "
+            );
         }
-        
+
         if (evt.TwitterAnalytics != null)
         {
-            sb.Append($"Sur les réseaux sociaux, {evt.TwitterAnalytics.TotalTweets:N0} tweets et {evt.TwitterAnalytics.TotalEngagement:N0} interactions ");
-            sb.Append($"ont généré une valeur publicitaire équivalente de {evt.TwitterAnalytics.AdValueEquivalent:N0}€. ");
+            sb.Append(
+                $"Sur les réseaux sociaux, {evt.TwitterAnalytics.TotalTweets:N0} tweets et {evt.TwitterAnalytics.TotalEngagement:N0} interactions "
+            );
+            sb.Append(
+                $"ont généré une valeur publicitaire équivalente de {evt.TwitterAnalytics.AdValueEquivalent:N0}€. "
+            );
         }
-        
-        sb.Append($"La plateforme {evt.StreamPlatform} a été le théâtre d'une performance remarquable, ");
+
+        sb.Append(
+            $"La plateforme {evt.StreamPlatform} a été le théâtre d'une performance remarquable, "
+        );
         sb.Append($"positionnant votre marque au cœur de l'expérience eSport.");
-        
+
         return sb.ToString();
     }
 
     private string GenerateAnalysisText(Event evt)
     {
         var sb = new System.Text.StringBuilder();
-        
-        sb.Append($"Cet événement a confirmé le potentiel du sponsoring eSport comme levier de visibilité. ");
+
+        sb.Append(
+            $"Cet événement a confirmé le potentiel du sponsoring eSport comme levier de visibilité. "
+        );
         sb.Append($"Les metrics Twitch montrent une audience fidèle et engagée. ");
-        
+
         if (evt.PeakViewers > evt.ViewerCount * 1.5)
         {
-            sb.Append($"Le pic d'audience à {evt.PeakViewers:N0} viewers indique des moments forts ayant captivé l'attention. ");
+            sb.Append(
+                $"Le pic d'audience à {evt.PeakViewers:N0} viewers indique des moments forts ayant captivé l'attention. "
+            );
         }
-        
+
         if (evt.TwitterAnalytics != null)
         {
-            sb.Append($"L'impact Twitter démontre une résonance au-delà du live, avec un multiplicateur viral de {evt.TwitterAnalytics.ViralMultiplier:F2}x.");
+            sb.Append(
+                $"L'impact Twitter démontre une résonance au-delà du live, avec un multiplicateur viral de {evt.TwitterAnalytics.ViralMultiplier:F2}x."
+            );
         }
-        
+
         return sb.ToString();
     }
 
     private List<string> GenerateOpportunitiesMissed(Event evt)
     {
         var opportunities = new List<string>();
-        
+
         if (evt.ViewerCount < evt.PeakViewers * 0.7)
         {
-            opportunities.Add("Rétention audience : Optimiser le contenu pendant les creux d'audience");
+            opportunities.Add(
+                "Rétention audience : Optimiser le contenu pendant les creux d'audience"
+            );
         }
-        
+
         if (evt.TwitterAnalytics != null && evt.TwitterAnalytics.TotalTweets < 1000)
         {
-            opportunities.Add("Engagement Twitter : Stimuler les conversations avec des hashtags dédiés");
+            opportunities.Add(
+                "Engagement Twitter : Stimuler les conversations avec des hashtags dédiés"
+            );
         }
-        
+
         if (evt.StreamDuration < TimeSpan.FromHours(4))
         {
-            opportunities.Add("Durée de stream : Étendre le temps d'antenne pour maximiser l'exposition");
+            opportunities.Add(
+                "Durée de stream : Étendre le temps d'antenne pour maximiser l'exposition"
+            );
         }
-        
+
         if (!opportunities.Any())
         {
-            opportunities.Add("Aucune opportunité majeure identifiée - performance globale excellente");
+            opportunities.Add(
+                "Aucune opportunité majeure identifiée - performance globale excellente"
+            );
         }
-        
+
         return opportunities;
     }
 
     private List<string> GenerateSuggestions(Event evt)
     {
-        var secondaryPlatform = evt.StreamPlatform == "Twitch" ? "YouTube Gaming et TikTok" : "Twitch";
-        
+        var secondaryPlatform =
+            evt.StreamPlatform == "Twitch" ? "YouTube Gaming et TikTok" : "Twitch";
+
         return new List<string>
         {
             "Intégrer des activations interactives pendant le stream (sondages, giveaways)",
             "Développer un contenu behind-the-scenes pour prolonger l'engagement post-événement",
             "Créer un programme d'ambassadeurs parmi les influenceurs les plus engagés",
             $"Explorer {secondaryPlatform} pour une présence multi-plateformes",
-            "Mettre en place un tracking en temps réel pour optimiser les décisions pendant l'événement"
+            "Mettre en place un tracking en temps réel pour optimiser les décisions pendant l'événement",
         };
     }
 }

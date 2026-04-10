@@ -1,8 +1,8 @@
+using System.Linq;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text;
-using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SponsorPulse.Application.Common.Interfaces;
@@ -22,7 +22,10 @@ public class TwitchInfrastructureService(
     private const string BaseUrl = "https://api.twitch.tv/helix";
     private const string AuthUrl = "https://id.twitch.tv/oauth2/token";
 
-    public async Task<Result<TwitchMetrics>> GetStreamMetricsAsync(string channelNameOrUrl, string? userAccessToken = null)
+    public async Task<Result<TwitchMetrics>> GetStreamMetricsAsync(
+        string channelNameOrUrl,
+        string? userAccessToken = null
+    )
     {
         try
         {
@@ -90,11 +93,15 @@ public class TwitchInfrastructureService(
                 var directVideoReq = await client.GetAsync($"{BaseUrl}/videos?id={videoId}");
                 if (directVideoReq.IsSuccessStatusCode)
                 {
-                    var directVideoData = await directVideoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
+                    var directVideoData =
+                        await directVideoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
                     var directVideo = directVideoData?.Data?.FirstOrDefault();
                     if (directVideo != null)
                     {
-                        logger.LogInformation("Found VOD by video id for {Input}", channelNameOrUrl);
+                        logger.LogInformation(
+                            "Found VOD by video id for {Input}",
+                            channelNameOrUrl
+                        );
                         return Result<TwitchMetrics>.Success(
                             new TwitchMetrics
                             {
@@ -102,7 +109,7 @@ public class TwitchInfrastructureService(
                                 PeakViewers = 0,
                                 StreamDuration = ParseDuration(directVideo.Duration),
                                 StartedAt = directVideo.CreatedAt,
-                                GameName = "VOD Archive"
+                                GameName = "VOD Archive",
                             }
                         );
                     }
@@ -140,14 +147,16 @@ public class TwitchInfrastructureService(
                             PeakViewers = liveStream.ViewerCount, // Live peak is current
                             StreamDuration = DateTimeOffset.UtcNow - liveStream.StartedAt,
                             StartedAt = liveStream.StartedAt,
-                            GameName = liveStream.GameName
+                            GameName = liveStream.GameName,
                         }
                     );
                 }
             }
 
             // 5. Fallback to Latest Video (VOD)
-            var videoReq = await client.GetAsync($"{BaseUrl}/videos?user_id={userId}&first=1&sort=time");
+            var videoReq = await client.GetAsync(
+                $"{BaseUrl}/videos?user_id={userId}&first=1&sort=time"
+            );
             if (videoReq.IsSuccessStatusCode)
             {
                 var videoData = await videoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
@@ -163,7 +172,7 @@ public class TwitchInfrastructureService(
                             PeakViewers = 0, // Not available in simple VOD endpoint
                             StreamDuration = ParseDuration(lastVideo.Duration),
                             StartedAt = lastVideo.CreatedAt,
-                            GameName = "VOD Archive"
+                            GameName = "VOD Archive",
                         }
                     );
                 }
@@ -235,11 +244,15 @@ public class TwitchInfrastructureService(
         {
             if (string.IsNullOrEmpty(userAccessToken) && !string.IsNullOrEmpty(ownerTwitchUserId))
             {
-                userAccessToken = await _authStateService.GetValidAccessTokenAsync(ownerTwitchUserId);
+                userAccessToken = await _authStateService.GetValidAccessTokenAsync(
+                    ownerTwitchUserId
+                );
             }
 
             if (string.IsNullOrEmpty(userAccessToken))
-                return Result<string>.Failure("User access token required to retrieve extension analytics.");
+                return Result<string>.Failure(
+                    "User access token required to retrieve extension analytics."
+                );
 
             using var client = httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Remove("Client-ID");
@@ -247,7 +260,8 @@ public class TwitchInfrastructureService(
             client.DefaultRequestHeaders.Remove("Authorization");
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {userAccessToken}");
 
-            var url = $"{BaseUrl}/analytics/extensions?extension_id={Uri.EscapeDataString(extensionClientId)}&started_at={Uri.EscapeDataString(startedAt.ToString("O"))}&ended_at={Uri.EscapeDataString(endedAt.ToString("O"))}";
+            var url =
+                $"{BaseUrl}/analytics/extensions?extension_id={Uri.EscapeDataString(extensionClientId)}&started_at={Uri.EscapeDataString(startedAt.ToString("O"))}&ended_at={Uri.EscapeDataString(endedAt.ToString("O"))}";
             var resp = await client.GetAsync(url);
             if (!resp.IsSuccessStatusCode)
             {
@@ -259,10 +273,17 @@ public class TwitchInfrastructureService(
                 return Result<string>.Failure("Empty analytics response.");
 
             // Try to find a URL in the JSON response
-            if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+            if (
+                doc.RootElement.TryGetProperty("data", out var data)
+                && data.ValueKind == JsonValueKind.Array
+                && data.GetArrayLength() > 0
+            )
             {
                 var first = data[0];
-                if (first.TryGetProperty("url", out var urlProp) && urlProp.ValueKind == JsonValueKind.String)
+                if (
+                    first.TryGetProperty("url", out var urlProp)
+                    && urlProp.ValueKind == JsonValueKind.String
+                )
                 {
                     return Result<string>.Success(urlProp.GetString()!);
                 }
@@ -270,7 +291,9 @@ public class TwitchInfrastructureService(
 
             // Fallback: search for any 'url' property recursively
             string? found = FindUrlInJson(doc.RootElement);
-            return found != null ? Result<string>.Success(found) : Result<string>.Failure("No CSV URL found in analytics response.");
+            return found != null
+                ? Result<string>.Success(found)
+                : Result<string>.Failure("No CSV URL found in analytics response.");
         }
         catch (Exception ex)
         {
@@ -291,11 +314,15 @@ public class TwitchInfrastructureService(
         {
             if (string.IsNullOrEmpty(userAccessToken) && !string.IsNullOrEmpty(ownerTwitchUserId))
             {
-                userAccessToken = await _authStateService.GetValidAccessTokenAsync(ownerTwitchUserId);
+                userAccessToken = await _authStateService.GetValidAccessTokenAsync(
+                    ownerTwitchUserId
+                );
             }
 
             if (string.IsNullOrEmpty(userAccessToken))
-                return Result<string>.Failure("User access token required to retrieve game analytics.");
+                return Result<string>.Failure(
+                    "User access token required to retrieve game analytics."
+                );
 
             using var client = httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Remove("Client-ID");
@@ -303,7 +330,8 @@ public class TwitchInfrastructureService(
             client.DefaultRequestHeaders.Remove("Authorization");
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {userAccessToken}");
 
-            var url = $"{BaseUrl}/analytics/games?game_id={Uri.EscapeDataString(gameId)}&started_at={Uri.EscapeDataString(startedAt.ToString("O"))}&ended_at={Uri.EscapeDataString(endedAt.ToString("O"))}";
+            var url =
+                $"{BaseUrl}/analytics/games?game_id={Uri.EscapeDataString(gameId)}&started_at={Uri.EscapeDataString(startedAt.ToString("O"))}&ended_at={Uri.EscapeDataString(endedAt.ToString("O"))}";
             var resp = await client.GetAsync(url);
             if (!resp.IsSuccessStatusCode)
             {
@@ -314,17 +342,26 @@ public class TwitchInfrastructureService(
             if (doc == null)
                 return Result<string>.Failure("Empty analytics response.");
 
-            if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+            if (
+                doc.RootElement.TryGetProperty("data", out var data)
+                && data.ValueKind == JsonValueKind.Array
+                && data.GetArrayLength() > 0
+            )
             {
                 var first = data[0];
-                if (first.TryGetProperty("url", out var urlProp) && urlProp.ValueKind == JsonValueKind.String)
+                if (
+                    first.TryGetProperty("url", out var urlProp)
+                    && urlProp.ValueKind == JsonValueKind.String
+                )
                 {
                     return Result<string>.Success(urlProp.GetString()!);
                 }
             }
 
             string? found = FindUrlInJson(doc.RootElement);
-            return found != null ? Result<string>.Success(found) : Result<string>.Failure("No CSV URL found in analytics response.");
+            return found != null
+                ? Result<string>.Success(found)
+                : Result<string>.Failure("No CSV URL found in analytics response.");
         }
         catch (Exception ex)
         {
@@ -333,16 +370,31 @@ public class TwitchInfrastructureService(
         }
     }
 
-    public async Task<Result<CsvTable>> GetExtensionAnalyticsAsync(string extensionClientId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null)
+    public async Task<Result<CsvTable>> GetExtensionAnalyticsAsync(
+        string extensionClientId,
+        DateTimeOffset startedAt,
+        DateTimeOffset endedAt,
+        string? userAccessToken = null,
+        string? ownerTwitchUserId = null
+    )
     {
-        var urlResult = await GetExtensionAnalyticsCsvUrlAsync(extensionClientId, startedAt, endedAt, userAccessToken, ownerTwitchUserId);
+        var urlResult = await GetExtensionAnalyticsCsvUrlAsync(
+            extensionClientId,
+            startedAt,
+            endedAt,
+            userAccessToken,
+            ownerTwitchUserId
+        );
         if (!urlResult.IsSuccess)
             return Result<CsvTable>.Failure(urlResult.ErrorMessage ?? "Unknown error");
 
         var csvUrl = urlResult.Value;
         using var req = new HttpRequestMessage(HttpMethod.Get, csvUrl);
         if (!string.IsNullOrEmpty(userAccessToken))
-            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", userAccessToken);
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                userAccessToken
+            );
 
         using var client = httpClientFactory.CreateClient();
         var resp = await client.SendAsync(req);
@@ -361,16 +413,31 @@ public class TwitchInfrastructureService(
         return Result<CsvTable>.Success(table);
     }
 
-    public async Task<Result<CsvTable>> GetGameAnalyticsAsync(string gameId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null)
+    public async Task<Result<CsvTable>> GetGameAnalyticsAsync(
+        string gameId,
+        DateTimeOffset startedAt,
+        DateTimeOffset endedAt,
+        string? userAccessToken = null,
+        string? ownerTwitchUserId = null
+    )
     {
-        var urlResult = await GetGameAnalyticsCsvUrlAsync(gameId, startedAt, endedAt, userAccessToken, ownerTwitchUserId);
+        var urlResult = await GetGameAnalyticsCsvUrlAsync(
+            gameId,
+            startedAt,
+            endedAt,
+            userAccessToken,
+            ownerTwitchUserId
+        );
         if (!urlResult.IsSuccess)
             return Result<CsvTable>.Failure(urlResult.ErrorMessage ?? "Unknown error");
 
         var csvUrl = urlResult.Value;
         using var req = new HttpRequestMessage(HttpMethod.Get, csvUrl);
         if (!string.IsNullOrEmpty(userAccessToken))
-            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", userAccessToken);
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                userAccessToken
+            );
 
         using var client = httpClientFactory.CreateClient();
         var resp = await client.SendAsync(req);
@@ -396,12 +463,14 @@ public class TwitchInfrastructureService(
         {
             Raw = csvText,
             Headers = new List<string>(),
-            Rows = new List<List<string>>()
+            Rows = new List<List<string>>(),
         };
 
         int idx = 0;
-        while (idx < lines.Length && string.IsNullOrWhiteSpace(lines[idx])) idx++;
-        if (idx >= lines.Length) return table;
+        while (idx < lines.Length && string.IsNullOrWhiteSpace(lines[idx]))
+            idx++;
+        if (idx >= lines.Length)
+            return table;
 
         table.Headers.AddRange(SplitCsvLine(lines[idx]));
         idx++;
@@ -409,7 +478,8 @@ public class TwitchInfrastructureService(
         for (; idx < lines.Length; idx++)
         {
             var line = lines[idx];
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
             var cols = SplitCsvLine(line).ToList();
             table.Rows.Add(cols);
         }
@@ -461,7 +531,8 @@ public class TwitchInfrastructureService(
                     return prop.Value.GetString();
 
                 var nested = FindUrlInJson(prop.Value);
-                if (nested != null) return nested;
+                if (nested != null)
+                    return nested;
             }
         }
         else if (el.ValueKind == JsonValueKind.Array)
@@ -469,7 +540,8 @@ public class TwitchInfrastructureService(
             foreach (var item in el.EnumerateArray())
             {
                 var nested = FindUrlInJson(item);
-                if (nested != null) return nested;
+                if (nested != null)
+                    return nested;
             }
         }
 

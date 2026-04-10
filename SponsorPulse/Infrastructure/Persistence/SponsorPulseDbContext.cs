@@ -10,7 +10,7 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
     : DbContext(options)
 {
     public DbSet<Event> Events { get; set; }
-        public DbSet<TwitchAuthToken> TwitchAuthTokens { get; set; }
+    public DbSet<TwitchAuthToken> TwitchAuthTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

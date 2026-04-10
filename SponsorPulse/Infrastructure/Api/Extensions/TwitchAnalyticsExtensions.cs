@@ -11,8 +11,7 @@ public static class TwitchAnalyticsExtensions
         app.MapGet("/api/twitch/analytics/extension", GetExtensionCsvUrl)
             .WithName("GetExtensionAnalyticsCsv");
 
-        app.MapGet("/api/twitch/analytics/game", GetGameCsvUrl)
-            .WithName("GetGameAnalyticsCsv");
+        app.MapGet("/api/twitch/analytics/game", GetGameCsvUrl).WithName("GetGameAnalyticsCsv");
 
         return app;
     }
@@ -34,14 +33,26 @@ public static class TwitchAnalyticsExtensions
 
         if (parse)
         {
-            var parsed = await twitchService.GetExtensionAnalyticsAsync(extensionId, start, end, null, ownerTwitchUserId);
+            var parsed = await twitchService.GetExtensionAnalyticsAsync(
+                extensionId,
+                start,
+                end,
+                null,
+                ownerTwitchUserId
+            );
             if (!parsed.IsSuccess)
                 return Results.BadRequest(new { error = parsed.ErrorMessage });
 
             return Results.Ok(parsed.Value);
         }
 
-        var result = await twitchService.GetExtensionAnalyticsCsvUrlAsync(extensionId, start, end, null, ownerTwitchUserId);
+        var result = await twitchService.GetExtensionAnalyticsCsvUrlAsync(
+            extensionId,
+            start,
+            end,
+            null,
+            ownerTwitchUserId
+        );
         if (!result.IsSuccess)
             return Results.BadRequest(new { error = result.ErrorMessage });
 
@@ -65,14 +76,26 @@ public static class TwitchAnalyticsExtensions
 
         if (parse)
         {
-            var parsed = await twitchService.GetGameAnalyticsAsync(gameId, start, end, null, ownerTwitchUserId);
+            var parsed = await twitchService.GetGameAnalyticsAsync(
+                gameId,
+                start,
+                end,
+                null,
+                ownerTwitchUserId
+            );
             if (!parsed.IsSuccess)
                 return Results.BadRequest(new { error = parsed.ErrorMessage });
 
             return Results.Ok(parsed.Value);
         }
 
-        var result = await twitchService.GetGameAnalyticsCsvUrlAsync(gameId, start, end, null, ownerTwitchUserId);
+        var result = await twitchService.GetGameAnalyticsCsvUrlAsync(
+            gameId,
+            start,
+            end,
+            null,
+            ownerTwitchUserId
+        );
         if (!result.IsSuccess)
             return Results.BadRequest(new { error = result.ErrorMessage });
 
