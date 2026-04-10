@@ -73,6 +73,8 @@ app.MapMediaPresignedUrlEndpoints();
 
 // Map Twitch OAuth endpoints for user authorization flow
 app.MapTwitchAuthEndpoints();
+// Map Twitch analytics endpoints
+app.MapTwitchAnalyticsEndpoints();
 
 // Map Waitlist API endpoint
 app.MapWaitlistEndpoint();
