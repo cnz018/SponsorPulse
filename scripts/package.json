@@ -1,0 +1,12 @@
+{
+  "name": "sponsorpulse-notion",
+  "version": "1.0.0",
+  "description": "Helpers to publish SponsorPulse backlog to Notion",
+  "main": "create_notion_page.js",
+  "scripts": {
+    "create-notion-page": "node create_notion_page.js"
+  },
+  "dependencies": {
+    "@notionhq/client": "^3.0.0"
+  }
+}

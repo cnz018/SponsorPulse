@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SponsorPulse.Application.Common.Interfaces;
@@ -329,6 +331,124 @@ public class TwitchInfrastructureService(
             logger.LogError(ex, "Error fetching game analytics");
             return Result<string>.Failure(ex.Message);
         }
+    }
+
+    public async Task<Result<CsvTable>> GetExtensionAnalyticsAsync(string extensionClientId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null)
+    {
+        var urlResult = await GetExtensionAnalyticsCsvUrlAsync(extensionClientId, startedAt, endedAt, userAccessToken, ownerTwitchUserId);
+        if (!urlResult.IsSuccess)
+            return Result<CsvTable>.Failure(urlResult.ErrorMessage ?? "Unknown error");
+
+        var csvUrl = urlResult.Value;
+        using var req = new HttpRequestMessage(HttpMethod.Get, csvUrl);
+        if (!string.IsNullOrEmpty(userAccessToken))
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", userAccessToken);
+
+        using var client = httpClientFactory.CreateClient();
+        var resp = await client.SendAsync(req);
+        if (!resp.IsSuccessStatusCode)
+            return Result<CsvTable>.Failure($"Failed to download CSV: {resp.StatusCode}");
+
+        var bytes = await resp.Content.ReadAsByteArrayAsync();
+        Encoding encoding = Encoding.UTF8;
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            encoding = Encoding.UTF8;
+        else if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
+            encoding = Encoding.Unicode;
+
+        var csvText = encoding.GetString(bytes);
+        var table = ParseCsv(csvText);
+        return Result<CsvTable>.Success(table);
+    }
+
+    public async Task<Result<CsvTable>> GetGameAnalyticsAsync(string gameId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null)
+    {
+        var urlResult = await GetGameAnalyticsCsvUrlAsync(gameId, startedAt, endedAt, userAccessToken, ownerTwitchUserId);
+        if (!urlResult.IsSuccess)
+            return Result<CsvTable>.Failure(urlResult.ErrorMessage ?? "Unknown error");
+
+        var csvUrl = urlResult.Value;
+        using var req = new HttpRequestMessage(HttpMethod.Get, csvUrl);
+        if (!string.IsNullOrEmpty(userAccessToken))
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", userAccessToken);
+
+        using var client = httpClientFactory.CreateClient();
+        var resp = await client.SendAsync(req);
+        if (!resp.IsSuccessStatusCode)
+            return Result<CsvTable>.Failure($"Failed to download CSV: {resp.StatusCode}");
+
+        var bytes = await resp.Content.ReadAsByteArrayAsync();
+        Encoding encoding = Encoding.UTF8;
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            encoding = Encoding.UTF8;
+        else if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
+            encoding = Encoding.Unicode;
+
+        var csvText = encoding.GetString(bytes);
+        var table = ParseCsv(csvText);
+        return Result<CsvTable>.Success(table);
+    }
+
+    private CsvTable ParseCsv(string csvText)
+    {
+        var lines = csvText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        var table = new CsvTable
+        {
+            Raw = csvText,
+            Headers = new List<string>(),
+            Rows = new List<List<string>>()
+        };
+
+        int idx = 0;
+        while (idx < lines.Length && string.IsNullOrWhiteSpace(lines[idx])) idx++;
+        if (idx >= lines.Length) return table;
+
+        table.Headers.AddRange(SplitCsvLine(lines[idx]));
+        idx++;
+
+        for (; idx < lines.Length; idx++)
+        {
+            var line = lines[idx];
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            var cols = SplitCsvLine(line).ToList();
+            table.Rows.Add(cols);
+        }
+
+        return table;
+    }
+
+    private IEnumerable<string> SplitCsvLine(string line)
+    {
+        var fields = new List<string>();
+        var sb = new StringBuilder();
+        bool inQuotes = false;
+        for (int i = 0; i < line.Length; i++)
+        {
+            var c = line[i];
+            if (c == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    sb.Append('"');
+                    i++; // skip escaped quote
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (c == ',' && !inQuotes)
+            {
+                fields.Add(sb.ToString());
+                sb.Clear();
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+        fields.Add(sb.ToString());
+        return fields;
     }
 
     private static string? FindUrlInJson(JsonElement el)

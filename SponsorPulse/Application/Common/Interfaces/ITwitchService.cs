@@ -13,4 +13,6 @@ public interface ITwitchService
     // implementation may attempt to resolve a valid token via an injected auth state service using `ownerTwitchUserId`.
     Task<Result<string>> GetExtensionAnalyticsCsvUrlAsync(string extensionClientId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null);
     Task<Result<string>> GetGameAnalyticsCsvUrlAsync(string gameId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null);
+    Task<Result<CsvTable>> GetExtensionAnalyticsAsync(string extensionClientId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null);
+    Task<Result<CsvTable>> GetGameAnalyticsAsync(string gameId, DateTimeOffset startedAt, DateTimeOffset endedAt, string? userAccessToken = null, string? ownerTwitchUserId = null);
 }

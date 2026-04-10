@@ -9,11 +9,11 @@ namespace SponsorPulse.Infrastructure.Services;
 
 public class WaitlistSettings
 {
-    public string SmtpServer { get; set; } = "smtp.cloudmailin.com";
+    public string SmtpServer { get; set; } = string.Empty;
     public int SmtpPort { get; set; } = 587;
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public string FromEmail { get; set; } = "noreply@sponsorpulse.com";
+    public string FromEmail { get; set; } = string.Empty;
     public string BccEmail { get; set; } = string.Empty;
 }
 
