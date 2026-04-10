@@ -14,9 +14,11 @@ SQLitePCL.Batteries_V2.Init();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Logging
+builder.Logging.AddDebug();
+
 // Add Blazor Web Services
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddLumexServices();
 
@@ -69,11 +71,13 @@ app.MapStaticAssets();
 // Map Media API endpoints (presigned URLs, etc.)
 app.MapMediaPresignedUrlEndpoints();
 
+// Map Twitch OAuth endpoints for user authorization flow
+app.MapTwitchAuthEndpoints();
+
 // Map Waitlist API endpoint
 app.MapWaitlistEndpoint();
 
 // Map Blazor Components
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.Run();

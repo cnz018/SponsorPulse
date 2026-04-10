@@ -10,6 +10,7 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
     : DbContext(options)
 {
     public DbSet<Event> Events { get; set; }
+        public DbSet<TwitchAuthToken> TwitchAuthTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +28,10 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<EventMedia>().HasKey(m => m.Id);
+
+        // Twitch OAuth tokens/state
+        modelBuilder.Entity<TwitchAuthToken>().HasKey(t => t.Id);
+        modelBuilder.Entity<TwitchAuthToken>().Property(t => t.State).IsRequired();
 
         // Configure TwitterAnalytics as JSON column with value converter
         // Serializes the complex object to JSON for storage in SQLite TEXT column

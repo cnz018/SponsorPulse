@@ -18,19 +18,19 @@ public static class InfrastructureDependencyInjection
     {
         services.AddHttpClient();
         services.AddScoped<ITwitchService, TwitchInfrastructureService>();
+        services.AddScoped<ITwitchAuthStateService, TwitchAuthStateService>();
         services.AddScoped<ITwitterService, TwitterInfrastructureService>();
         services.AddScoped<IStaticReportService, StaticReportService>();
 
         // Demo Mode Configuration
-        services.AddOptions<DemoModeSettings>()
-            .Bind(configuration.GetSection("DemoMode"));
+        services.AddOptions<DemoModeSettings>().Bind(configuration.GetSection("DemoMode"));
 
-        // CloudMailin Waitlist Configuration
-        services.AddOptions<WaitlistSettings>()
-            .Bind(configuration.GetSection("CloudMailin"));
+        // Waitlist Configuration (Infomaniak SMTP)
+        services.AddOptions<WaitlistSettings>().Bind(configuration.GetSection("WaitlistSettings"));
 
         // Value Calculator Configuration
-        services.AddOptions<ValueCalculatorSettings>()
+        services
+            .AddOptions<ValueCalculatorSettings>()
             .Bind(configuration.GetSection("ValueCalculator"));
 
         // Application Services
