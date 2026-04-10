@@ -12,9 +12,11 @@ namespace SponsorPulse.Infrastructure.Services;
 public class TwitchInfrastructureService(
     IHttpClientFactory httpClientFactory,
     IConfiguration configuration,
-    ILogger<TwitchInfrastructureService> logger
+    ILogger<TwitchInfrastructureService> logger,
+    ITwitchAuthStateService authStateService
 ) : ITwitchService
 {
+    private readonly ITwitchAuthStateService _authStateService = authStateService;
     private const string BaseUrl = "https://api.twitch.tv/helix";
     private const string AuthUrl = "https://id.twitch.tv/oauth2/token";
 
@@ -217,6 +219,141 @@ public class TwitchInfrastructureService(
             return (null, input);
 
         return (input.Trim(), null);
+    }
+
+    public async Task<Result<string>> GetExtensionAnalyticsCsvUrlAsync(
+        string extensionClientId,
+        DateTimeOffset startedAt,
+        DateTimeOffset endedAt,
+        string? userAccessToken = null,
+        string? ownerTwitchUserId = null
+    )
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(userAccessToken) && !string.IsNullOrEmpty(ownerTwitchUserId))
+            {
+                userAccessToken = await _authStateService.GetValidAccessTokenAsync(ownerTwitchUserId);
+            }
+
+            if (string.IsNullOrEmpty(userAccessToken))
+                return Result<string>.Failure("User access token required to retrieve extension analytics.");
+
+            using var client = httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Remove("Client-ID");
+            client.DefaultRequestHeaders.Add("Client-ID", configuration["Twitch:ClientId"]);
+            client.DefaultRequestHeaders.Remove("Authorization");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {userAccessToken}");
+
+            var url = $"{BaseUrl}/analytics/extensions?extension_id={Uri.EscapeDataString(extensionClientId)}&started_at={Uri.EscapeDataString(startedAt.ToString("O"))}&ended_at={Uri.EscapeDataString(endedAt.ToString("O"))}";
+            var resp = await client.GetAsync(url);
+            if (!resp.IsSuccessStatusCode)
+            {
+                return Result<string>.Failure($"Analytics endpoint returned {resp.StatusCode}");
+            }
+
+            var doc = await resp.Content.ReadFromJsonAsync<JsonDocument>();
+            if (doc == null)
+                return Result<string>.Failure("Empty analytics response.");
+
+            // Try to find a URL in the JSON response
+            if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+            {
+                var first = data[0];
+                if (first.TryGetProperty("url", out var urlProp) && urlProp.ValueKind == JsonValueKind.String)
+                {
+                    return Result<string>.Success(urlProp.GetString()!);
+                }
+            }
+
+            // Fallback: search for any 'url' property recursively
+            string? found = FindUrlInJson(doc.RootElement);
+            return found != null ? Result<string>.Success(found) : Result<string>.Failure("No CSV URL found in analytics response.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching extension analytics");
+            return Result<string>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result<string>> GetGameAnalyticsCsvUrlAsync(
+        string gameId,
+        DateTimeOffset startedAt,
+        DateTimeOffset endedAt,
+        string? userAccessToken = null,
+        string? ownerTwitchUserId = null
+    )
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(userAccessToken) && !string.IsNullOrEmpty(ownerTwitchUserId))
+            {
+                userAccessToken = await _authStateService.GetValidAccessTokenAsync(ownerTwitchUserId);
+            }
+
+            if (string.IsNullOrEmpty(userAccessToken))
+                return Result<string>.Failure("User access token required to retrieve game analytics.");
+
+            using var client = httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Remove("Client-ID");
+            client.DefaultRequestHeaders.Add("Client-ID", configuration["Twitch:ClientId"]);
+            client.DefaultRequestHeaders.Remove("Authorization");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {userAccessToken}");
+
+            var url = $"{BaseUrl}/analytics/games?game_id={Uri.EscapeDataString(gameId)}&started_at={Uri.EscapeDataString(startedAt.ToString("O"))}&ended_at={Uri.EscapeDataString(endedAt.ToString("O"))}";
+            var resp = await client.GetAsync(url);
+            if (!resp.IsSuccessStatusCode)
+            {
+                return Result<string>.Failure($"Analytics endpoint returned {resp.StatusCode}");
+            }
+
+            var doc = await resp.Content.ReadFromJsonAsync<JsonDocument>();
+            if (doc == null)
+                return Result<string>.Failure("Empty analytics response.");
+
+            if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+            {
+                var first = data[0];
+                if (first.TryGetProperty("url", out var urlProp) && urlProp.ValueKind == JsonValueKind.String)
+                {
+                    return Result<string>.Success(urlProp.GetString()!);
+                }
+            }
+
+            string? found = FindUrlInJson(doc.RootElement);
+            return found != null ? Result<string>.Success(found) : Result<string>.Failure("No CSV URL found in analytics response.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching game analytics");
+            return Result<string>.Failure(ex.Message);
+        }
+    }
+
+    private static string? FindUrlInJson(JsonElement el)
+    {
+        if (el.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in el.EnumerateObject())
+            {
+                if (prop.NameEquals("url") && prop.Value.ValueKind == JsonValueKind.String)
+                    return prop.Value.GetString();
+
+                var nested = FindUrlInJson(prop.Value);
+                if (nested != null) return nested;
+            }
+        }
+        else if (el.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in el.EnumerateArray())
+            {
+                var nested = FindUrlInJson(item);
+                if (nested != null) return nested;
+            }
+        }
+
+        return null;
     }
 
     // DTOs
