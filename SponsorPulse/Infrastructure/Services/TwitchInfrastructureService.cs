@@ -18,14 +18,14 @@ public class TwitchInfrastructureService(
     private const string BaseUrl = "https://api.twitch.tv/helix";
     private const string AuthUrl = "https://id.twitch.tv/oauth2/token";
 
-    public async Task<Result<TwitchMetrics>> GetStreamMetricsAsync(string channelName)
+    public async Task<Result<TwitchMetrics>> GetStreamMetricsAsync(string channelNameOrUrl, string? userAccessToken = null)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(channelName))
+            if (string.IsNullOrWhiteSpace(channelNameOrUrl))
             {
-                logger.LogWarning("Channel name cannot be empty.");
-                return Result<TwitchMetrics>.Failure("Channel name cannot be empty.");
+                logger.LogWarning("Channel name or URL cannot be empty.");
+                return Result<TwitchMetrics>.Failure("Channel name or URL cannot be empty.");
             }
 
             var clientId = configuration["Twitch:ClientId"];
@@ -37,43 +37,87 @@ public class TwitchInfrastructureService(
                 return Result<TwitchMetrics>.Failure("Configuration error. Missing credentials.");
             }
 
-            // 1. Authenticate (Client Credentials Flow)
-            using var authClient = httpClientFactory.CreateClient();
-            var authResponse = await authClient.PostAsync(
-                $"{AuthUrl}?client_id={clientId}&client_secret={clientSecret}&grant_type=client_credentials",
-                null
-            );
-
-            if (!authResponse.IsSuccessStatusCode)
-            {
-                logger.LogError(
-                    "Authentication failed. Status: {StatusCode}",
-                    authResponse.StatusCode
-                );
-                return Result<TwitchMetrics>.Failure("Authentication failed.");
-            }
-
-            var authData = await authResponse.Content.ReadFromJsonAsync<TwitchAuthResponse>();
-            if (string.IsNullOrEmpty(authData?.AccessToken))
-            {
-                return Result<TwitchMetrics>.Failure("Failed to retrieve Access Token.");
-            }
-
-            // 2. Setup Client with Headers
+            // 1. Setup HttpClient and authentication headers
             using var client = httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Remove("Client-ID");
             client.DefaultRequestHeaders.Add("Client-ID", clientId);
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authData.AccessToken}");
 
-            // 3. Get User ID from Channel Name
-            var userReq = await client.GetAsync($"{BaseUrl}/users?login={channelName}");
-            if (!userReq.IsSuccessStatusCode)
-                return Result<TwitchMetrics>.Failure("User not found.");
+            // If a user access token is provided (Authorization Code flow), use it to access owner-only analytics.
+            if (!string.IsNullOrEmpty(userAccessToken))
+            {
+                client.DefaultRequestHeaders.Remove("Authorization");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {userAccessToken}");
+            }
+            else
+            {
+                // App access (Client Credentials)
+                using var authClient = httpClientFactory.CreateClient();
+                var authResponse = await authClient.PostAsync(
+                    $"{AuthUrl}?client_id={clientId}&client_secret={clientSecret}&grant_type=client_credentials",
+                    null
+                );
 
-            var userData = await userReq.Content.ReadFromJsonAsync<TwitchUserResponse>();
-            var userId = userData?.Data?.FirstOrDefault()?.Id;
+                if (!authResponse.IsSuccessStatusCode)
+                {
+                    logger.LogError(
+                        "Authentication failed. Status: {StatusCode}",
+                        authResponse.StatusCode
+                    );
+                    return Result<TwitchMetrics>.Failure("Authentication failed.");
+                }
 
-            if (string.IsNullOrEmpty(userId))
-                return Result<TwitchMetrics>.Failure("User ID not found.");
+                var authData = await authResponse.Content.ReadFromJsonAsync<TwitchAuthResponse>();
+                if (string.IsNullOrEmpty(authData?.AccessToken))
+                {
+                    return Result<TwitchMetrics>.Failure("Failed to retrieve Access Token.");
+                }
+
+                client.DefaultRequestHeaders.Remove("Authorization");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authData.AccessToken}");
+            }
+
+            // 3. Resolve input: can be a login, a full twitch URL, or a video id/url
+            var (login, videoId) = ParseTwitchInput(channelNameOrUrl);
+            string? userId = null;
+
+            if (!string.IsNullOrEmpty(videoId))
+            {
+                // If we received a video id directly, fetch the video
+                var directVideoReq = await client.GetAsync($"{BaseUrl}/videos?id={videoId}");
+                if (directVideoReq.IsSuccessStatusCode)
+                {
+                    var directVideoData = await directVideoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
+                    var directVideo = directVideoData?.Data?.FirstOrDefault();
+                    if (directVideo != null)
+                    {
+                        logger.LogInformation("Found VOD by video id for {Input}", channelNameOrUrl);
+                        return Result<TwitchMetrics>.Success(
+                            new TwitchMetrics
+                            {
+                                ViewerCount = directVideo.ViewCount,
+                                PeakViewers = 0,
+                                StreamDuration = ParseDuration(directVideo.Duration),
+                                StartedAt = directVideo.CreatedAt,
+                                GameName = "VOD Archive"
+                            }
+                        );
+                    }
+                }
+                // if not found as video, continue to try as login below
+            }
+
+            if (!string.IsNullOrEmpty(login))
+            {
+                var userReq = await client.GetAsync($"{BaseUrl}/users?login={login}");
+                if (!userReq.IsSuccessStatusCode)
+                    return Result<TwitchMetrics>.Failure("User not found.");
+
+                var userData = await userReq.Content.ReadFromJsonAsync<TwitchUserResponse>();
+                userId = userData?.Data?.FirstOrDefault()?.Id;
+
+                if (string.IsNullOrEmpty(userId))
+                    return Result<TwitchMetrics>.Failure("User ID not found.");
+            }
 
             // 4. Check for LIVE stream first
             var streamReq = await client.GetAsync($"{BaseUrl}/streams?user_id={userId}");
@@ -84,13 +128,13 @@ public class TwitchInfrastructureService(
 
                 if (liveStream != null)
                 {
-                    logger.LogInformation("Found LIVE stream for {Channel}", channelName);
+                    logger.LogInformation("Found LIVE stream for {Channel}", channelNameOrUrl);
                     return Result<TwitchMetrics>.Success(
                         new TwitchMetrics
                         {
                             ViewerCount = liveStream.ViewerCount,
                             PeakViewers = liveStream.ViewerCount, // Live peak is current
-                            StreamDuration = DateTime.UtcNow - liveStream.StartedAt,
+                            StreamDuration = DateTimeOffset.UtcNow - liveStream.StartedAt,
                             StartedAt = liveStream.StartedAt,
                             GameName = liveStream.GameName
                         }
@@ -99,9 +143,7 @@ public class TwitchInfrastructureService(
             }
 
             // 5. Fallback to Latest Video (VOD)
-            var videoReq = await client.GetAsync(
-                $"{BaseUrl}/videos?user_id={userId}&first=1&sort=time"
-            );
+            var videoReq = await client.GetAsync($"{BaseUrl}/videos?user_id={userId}&first=1&sort=time");
             if (videoReq.IsSuccessStatusCode)
             {
                 var videoData = await videoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
@@ -109,7 +151,7 @@ public class TwitchInfrastructureService(
 
                 if (lastVideo != null)
                 {
-                    logger.LogInformation("Found VOD for {Channel}", channelName);
+                    logger.LogInformation("Found VOD for {Channel}", channelNameOrUrl);
                     return Result<TwitchMetrics>.Success(
                         new TwitchMetrics
                         {
@@ -149,6 +191,34 @@ public class TwitchInfrastructureService(
         }
     }
 
+    private static (string? login, string? videoId) ParseTwitchInput(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return (null, null);
+
+        if (Uri.TryCreate(input, UriKind.Absolute, out var uri))
+        {
+            var seg = uri.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (seg.Length >= 1)
+            {
+                // URL like /videos/{id}
+                if (seg[0].Equals("videos", StringComparison.OrdinalIgnoreCase) && seg.Length > 1)
+                    return (null, seg[1]);
+
+                // Otherwise assume last segment is the channel login
+                return (seg[^1], null);
+            }
+
+            return (null, null);
+        }
+
+        // If input is numeric, treat as video id
+        if (long.TryParse(input, out _))
+            return (null, input);
+
+        return (input.Trim(), null);
+    }
+
     // DTOs
     record TwitchAuthResponse([property: JsonPropertyName("access_token")] string AccessToken);
 
@@ -160,7 +230,7 @@ public class TwitchInfrastructureService(
 
     record StreamData(
         [property: JsonPropertyName("viewer_count")] int ViewerCount,
-        [property: JsonPropertyName("started_at")] DateTime StartedAt,
+        [property: JsonPropertyName("started_at")] DateTimeOffset StartedAt,
         [property: JsonPropertyName("game_name")] string GameName
     );
 
@@ -169,6 +239,6 @@ public class TwitchInfrastructureService(
     record VideoData(
         [property: JsonPropertyName("view_count")] int ViewCount,
         [property: JsonPropertyName("duration")] string Duration,
-        [property: JsonPropertyName("created_at")] DateTime CreatedAt
+        [property: JsonPropertyName("created_at")] DateTimeOffset CreatedAt
     );
 }

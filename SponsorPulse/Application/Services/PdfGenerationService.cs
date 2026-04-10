@@ -171,7 +171,9 @@ public class PdfGenerationService : IPdfGenerationService
                 ViewerCount = @event.ViewerCount ?? 0,
                 PeakViewers = @event.PeakViewers ?? 0,
                 StreamDuration = @event.StreamDuration ?? TimeSpan.Zero,
-                StartedAt = @event.StartedAt ?? DateTime.MinValue,
+                StartedAt = @event.StartedAt.HasValue
+                    ? new DateTimeOffset(DateTime.SpecifyKind(@event.StartedAt.Value, DateTimeKind.Utc))
+                    : DateTimeOffset.MinValue,
                 GameName = @event.GameName ?? "N/A"
             },
             TwitterAnalytics = @event.TwitterAnalytics,

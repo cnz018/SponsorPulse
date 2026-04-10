@@ -218,7 +218,6 @@
 
         try
         {
-            // Simulate status update immediately
             EventToUpdate.Status = EventStatus.Fetching;
 
             var result = await TwitchService.GetStreamMetricsAsync(EventToUpdate.ChannelId);
@@ -226,12 +225,10 @@
             if (result.IsSuccess && result.Value != null)
             {
                 var metrics = result.Value;
-
-                // Update Entity
                 EventToUpdate.ViewerCount = metrics.ViewerCount;
                 EventToUpdate.PeakViewers = metrics.PeakViewers;
                 EventToUpdate.StreamDuration = metrics.StreamDuration;
-                EventToUpdate.StartedAt = metrics.StartedAt;
+                EventToUpdate.StartedAt = metrics.StartedAt.UtcDateTime;
                 EventToUpdate.GameName = metrics.GameName;
                 EventToUpdate.Status = EventStatus.AnalysisReady;
 
@@ -240,7 +237,7 @@
             else
             {
                 ErrorMessage = result.ErrorMessage ?? "Erreur inconnue lors de l'appel Twitch.";
-                EventToUpdate.Status = EventStatus.Error; // Or Draft if we want to allow retry
+                EventToUpdate.Status = EventStatus.Error;
             }
         }
         catch (Exception ex)

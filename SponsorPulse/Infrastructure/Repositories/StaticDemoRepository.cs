@@ -109,7 +109,7 @@ public static class StaticDemoRepository
             PeakViewers = peakViewers,
             UniqueViewers = uniqueViewers,
             StreamDuration = streamDuration,
-            StartedAt = DateTime.UtcNow.AddDays(-1),
+            StartedAt = DateTimeOffset.UtcNow.AddDays(-1),
             GameName = GetRandomGameName(random),
             Chat = new ChatMetrics(
                 TotalMessages: totalMessages,
@@ -253,7 +253,7 @@ public static class StaticDemoRepository
         evt.ViewerCount = twitchMetrics.ViewerCount;
         evt.PeakViewers = twitchMetrics.PeakViewers;
         evt.StreamDuration = twitchMetrics.StreamDuration;
-        evt.StartedAt = twitchMetrics.StartedAt;
+        evt.StartedAt = twitchMetrics.StartedAt.UtcDateTime;
         evt.GameName = twitchMetrics.GameName;
 
         // Populate Twitter analytics

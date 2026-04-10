@@ -51,7 +51,7 @@ public record TwitchMetrics
     public int PeakViewers { get; init; }
     public int UniqueViewers { get; init; }
     public TimeSpan StreamDuration { get; init; }
-    public DateTime StartedAt { get; init; }
+    public DateTimeOffset StartedAt { get; init; }
     public string GameName { get; init; } = string.Empty;
     public ChatMetrics Chat { get; init; } = new(0, 0, 0, 0, []);
     public ViewerRetention Retention { get; init; } = new(0, 0, TimeSpan.Zero, 0);
