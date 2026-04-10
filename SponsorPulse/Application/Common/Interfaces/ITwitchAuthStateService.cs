@@ -9,4 +9,6 @@ public interface ITwitchAuthStateService
     Task<TwitchAuthToken?> FindByStateAsync(string state);
     Task<TwitchAuthToken?> FindByTwitchUserIdAsync(string twitchUserId);
     Task<string?> GetValidAccessTokenAsync(string twitchUserId);
+    Task<List<TwitchAuthToken>> ListAllAsync();
+    Task RemoveByTwitchUserIdAsync(string twitchUserId);
 }

@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +20,24 @@ public static class TwitchAuthExtensions
 
         app.MapGet("/auth/twitch/login", handler.StartLogin).WithName("TwitchLogin");
         app.MapGet("/auth/twitch/callback", handler.HandleCallback).WithName("TwitchCallback");
+
+        // Management endpoints for connected Twitch accounts
+        app.MapGet("/api/twitch/accounts", async (ITwitchAuthStateService stateService) =>
+        {
+            var list = await stateService.ListAllAsync();
+            var dto = list.Select(t => new {
+                twitchUserId = t.TwitchUserId,
+                scopes = t.Scopes,
+                expiresAt = t.ExpiresAt
+            }).ToList();
+            return Results.Ok(dto);
+        }).WithName("ListTwitchAccounts");
+
+        app.MapDelete("/api/twitch/accounts/{twitchUserId}", async (string twitchUserId, ITwitchAuthStateService stateService) =>
+        {
+            await stateService.RemoveByTwitchUserIdAsync(twitchUserId);
+            return Results.Ok(new { success = true });
+        }).WithName("DeleteTwitchAccount");
 
         return app;
     }

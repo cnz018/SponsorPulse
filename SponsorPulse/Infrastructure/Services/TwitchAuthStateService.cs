@@ -70,6 +70,23 @@ public class TwitchAuthStateService : ITwitchAuthStateService
         return await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t => t.TwitchUserId == twitchUserId);
     }
 
+    public async Task<List<TwitchAuthToken>> ListAllAsync()
+    {
+        using var ctx = _dbFactory.CreateDbContext();
+        return await ctx.TwitchAuthTokens.AsNoTracking().ToListAsync();
+    }
+
+    public async Task RemoveByTwitchUserIdAsync(string twitchUserId)
+    {
+        using var ctx = _dbFactory.CreateDbContext();
+        var existing = await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t => t.TwitchUserId == twitchUserId);
+        if (existing != null)
+        {
+            ctx.TwitchAuthTokens.Remove(existing);
+            await ctx.SaveChangesAsync();
+        }
+    }
+
     public async Task<string?> GetValidAccessTokenAsync(string twitchUserId)
     {
         var token = await FindByTwitchUserIdAsync(twitchUserId);

@@ -3,6 +3,8 @@
 @using SponsorPulse.Application.Services
 @using SponsorPulse.Application.Common.Models
 @inject IDemoDataService DemoDataService
+@inject HttpClient Http
+@inject NavigationManager Navigation
 
 <PageTitle>Paramètres - SponsorPulse</PageTitle>
 
@@ -97,6 +99,50 @@
                     </p>
                 </div>
             </div>
+
+                <!-- Section: Twitch Integration -->
+                <div class="settings-section glass-panel">
+                    <div class="section-header">
+                        <div class="section-icon">🎮</div>
+                        <h2 class="section-title">Twitch</h2>
+                    </div>
+                    <div class="section-content">
+                        <p class="form-help">Connectez votre compte Twitch pour accéder aux analytiques propriétaires (extensions / jeux).</p>
+
+                        <div class="form-group">
+                            <button class="btn-primary" @onclick="ConnectTwitch">Connecter Twitch</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Comptes connectés</label>
+                            @if (twitchAccounts == null)
+                            {
+                                <p>Chargement...</p>
+                            }
+                            else if (!twitchAccounts.Any())
+                            {
+                                <p>Aucun compte connecté.</p>
+                            }
+                            else
+                            {
+                                <div class="connected-list">
+                                    @foreach (var acct in twitchAccounts)
+                                    {
+                                        <div class="connected-item flex items-center justify-between p-2 border rounded mb-2">
+                                            <div>
+                                                <div class="text-white font-bold">@acct.TwitchUserId</div>
+                                                <div class="text-gray-400 text-xs">Scopes: @acct.Scopes</div>
+                                            </div>
+                                            <div>
+                                                <button class="btn-danger" @onclick="() => DisconnectTwitch(acct.TwitchUserId)">Disconnect</button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
         </div>
 
         <!-- Section: Couleurs de Marque -->
@@ -640,6 +686,7 @@
             primaryColor = settings.PrimaryColor ?? "#CCC9DC";
             secondaryColor = settings.SecondaryColor ?? "#475569";
         }
+        await LoadTwitchAccounts();
     }
 
     private void RemoveLogo()
@@ -695,6 +742,51 @@
         primaryColor = "#CCC9DC";
         secondaryColor = "#475569";
         ShowToast("Paramètres réinitialisés", "info");
+    }
+
+    // Twitch management
+    private List<TwitchAccountDto>? twitchAccounts;
+
+    private record TwitchAccountDto(string TwitchUserId, string? Scopes, DateTimeOffset? ExpiresAt);
+
+    private async Task LoadTwitchAccounts()
+    {
+        try
+        {
+            twitchAccounts = await Http.GetFromJsonAsync<List<TwitchAccountDto>>("/api/twitch/accounts");
+            twitchAccounts ??= new List<TwitchAccountDto>();
+        }
+        catch
+        {
+            twitchAccounts = new List<TwitchAccountDto>();
+        }
+        StateHasChanged();
+    }
+
+    private void ConnectTwitch()
+    {
+        Navigation.NavigateTo("/auth/twitch/login", true);
+    }
+
+    private async Task DisconnectTwitch(string twitchUserId)
+    {
+        try
+        {
+            var resp = await Http.DeleteAsync($"/api/twitch/accounts/{Uri.EscapeDataString(twitchUserId)}");
+            if (resp.IsSuccessStatusCode)
+            {
+                ShowToast("Compte Twitch déconnecté", "success");
+                await LoadTwitchAccounts();
+            }
+            else
+            {
+                ShowToast("Impossible de supprimer le compte Twitch", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Erreur réseau: " + ex.Message, "error");
+        }
     }
 
     private void SetPrimary(string color)
