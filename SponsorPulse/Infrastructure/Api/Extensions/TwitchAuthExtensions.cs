@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +39,68 @@ public static class TwitchAuthExtensions
             await stateService.RemoveByTwitchUserIdAsync(twitchUserId);
             return Results.Ok(new { success = true });
         }).WithName("DeleteTwitchAccount");
+
+        // Enriched details (display name, login, avatar) for UX
+        app.MapGet("/api/twitch/accounts/details", async (ITwitchAuthStateService stateService, IHttpClientFactory httpFactory, IConfiguration configuration) =>
+        {
+            var list = await stateService.ListAllAsync();
+            var result = new List<object>();
+
+            foreach (var t in list)
+            {
+                string? displayName = null;
+                string? login = null;
+                string? profileImage = null;
+
+                if (!string.IsNullOrEmpty(t.TwitchUserId))
+                {
+                    var token = await stateService.GetValidAccessTokenAsync(t.TwitchUserId);
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        try
+                        {
+                            using var client = httpFactory.CreateClient();
+                            client.DefaultRequestHeaders.Remove("Client-ID");
+                            client.DefaultRequestHeaders.Add("Client-ID", configuration["Twitch:ClientId"]);
+                            client.DefaultRequestHeaders.Remove("Authorization");
+                            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+                            var userResp = await client.GetAsync($"{BaseUrl}/users?id={Uri.EscapeDataString(t.TwitchUserId)}");
+                            if (userResp.IsSuccessStatusCode)
+                            {
+                                var doc = await userResp.Content.ReadFromJsonAsync<JsonDocument>();
+                                if (doc != null && doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+                                {
+                                    var first = data[0];
+                                    if (first.TryGetProperty("display_name", out var dn) && dn.ValueKind == JsonValueKind.String)
+                                        displayName = dn.GetString();
+                                    if (first.TryGetProperty("login", out var lg) && lg.ValueKind == JsonValueKind.String)
+                                        login = lg.GetString();
+                                    if (first.TryGetProperty("profile_image_url", out var pi) && pi.ValueKind == JsonValueKind.String)
+                                        profileImage = pi.GetString();
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // ignore profile enrich failures for UX
+                        }
+                    }
+                }
+
+                result.Add(new
+                {
+                    twitchUserId = t.TwitchUserId,
+                    displayName,
+                    login,
+                    profileImageUrl = profileImage,
+                    scopes = t.Scopes,
+                    expiresAt = t.ExpiresAt
+                });
+            }
+
+            return Results.Ok(result);
+        }).WithName("ListTwitchAccountsDetails");
 
         return app;
     }
