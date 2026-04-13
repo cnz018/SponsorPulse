@@ -1,0 +1,159 @@
+@page "/login"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.ComponentModel.DataAnnotations
+@inject SignInManager<SponsorPulse.Domain.Entities.ApplicationUser> SignInManager
+@inject UserManager<SponsorPulse.Domain.Entities.ApplicationUser> UserManager
+@inject NavigationManager Navigation
+
+<PageTitle>Connexion - SponsorPulse</PageTitle>
+
+<div class="auth-wrapper">
+    <h2>Se connecter</h2>
+
+    @if (!string.IsNullOrEmpty(loginError))
+    {
+        <div class="auth-error">@loginError</div>
+    }
+
+    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-row">
+            <label>Email</label>
+            <InputText @bind-Value="loginModel.Email" />
+        </div>
+
+        <div class="form-row">
+            <label>Mot de passe</label>
+            <InputText @bind-Value="loginModel.Password" type="password" />
+        </div>
+
+        <div class="form-row">
+            <InputCheckbox @bind-Value="loginModel.RememberMe" /> <label>Se souvenir de moi</label>
+        </div>
+
+        <button class="btn-primary" type="submit">Se connecter</button>
+    </EditForm>
+
+    <div class="auth-actions">
+        <button class="btn-link" @onclick="() => showRegister = !showRegister">Créer un compte</button>
+        <a href="/password-recovery">Mot de passe oublié ?</a>
+    </div>
+
+    @if (showRegister)
+    {
+        <div class="register-form">
+            <h3>Créer un compte</h3>
+            @if (!string.IsNullOrEmpty(registerError))
+            {
+                <div class="auth-error">@registerError</div>
+            }
+
+            <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-row">
+                    <label>Prénom</label>
+                    <InputText @bind-Value="registerModel.FirstName" />
+                </div>
+                <div class="form-row">
+                    <label>Nom</label>
+                    <InputText @bind-Value="registerModel.LastName" />
+                </div>
+                <div class="form-row">
+                    <label>Email</label>
+                    <InputText @bind-Value="registerModel.Email" />
+                </div>
+                <div class="form-row">
+                    <label>Mot de passe</label>
+                    <InputText @bind-Value="registerModel.Password" type="password" />
+                </div>
+                <div class="form-row">
+                    <label>Organisation (optionnel)</label>
+                    <InputText @bind-Value="registerModel.OrganizationName" />
+                </div>
+
+                <button class="btn-primary" type="submit">Créer</button>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private RegisterModel registerModel = new();
+    private string? loginError;
+    private string? registerError;
+    private bool showRegister = false;
+
+    private class LoginModel
+    {
+        [Required]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+
+    private class RegisterModel
+    {
+        [Required]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+
+        public string? OrganizationName { get; set; }
+    }
+
+    private async Task HandleLogin()
+    {
+        loginError = null;
+        var result = await SignInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            loginError = "Échec de la connexion. Vérifiez vos identifiants.";
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        registerError = null;
+        var user = new SponsorPulse.Domain.Entities.ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = registerModel.Email,
+            Email = registerModel.Email,
+            FirstName = registerModel.FirstName,
+            LastName = registerModel.LastName,
+            OrganizationName = registerModel.OrganizationName
+        };
+
+        var createResult = await UserManager.CreateAsync(user, registerModel.Password);
+        if (createResult.Succeeded)
+        {
+            await SignInManager.SignInAsync(user, isPersistent: false);
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            registerError = string.Join("; ", createResult.Errors.Select(e => e.Description));
+        }
+    }
+}

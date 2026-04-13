@@ -5,6 +5,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
 @inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 
 <div class="modal-backdrop">
     <div class="modal-content glass-panel fade-in-scale">
@@ -239,8 +240,28 @@
         }
 
         // 3. Persistance via EF Core
-        using var context = await DbFactory.CreateDbContextAsync();
+        // Vérifier l'utilisateur courant et attribuer la propriété OwnerId
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user?.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login?message=sessionExpired");
+            return;
+        }
 
+        var idClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                      ?? user.FindFirst("sub")?.Value;
+
+        if (!Guid.TryParse(idClaim, out var userId))
+        {
+            Navigation.NavigateTo("/login?message=sessionExpired");
+            return;
+        }
+
+        newEvent.OwnerId = userId;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.SetCurrentUser(userId);
         context.Events.Add(newEvent);
         await context.SaveChangesAsync();
 
