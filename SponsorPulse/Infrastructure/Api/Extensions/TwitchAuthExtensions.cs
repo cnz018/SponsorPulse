@@ -256,6 +256,23 @@ public class TwitchAuthHandler
                 Scopes = tokenData.Scope != null ? string.Join(' ', tokenData.Scope) : null,
             };
 
+            // If the user is authenticated in our app, link the Twitch token to that user
+            try
+            {
+                var principal = request.HttpContext?.User;
+                var nameId =
+                    principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    ?? principal?.FindFirst("sub")?.Value;
+                if (!string.IsNullOrEmpty(nameId) && Guid.TryParse(nameId, out var appUserId))
+                {
+                    tokenRecord.UserId = appUserId;
+                }
+            }
+            catch
+            {
+                // Non-fatal — linking is best-effort
+            }
+
             await stateService.SaveAuthTokenAsync(tokenRecord);
 
             return Results.Ok(new { success = true, userId });

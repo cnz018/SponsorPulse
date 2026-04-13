@@ -1,7 +1,13 @@
+using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using LumexUI.Extensions;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse;
+using SponsorPulse.Domain.Entities;
 using SponsorPulse.Infrastructure.Api.Extensions;
 using SponsorPulse.Infrastructure.DependencyInjection;
 using SponsorPulse.Infrastructure.Persistence;
@@ -41,6 +47,55 @@ builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
     options.UseSqlite(connectionString);
 });
 
+// Identity + auth
+builder
+    .Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireDigit = false;
+    })
+    .AddEntityFrameworkStores<SponsorPulseDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/login";
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+});
+
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
+// Minimal IdentityServer configuration (in-memory) for development
+builder
+    .Services.AddIdentityServer(options =>
+    {
+        options.Events.RaiseErrorEvents = true;
+        options.Events.RaiseInformationEvents = true;
+        options.Events.RaiseFailureEvents = true;
+        options.Events.RaiseSuccessEvents = true;
+    })
+    .AddAspNetIdentity<ApplicationUser>()
+    .AddInMemoryIdentityResources(
+        new IdentityResource[] { new IdentityResources.OpenId(), new IdentityResources.Profile() }
+    )
+    .AddInMemoryApiScopes(new ApiScope[] { new ApiScope("sponsor_api", "SponsorPulse API") })
+    .AddInMemoryClients(
+        new Client[]
+        {
+            new Client
+            {
+                ClientId = "sponsorpulse_api_client",
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+                ClientSecrets = { new Secret("dev_secret".Sha256()) },
+                AllowedScopes = { "sponsor_api" },
+            },
+        }
+    )
+    .AddDeveloperSigningCredential();
+
 var app = builder.Build();
 
 // Initialize database
@@ -62,8 +117,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-//app.UseRouting();
+app.UseRouting();
+app.UseIdentityServer();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseWebSockets();
 app.UseAntiforgery();
 app.MapStaticAssets();
