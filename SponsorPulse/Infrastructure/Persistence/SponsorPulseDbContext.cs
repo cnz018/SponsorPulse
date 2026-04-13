@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SponsorPulse.Domain.Entities;
@@ -6,11 +8,19 @@ using SponsorPulse.Domain.Models;
 
 namespace SponsorPulse.Infrastructure.Persistence;
 
-public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> options)
-    : DbContext(options)
+public class SponsorPulseDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
+    // When set (par les composants/authenticator), les filtres globaux utiliseront cet Id
+    public Guid? CurrentUserId { get; set; }
+
+    public SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> options)
+        : base(options) { }
+
     public DbSet<Event> Events { get; set; }
+    public DbSet<EventMedia> EventMedia { get; set; }
     public DbSet<TwitchAuthToken> TwitchAuthTokens { get; set; }
+    public DbSet<Settings> Settings { get; set; }
+    public DbSet<Dashboard> Dashboards { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,9 +28,7 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
 
         modelBuilder.Entity<Event>().HasKey(e => e.Id);
 
-        // Configure ownership of Media collection
-        // Since we are using an owned entity pattern for simplicity in this context
-        // Or just a separate table with FK. Here separate table is cleaner for queryability.
+        // Media
         modelBuilder
             .Entity<Event>()
             .HasMany(e => e.Media)
@@ -29,12 +37,46 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
 
         modelBuilder.Entity<EventMedia>().HasKey(m => m.Id);
 
+        // Owner relation between Event and ApplicationUser (1 -> many)
+        modelBuilder
+            .Entity<Event>()
+            .HasOne(e => e.Owner)
+            .WithMany(u => u.Events)
+            .HasForeignKey(e => e.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Settings 1:1
+        modelBuilder
+            .Entity<ApplicationUser>()
+            .HasOne(u => u.Settings)
+            .WithOne(s => s.User)
+            .HasForeignKey<Settings>(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Dashboard 1:1
+        modelBuilder
+            .Entity<ApplicationUser>()
+            .HasOne(u => u.Dashboard)
+            .WithOne(d => d.User)
+            .HasForeignKey<Dashboard>(d => d.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Global query filter: ne retourner que les events appartenant à l'utilisateur courant
+        modelBuilder
+            .Entity<Event>()
+            .HasQueryFilter(e => !CurrentUserId.HasValue || e.OwnerId == CurrentUserId.Value);
+
         // Twitch OAuth tokens/state
         modelBuilder.Entity<TwitchAuthToken>().HasKey(t => t.Id);
         modelBuilder.Entity<TwitchAuthToken>().Property(t => t.State).IsRequired();
+        modelBuilder
+            .Entity<TwitchAuthToken>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.TwitchAuthTokens)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Configure TwitterAnalytics as JSON column with value converter
-        // Serializes the complex object to JSON for storage in SQLite TEXT column
         var jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
