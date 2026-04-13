@@ -10,4 +10,8 @@ public record TwitchAuthToken
     public DateTimeOffset? ExpiresAt { get; set; }
     public string? Scopes { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    // Optional link to our application user (if known)
+    public Guid? UserId { get; set; }
+    public ApplicationUser? User { get; set; }
 }

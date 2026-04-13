@@ -21,6 +21,10 @@ public record Event(
     string Slug
 )
 {
+    // Owner (user) - FK
+    public Guid OwnerId { get; set; }
+    public ApplicationUser? Owner { get; set; }
+
     public EventStatus Status { get; set; } = EventStatus.Draft;
 
     // Twitch Metrics
