@@ -10,8 +10,8 @@
 
 <div class="settings-page fade-in">
     <div class="settings-header mb-8">
-        <h1 class="text-2xl font-bold text-white">Paramètres de l'organisation</h1>
-        <p class="text-grey-text mt-2">Configurez les informations de votre organisation pour la démonstration</p>
+        <h1 class="text-2xl font-bold text-white">Paramètres</h1>
+        <p class="text-grey-text mt-2">Configurez les informations de votre organisation</p>
     </div>
 
     <div class="settings-grid">
@@ -98,98 +98,99 @@
                     </p>
                 </div>
             </div>
+        </div>
 
-            <!-- Section: Twitch Integration -->
-            <div class="settings-section glass-panel">
-                <div class="section-header">
-                    <div class="section-icon">🎮</div>
-                    <h2 class="section-title">Twitch</h2>
-                </div>
-                <div class="section-content">
-                    <p class="form-help">Connectez votre compte Twitch pour accéder aux analytiques propriétaires
-                        (extensions / jeux).</p>
+        
+        <!-- Section: Twitch Integration -->
+        <div class="settings-section glass-panel">
+            <div class="section-header">
+                <div class="section-icon">🎮</div>
+                <h2 class="section-title">Twitch</h2>
+            </div>
+            <div class="section-content">
+                <p class="form-help">Connectez votre compte Twitch pour accéder aux analytiques propriétaires
+                    (extensions / jeux).</p>
 
-                        <div class="form-group">
-                            <button class="btn-primary" @onclick="ConnectTwitch">Connecter Twitch</button>
+                    <div class="form-group">
+                        <button class="btn-primary" @onclick="ConnectTwitch">Connecter Twitch</button>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="flex items-center justify-between">
+                            <label class="form-label">Comptes connectés</label>
+                            <div class="flex items-center gap-2">
+                                <button class="btn-secondary" @onclick="LoadTwitchAccounts">Rafraîchir</button>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <div class="flex items-center justify-between">
-                                <label class="form-label">Comptes connectés</label>
-                                <div class="flex items-center gap-2">
-                                    <button class="btn-secondary" @onclick="LoadTwitchAccounts">Rafraîchir</button>
-                                </div>
-                            </div>
-
-                            @if (twitchAccounts == null)
-                            {
-                                <p>Chargement...</p>
-                            }
-                            else if (!twitchAccounts.Any())
-                            {
-                                <p>Aucun compte connecté.</p>
-                            }
-                            else
-                            {
-                                <div class="connected-list mt-3">
-                                    @foreach (var acct in twitchAccounts)
-                                    {
-                                        <div
-                                            class="connected-item flex items-center justify-between p-3 border rounded mb-2 bg-gray-900/20">
-                                            <div class="flex items-center gap-3">
-                                                @if (!string.IsNullOrEmpty(acct.ProfileImageUrl))
-                                                {
-                                                    <img src="@acct.ProfileImageUrl" alt="@acct.DisplayName"
-                                                         class="w-12 h-12 rounded" />
+                        @if (twitchAccounts == null)
+                        {
+                            <p>Chargement...</p>
+                        }
+                        else if (!twitchAccounts.Any())
+                        {
+                            <p>Aucun compte connecté.</p>
+                        }
+                        else
+                        {
+                            <div class="connected-list mt-3">
+                                @foreach (var acct in twitchAccounts)
+                                {
+                                    <div
+                                        class="connected-item flex items-center justify-between p-3 border rounded mb-2 bg-gray-900/20">
+                                        <div class="flex items-center gap-3">
+                                            @if (!string.IsNullOrEmpty(acct.ProfileImageUrl))
+                                            {
+                                                <img src="@acct.ProfileImageUrl" alt="@acct.DisplayName" class="w-12 h-12 rounded" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-12 h-12 rounded bg-gray-700 flex items-center justify-center text-sm">
+                                                    T</div>
                                                 }
-                                                else
-                                                {
-                                                    <div class="w-12 h-12 rounded bg-gray-700 flex items-center justify-center text-sm">
-                                                        T</div>
-                                                    }
 
-                                                    <div>
-                                                        <div class="text-white font-semibold">@(acct.DisplayName ?? acct.Login ??
-                                                                                                        acct.TwitchUserId)</div>
-                                                            <div class="text-gray-400 text-xs">@(acct.Login ?? "@" + acct.TwitchUserId) •
-                                                                Scopes: @(acct.Scopes ?? "—")</div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="flex items-center gap-2">
-                                                            @if (acct.ExpiresAt.HasValue)
-                                                            {
-                                                                <div class="text-gray-400 text-xs">Exp: @acct.ExpiresAt.Value.ToString("g")</div>
-                                                            }
-                                                            <button class="btn-danger"
-                                                                    @onclick="() => ShowDisconnectConfirm(acct.TwitchUserId, acct.DisplayName)">Déconnecter</button>
+                                                <div>
+                                                    <div class="text-white font-semibold">@(acct.DisplayName ?? acct.Login ??
+                                                                                                                                                                                                                                                                                                                                                                                                        acct.TwitchUserId)</div>
+                                                        <div class="text-gray-400 text-xs">@(acct.Login ?? "@" + acct.TwitchUserId) •
+                                                            Scopes: @(acct.Scopes ?? "—")</div>
                                                         </div>
                                                     </div>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
 
-                                    @if (showDisconnectConfirm)
-                                    {
-                                        <div class="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
-                                            <div class="bg-gray-800 p-6 rounded shadow-lg w-96">
-                                                <h3 class="text-lg font-bold text-white mb-2">Déconnecter le compte</h3>
-                                                <p class="text-gray-300 mb-4">Voulez-vous vraiment déconnecter <strong>@(confirmDisplayName
-                                                                                        ?? confirmTwitchUserId)</strong> ?</p>
-                                                    <div class="flex justify-end gap-2">
-                                                        <button class="btn-secondary" @onclick="CancelDisconnect"
-                                                                disabled="@isDisconnecting">Annuler</button>
-                                                        <button class="btn-danger" @onclick="ConfirmDisconnect"
-                                                                disabled="@isDisconnecting">@((isDisconnecting) ? "Suppression…" :
-                                                                                                "Confirmer")</button>
-                                                        </div>
+                                                    <div class="flex items-center gap-2">
+                                                        @if (acct.ExpiresAt.HasValue)
+                                                        {
+                                                            <div class="text-gray-400 text-xs">Exp: @acct.ExpiresAt.Value.ToString("g")</div>
+                                                        }
+                                                        <button class="btn-danger"
+                                                                @onclick="() => ShowDisconnectConfirm(acct.TwitchUserId, acct.DisplayName)">Déconnecter</button>
                                                     </div>
                                                 </div>
                                             }
                                         </div>
+                                    }
+                                </div>
+
+                                @if (showDisconnectConfirm)
+                                {
+                                    <div class="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+                                        <div class="bg-gray-800 p-6 rounded shadow-lg w-96">
+                                            <h3 class="text-lg font-bold text-white mb-2">Déconnecter le compte</h3>
+                                            <p class="text-gray-300 mb-4">Voulez-vous vraiment déconnecter <strong>@(confirmDisplayName
+                                                                                                                                                                                                                                                                                                                                                ?? confirmTwitchUserId)</strong> ?</p>
+                                                <div class="flex justify-end gap-2">
+                                                    <button class="btn-secondary" @onclick="CancelDisconnect"
+                                                            disabled="@isDisconnecting">Annuler</button>
+                                                    <button class="btn-danger" @onclick="ConfirmDisconnect"
+                                                            disabled="@isDisconnecting">@((isDisconnecting) ? "Suppression…" :
+                                                                                                                                                                                                                                                                                                                                                                                                "Confirmer")</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
+
 
                                 <!-- Section: Couleurs de Marque -->
                                 <div class="settings-section glass-panel">
@@ -276,7 +277,8 @@
 
                                 <!-- Actions -->
                                 <div class="settings-actions">
-                                    <LumexButton Variant="@Variant.Light" Size="@Size.Medium" OnClick="ResetToDefaults">
+                                    <LumexButton Variant="@Variant.Light" Size="@Size.Medium" Color="@ThemeColor.Default"
+                                                 OnClick="ResetToDefaults">
                                         <span class="button-icon">↺</span> Réinitialiser
                                     </LumexButton>
                                     <div class="actions-spacer"></div>
