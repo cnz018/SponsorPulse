@@ -27,12 +27,16 @@
             </LumexNavbarItem>
         </LumexNavbarContent>
 
-        @* Desktop CTA Button - Hidden on mobile *@
-        <LumexNavbarContent Align="@Align.End" Class="hidden md:flex">
+        @* Desktop Auth Buttons - Hidden on mobile *@
+        <LumexNavbarContent Align="@Align.End" Class="hidden md:flex gap-3">
             <LumexNavbarItem>
-                <LumexButton class="btn-cta-secondary" Variant="@Variant.Ghost" @onclick="NavigateToDemo"
-                             Radius="@Radius.Small">
-                    Tester la démo
+                <LumexButton Variant="@Variant.Ghost" Class="nav-link-btn" Radius="@Radius.Small" @onclick="@(() => Navigation.NavigateTo("/login"))">
+                    Se connecter
+                </LumexButton>
+            </LumexNavbarItem>
+            <LumexNavbarItem>
+                <LumexButton Variant="@Variant.Ghost" Class="btn-cta-primary" Radius="@Radius.Small" @onclick="@(() => Navigation.NavigateTo("/login?s=true"))">
+                    S'inscrire
                 </LumexButton>
             </LumexNavbarItem>
         </LumexNavbarContent>
@@ -62,7 +66,15 @@
                     </LumexLink>
                 </LumexNavbarItem>
                 <LumexNavbarItem>
-                    <LumexLink Href="#faq" Class="mobile-nav-link" @onclick="CloseMobileMenu">FAQ</LumexLink>
+                    <LumexButton class="btn-cta-primary w-full justify-center" Variant="@Variant.Ghost" @onclick="NavigateToLogin" Radius="@Radius.Small">
+                        Se connecter
+                    </LumexButton>
+                </LumexNavbarItem>
+                <LumexNavbarItem>
+                    <LumexButton class="btn-cta-primary w-full justify-center" Variant="@Variant.Ghost"
+                                 @onclick="NavigateToRegister" Radius="@Radius.Small">
+                        S'inscrire
+                    </LumexButton>
                 </LumexNavbarItem>
                 <LumexNavbarItem>
                     <LumexButton class="btn-cta-primary w-full justify-center" Variant="@Variant.Ghost"
@@ -139,6 +151,11 @@
                                         {
                                             <span>Rejoindre la waitlist</span>
                                         }
+                                    </LumexButton>
+
+                                    <LumexButton Variant="@Variant.Ghost" Class="btn-cta-secondary whitespace-nowrap"
+                                                 Radius="@Radius.Small" @onclick="NavigateToDemo">
+                                        Tester la démo
                                     </LumexButton>
                                 </div>
                             }
@@ -735,6 +752,25 @@
         Navigation.NavigateTo("/dashboard");
     }
 
+    private async Task NavigateToLogin()
+    {
+        isLoading = true;
+CloseMobileMenu();
+        StateHasChanged();
+
+        Navigation.NavigateTo("/login");
+    }
+
+        private async Task NavigateToRegister()
+    {
+        isLoading = true;
+CloseMobileMenu();
+        StateHasChanged();
+
+        Navigation.NavigateTo("/login?s=true");
+    }
+
+
     private void CancelLoading()
     {
         isLoading = false;
@@ -1107,6 +1143,29 @@
 
     .landing-navbar .nav-link:hover {
         color: #CCC9DC !important;
+    }
+
+    .nav-link-btn {
+        color: #94A3B8 !important;
+        padding: 0.75rem 1rem !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .nav-link-btn:hover {
+        color: #CCC9DC !important;
+        background: rgba(204, 201, 220, 0.1) !important;
+    }
+
+    .btn-link-mobile {
+        color: #94A3B8 !important;
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .btn-link-mobile:hover {
+        color: #CCC9DC !important;
+        background: rgba(204, 201, 220, 0.05) !important;
     }
 
     /* Feature Tabs Styles */

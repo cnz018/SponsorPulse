@@ -416,4 +416,7 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
 docs/AGENT.md
+docs/*md
+.clinerules
