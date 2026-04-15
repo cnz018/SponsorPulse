@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using SponsorPulse.Application.Common.Interfaces;
 
 namespace SponsorPulse.Infrastructure.Api.Extensions;

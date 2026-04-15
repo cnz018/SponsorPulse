@@ -1,7 +1,6 @@
 using Amazon.Runtime;
 using Amazon.S3;
 using Cloudflare.NET.R2;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace SponsorPulse.Infrastructure.CloudflareR2;

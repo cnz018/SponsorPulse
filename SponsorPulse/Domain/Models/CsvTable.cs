@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SponsorPulse.Domain.Models;
 
 public record CsvTable

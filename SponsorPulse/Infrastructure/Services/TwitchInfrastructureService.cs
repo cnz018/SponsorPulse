@@ -1,10 +1,6 @@
-using System.Linq;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Domain.Models;
 using SponsorPulse.Domain.Primitives;

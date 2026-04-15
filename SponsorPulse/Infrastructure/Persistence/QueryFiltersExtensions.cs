@@ -1,6 +1,5 @@
 namespace SponsorPulse.Infrastructure.Persistence;
 
-using System.Linq.Expressions;
 using SponsorPulse.Domain.Entities;
 
 public static class QueryFiltersExtensions

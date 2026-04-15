@@ -12,7 +12,7 @@ public class CreateEventCommand
     public string Description { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La date est obligatoire.")]
-    public DateTime? Date { get; set; } = DateTime.Today;
+    public DateTime? Date { get; set; } = TimeProvider.System.GetUtcNow().Date;
 
     [Required(ErrorMessage = "Veuillez sélectionner une plateforme.")]
     public string StreamPlatform { get; set; } = "Twitch";

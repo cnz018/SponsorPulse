@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using SponsorPulse.Application.Common.Config; // Added to resolve LlmSettings
 using SponsorPulse.Application.Common.Configuration;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Application.Services;
@@ -46,6 +44,13 @@ public static class InfrastructureDependencyInjection
         services.Configure<R2Settings>(configuration.GetSection("CloudflareR2"));
         services.AddSingleton<IR2ClientFactory, R2ClientFactory>();
         services.AddScoped<IMediaStorageService, MediaStorageService>();
+
+        // LLM Configuration
+        services.Configure<LlmSettings>(configuration.GetSection("LlmSettings"));
+
+        // Storytelling Service
+        services.AddScoped<IStorytellingService, StorytellingService>();
+
         return services;
     }
 }
