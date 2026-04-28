@@ -1,10 +1,12 @@
+using System.Threading.RateLimiting;
 using Duende.IdentityServer;
+using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.Models;
-using Duende.IdentityServer.Services;
 using LumexUI.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse;
 using SponsorPulse.Domain.Entities;
@@ -63,10 +65,30 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/login";
     options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
+
+// Rate Limiting for auth endpoints
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy(
+        "AuthPolicy",
+        context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(5),
+                }
+            )
+    );
+});
 
 // Minimal IdentityServer configuration (in-memory) for development
 builder
@@ -105,7 +127,6 @@ using (var scope = app.Services.CreateScope())
         IDbContextFactory<SponsorPulseDbContext>
     >();
     using var context = await dbFactory.CreateDbContextAsync();
-    // Note: In development, if schema changes, delete the .db file and let EnsureCreatedAsync recreate it
     await context.Database.EnsureCreatedAsync();
 }
 
@@ -118,12 +139,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseRateLimiter();
 app.UseIdentityServer();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
 app.UseAntiforgery();
 app.MapStaticAssets();
+
+app.MapRegisterEndpoints();
+app.MapLoginEndpoints();
 
 // Map Media API endpoints (presigned URLs, etc.)
 app.MapMediaPresignedUrlEndpoints();
@@ -139,5 +164,5 @@ app.MapWaitlistEndpoint();
 
 // Map Blazor Components
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-
+app.UseCors();
 app.Run();

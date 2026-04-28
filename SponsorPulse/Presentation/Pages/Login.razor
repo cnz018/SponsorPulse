@@ -1,15 +1,12 @@
 @layout EmptyLayout
 @page "/login"
+@rendermode RenderMode.InteractiveServer
 @using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.ComponentModel.DataAnnotations
-@using LumexUI
-@using LumexUI.Common
 @using SponsorPulse.Presentation.Components
-@rendermode @(new InteractiveServerRenderMode())
-@inject SignInManager<SponsorPulse.Domain.Entities.ApplicationUser> SignInManager
-@inject UserManager<SponsorPulse.Domain.Entities.ApplicationUser> UserManager
+@using Microsoft.AspNetCore.Components.Web
 @inject NavigationManager Navigation
+
+
 
 <PageTitle>Connexion - SponsorPulse</PageTitle>
 
@@ -17,7 +14,7 @@
     <!-- Navbar avec BrandLogo -->
     <LumexNavbar Sticky="@false" Blurred="@false" Bordered="@false" Height="5rem" Class="login-navbar">
         <LumexNavbarBrand>
-            <div @onclick="@(() => Navigation.NavigateTo("/"))" style="cursor: pointer;">
+            <div @onclick="GoHome" style="cursor: pointer;">
                 <BrandLogo />
             </div>
         </LumexNavbarBrand>
@@ -38,303 +35,202 @@
                 <p class="auth-subtitle">Accédez à votre tableau de bord SponsorPulse</p>
             </div>
 
-            @if (!showRegister)
+            @if (!string.IsNullOrEmpty(loginError))
             {
-                @if (!string.IsNullOrEmpty(loginError))
-                {
-                    <div class="auth-error">
-                        <span>@loginError</span>
-                    </div>
-                }
+                <div class="auth-error">
+                    <span>@loginError</span>
+                </div>
+            }
 
-                <EditForm Model="loginModel" OnValidSubmit="HandleLogin" Class="auth-form">
-                    <DataAnnotationsValidator />
+            <form method="post" action="/auth/login" class="auth-form">
+                <AntiforgeryToken />
 
-                    <div class="form-group">
-                        <label for="email" class="form-label">Email</label>
-                        <InputText @bind-Value="loginModel.Email" id="email" class="form-input-styled" placeholder="vous@exemple.com" />
-                        <ValidationMessage For="@(() => loginModel.Email)" class="form-error-message" />
-                    </div>
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-input-styled" placeholder="vous@exemple.com"
+                           @bind-value="loginModel.Email" />
+                </div>
 
-                    <div class="form-group">
-                        <label for="password" class="form-label">Mot de passe</label>
+                <div class="form-group">
+                    <label for="password" class="form-label">Mot de passe</label>
                     <div class="form-input-wrapper">
-                        <InputText @bind-Value="loginModel.Password" id="password" type="@(showLoginPassword ? "text" : "password")" class="form-input-styled" placeholder="••••••••" />
-                        <button type="button" class="password-toggle" @onclick="() => showLoginPassword = !showLoginPassword" title="Afficher/Masquer le mot de passe">
+                        <input type="@(showLoginPassword ? "text" : "password")" id="password" name="password"
+                               class="form-input-styled" placeholder="••••••••" @bind-value="loginModel.Password" />
+                        <button type="button" class="password-toggle"
+                                @onclick="() => showLoginPassword = !showLoginPassword"
+                                title="Afficher/Masquer le mot de passe">
                             @if (showLoginPassword)
                             {
-                                <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer" class="toggle-icon" />
+                                <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer"
+                                     class="toggle-icon" />
                             }
                             else
                             {
-                                <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher" class="toggle-icon" />
+                                <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher"
+                                     class="toggle-icon" />
                             }
                         </button>
                     </div>
-
-                    <div class="form-checkbox">
-                        <InputCheckbox @bind-Value="loginModel.RememberMe" id="remember" />
-                        <label for="remember" class="form-checkbox-label">Se souvenir de moi</label>
-                    </div>
-
-                    <LumexButton class="btn-primary w-full"  Type="ButtonType.Submit" Variant="@Variant.Ghost">
-                        Se connecter
-                    </LumexButton>
-                </EditForm>
-
-                <div class="auth-divider">
-                    <span>Nouveau sur SponsorPulse ?</span>
                 </div>
-            }
 
-            <LumexButton class="btn-secondary w-full" Variant="@Variant.Ghost" @onclick="() => showRegister = !showRegister">
-                @if (showRegister)
-                {
-                    <span>Masquer le formulaire d'inscription</span>
-                }
-                else
-                {
-                    <span>Créer un compte</span>
-                }
-            </LumexButton>
-
-            <div class="auth-footer">
-                <LumexLink Href="/password-recovery" class="auth-link">Mot de passe oublié ?</LumexLink>
-            </div>
-
-            @if (showRegister)
-            {
-                <div class="register-form-container">
-                    <div class="register-header">
-                        <h2 class="register-title">Créer un compte</h2>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(registerError))
-                    {
-                        <div class="auth-error">
-                            <span>@registerError</span>
-                        </div>
-                    }
-
-                    <EditForm Model="registerModel" OnValidSubmit="HandleRegister" class="auth-form">
-                        <DataAnnotationsValidator />
-
-                        <div class="form-group">
-                            <label for="firstName" class="form-label">Prénom</label>
-                            <InputText @bind-Value="registerModel.FirstName" id="firstName" class="form-input-styled" placeholder="Jean" />
-                            <ValidationMessage For="@(() => registerModel.FirstName)" class="form-error-message" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lastName" class="form-label">Nom</label>
-                            <InputText @bind-Value="registerModel.LastName" id="lastName" class="form-input-styled" placeholder="Dupont" />
-                            <ValidationMessage For="@(() => registerModel.LastName)" class="form-error-message" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="registerEmail" class="form-label">Email</label>
-                            <InputText @bind-Value="registerModel.Email" id="registerEmail" class="form-input-styled" placeholder="vous@exemple.com" />
-                            <ValidationMessage For="@(() => registerModel.Email)" class="form-error-message" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="registerPassword" class="form-label">Mot de passe</label>
-                            <div class="form-input-wrapper">
-                                <InputText @bind-Value="registerModel.Password" id="registerPassword" type="@(showRegisterPassword ? "text" : "password")" class="form-input-styled" placeholder="••••••••" />
-                                <button type="button" class="password-toggle" @onclick="() => showRegisterPassword = !showRegisterPassword" title="Afficher/Masquer le mot de passe">
-                                    @if (showRegisterPassword)
-                                    {
-                                        <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer" class="toggle-icon" />
-                                    }
-                                    else
-                                    {
-                                        <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher" class="toggle-icon" />
-                                    }
-                                </button>
-                            </div>
-                            <ValidationMessage For="@(() => registerModel.Password)" class="form-error-message" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="registerPasswordConfirm" class="form-label">Confirmer votre mot de passe</label>
-                            <div class="form-input-wrapper">
-                                <InputText @bind-Value="registerPasswordConfirm" id="registerPasswordConfirm" type="@(showRegisterPasswordConfirm ? "text" : "password")" class="form-input-styled" placeholder="••••••••" />
-                                <button type="button" class="password-toggle" @onclick="() => showRegisterPasswordConfirm = !showRegisterPasswordConfirm" title="Afficher/Masquer le mot de passe">
-                                    @if (showRegisterPasswordConfirm) Disabled="@(!ArePasswordsValid())"
-                                    {
-                                        <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer" class="toggle-icon" />
-                                    }
-                                    else
-                                    {
-                                        <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher" class="toggle-icon" />
-                                    }
-                                </button>
-                            </div>
-                            @if (!string.IsNullOrEmpty(registerModel.Password) && registerModel.Password != registerPasswordConfirm)
-                            {
-                                <div class="form-error-message">Les mots de passe ne correspondent pas</div>
-                            }
-                        </div>
-
-                        <div class="form-group">
-                            <label for="organization" class="form-label">Organisation (optionnel)</label>
-                            <InputText @bind-Value="registerModel.OrganizationName" id="organization" class="form-input-styled" placeholder="Votre entreprise" />
-                        </div>
-
-                        <LumexButton class="btn-primary w-full" Type="ButtonType.Submit" Variant="@Variant.Ghost">
-                            Créer mon compte
-                        </LumexButton>
-                    </EditForm>
+                <div class="form-checkbox">
+                    <input type="checkbox" id="remember" name="rememberMe" class="form-checkbox"
+                           @bind-value="loginModel.RememberMe" />
+                    <label for="remember" class="form-checkbox-label">Se souvenir de moi</label>
                 </div>
-            }
+
+                <LumexButton class="btn-primary w-full" Type="ButtonType.Submit" Variant="@Variant.Ghost">
+                    Se connecter
+                </LumexButton>
+            </form>
         </div>
     </div>
+
+    <div class="auth-divider">
+        <span>Nouveau sur SponsorPulse ?</span>
+    </div>
+
+    <LumexButton class="btn-secondary w-full" Variant="@Variant.Ghost" @onclick="() => showRegister = !showRegister">
+        @if (showRegister)
+        {
+            <span>Masquer le formulaire d'inscription</span>
+        }
+        else
+        {
+            <span>Créer un compte</span>
+        }
+    </LumexButton>
+
+    <!-- Registration Form -->
+    @if (showRegister)
+    {
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 class="auth-title">Créer un compte</h1>
+                    <p class="auth-subtitle">Rejoignez SponsorPulse</p>
+                </div>
+
+                @if (!string.IsNullOrEmpty(registerError))
+                {
+                    <div class="auth-error">
+                        <span>@registerError</span>
+                    </div>
+                }
+
+                <form method="post" action="/auth/register" class="auth-form">
+                    <AntiforgeryToken />
+
+                    <div class="form-group">
+                        <label for="register-email" class="form-label">Email</label>
+                        <input type="email" id="register-email" name="email" class="form-input-styled" 
+                               placeholder="vous@exemple.com" @bind-value="registerModel.Email" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password" class="form-label">Mot de passe</label>
+                        <div class="form-input-wrapper">
+                            <input type="@(showRegisterPassword ? "text" : "password")" id="register-password" 
+                                   name="password" class="form-input-styled" placeholder="••••••••" 
+                                   @bind-value="registerModel.Password" />
+                            <button type="button" class="password-toggle"
+                                    @onclick="() => showRegisterPassword = !showRegisterPassword"
+                                    title="Afficher/Masquer le mot de passe">
+                                @if (showRegisterPassword)
+                                {
+                                    <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer"
+                                         class="toggle-icon" />
+                                }
+                                else
+                                {
+                                    <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher"
+                                         class="toggle-icon" />
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password" class="form-label">Confirmer le mot de passe</label>
+                        <div class="form-input-wrapper">
+                            <input type="@(showConfirmPassword ? "text" : "password")" id="confirm-password" 
+                                   name="confirmPassword" class="form-input-styled" placeholder="••••••••" 
+                                   @bind-value="registerModel.ConfirmPassword" />
+                            <button type="button" class="password-toggle"
+                                    @onclick="() => showConfirmPassword = !showConfirmPassword"
+                                    title="Afficher/Masquer le mot de passe">
+                                @if (showConfirmPassword)
+                                {
+                                    <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer"
+                                         class="toggle-icon" />
+                                }
+                                else
+                                {
+                                    <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher"
+                                         class="toggle-icon" />
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    <LumexButton class="btn-primary w-full" Type="ButtonType.Submit" Variant="@Variant.Ghost">
+                        Créer un compte
+                    </LumexButton>
+                </form>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
-    private LoginModel loginModel = new();
-    private RegisterModel registerModel = new();
-    private string? loginError;
-    private string? registerError;
     private bool showRegister = false;
     private bool showLoginPassword = false;
     private bool showRegisterPassword = false;
-    private bool showRegisterPasswordConfirm = false;
-    private string registerPasswordConfirm = string.Empty;
+    private bool showConfirmPassword = false;
+    private string? loginError = null;
+    private string? registerError = null;
 
-    [SupplyParameterFromQuery(Name = "s")]
-    public bool? ShowRegisterFromUrl {get; set;} = false;
-
-    private class LoginModel
+    public class LoginModel
     {
-        [Required(ErrorMessage = "L'email est requis")]
-        [EmailAddress(ErrorMessage = "Veuillez entrer une adresse email valide")]
         public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Le mot de passe est requis")]
         public string Password { get; set; } = string.Empty;
-
         public bool RememberMe { get; set; }
     }
 
-    private class RegisterModel
+    public class RegisterModel
     {
-        [Required(ErrorMessage = "Le prénom est requis")]
-        public string FirstName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Le nom est requis")]
-        public string LastName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "L'email est requis")]
-        [EmailAddress(ErrorMessage = "Veuillez entrer une adresse email valide")]
         public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Le mot de passe est requis")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Le mot de passe doit faire au minimum 6 caractères")]
         public string Password { get; set; } = string.Empty;
-
-        public string? OrganizationName { get; set; }
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    protected async override Task OnInitializedAsync()
-    {
-        if (ShowRegisterFromUrl ?? false)
-        {
-            showRegister = true;
-        }
-    }
+    [Parameter]
+    public string? Error { get; set; }
 
-    private async Task HandleLogin()
+    protected override void OnInitialized()
     {
-        loginError = null;
-        try
+        if (!string.IsNullOrEmpty(Error))
         {
-            var result = await SignInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: false);
-            if (result.Succeeded)
+            loginError = Error switch
             {
-                await Task.Delay(500);
-                Navigation.NavigateTo("/dashboard", forceLoad: true);
-            }
-            else
-            {
-                loginError = "Échec de la connexion. Vérifiez vos identifiants.";
-            }
-        }
-        catch (Exception ex)
-        {
-            loginError = "Une erreur s'est produite lors de la connexion.";
-            Console.WriteLine($"Erreur login: {ex.Message}");
-        }
-    }
-
-    private async Task HandleRegister()
-    {
-        registerError = null;
-        try
-        {
-            var user = new SponsorPulse.Domain.Entities.ApplicationUser
-            {
-                Id = Guid.NewGuid(),
-                UserName = registerModel.Email,
-                Email = registerModel.Email,
-                FirstName = registerModel.FirstName,
-                LastName = registerModel.LastName,
-                OrganizationName = registerModel.OrganizationName
+                "invalid_credentials" => "Identifiants invalides",
+                "locked_out" => "Compte verrouillé",
+                "password_mismatch" => "Les mots de passe ne correspondent pas",
+                _ => "Une erreur est survenue"
             };
-
-            var createResult = await UserManager.CreateAsync(user, registerModel.Password);
-            if (createResult.Succeeded)
-            {
-                await SignInManager.SignInAsync(user, isPersistent: false);
-                
-                // Réinitialiser les champs
-                registerModel = new();
-                registerPasswordConfirm = string.Empty;
-                
-                await Task.Delay(500);
-                Navigation.NavigateTo("/dashboard", forceLoad: true);
-            }
-            else
-            {
-                registerError = string.Join("; ", createResult.Errors.Select(e => e.Description));
-            }
-        }
-        catch (Exception ex)
-        {
-            registerError = "Une erreur s'est produite lors de l'inscription.";
-            Console.WriteLine($"Erreur register: {ex.Message}");
         }
     }
 
-    private bool ArePasswordsValid()
+    private LoginModel loginModel = new();
+    private RegisterModel registerModel = new();
+
+    private void GoHome()
     {
-        // Vérifier que les deux mots de passe sont remplis et qu'ils correspondent
-        return !string.IsNullOrEmpty(registerModel.Password) 
-            && !string.IsNullOrEmpty(registerPasswordConfirm) 
-            && registerModel.Password == registerPasswordConfirm;
+        Navigation.NavigateTo("/");
     }
 }
 
 <style>
-    .font-jakarta {
-        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    .gradient-mesh {
-        background: linear-gradient(135deg, rgba(12, 24, 33, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-        position: relative;
-    }
-
-    .login-navbar {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        border-bottom: none !important;
-        position: sticky !important;
-        top: 0 !important;
-        z-index: 1000 !important;
-        transition: background 0.3s ease !important;
-    }
-
     .auth-container {
         position: relative;
         display: flex;
@@ -347,58 +243,47 @@
     .auth-card {
         position: relative;
         z-index: 10;
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(204, 201, 220, 0.15);
-        border-radius: 24px;
-        padding: 3rem;
-        max-width: 450px;
+        background: rgba(13, 15, 23, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 12px;
+        padding: 2.5rem;
         width: 100%;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
-        animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        max-width: 400px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .auth-header {
-        margin-bottom: 2rem;
         text-align: center;
+        margin-bottom: 2rem;
     }
 
     .auth-title {
-        background: linear-gradient(135deg, #CCC9DC 0%, #324A5F 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 2rem;
+        font-size: 1.875rem;
         font-weight: 700;
-        margin: 0 0 0.5rem 0;
-        line-height: 1.2;
+        color: var(--white);
+        margin-bottom: 0.5rem;
     }
 
     .auth-subtitle {
-        color: #94A3B8;
-        font-size: 0.95rem;
-        margin: 0;
+        font-size: 0.875rem;
+        color: var(--slate-400);
     }
 
     .auth-error {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        background: rgba(248, 113, 113, 0.1);
-        border: 1px solid rgba(248, 113, 113, 0.3);
-        border-radius: 12px;
-        padding: 1rem;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
         margin-bottom: 1.5rem;
-        color: #F87171;
-        font-size: 0.9rem;
-        animation: shake 0.3s ease-in-out;
+        font-size: 0.875rem;
     }
 
     .auth-form {
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        margin-bottom: 1.5rem;
     }
 
     .form-group {
@@ -408,28 +293,31 @@
     }
 
     .form-label {
-        color: #CCC9DC;
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--white);
     }
 
     .form-input-styled {
-        width: 100%;
+        background: rgba(51, 65, 85, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: var(--white);
         padding: 0.75rem 1rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(204, 201, 220, 0.15);
-        border-radius: 8px;
-        color: white;
-        font-size: 0.95rem;
-        font-family: inherit;
+        border-radius: 6px;
+        font-size: 0.875rem;
         transition: all 0.2s ease;
+    }
+
+    .form-input-styled:hover {
+        border-color: rgba(148, 163, 184, 0.4);
+        background: rgba(51, 65, 85, 0.7);
     }
 
     .form-input-styled:focus {
         outline: none;
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(204, 201, 220, 0.3);
-        box-shadow: 0 0 12px rgba(204, 201, 220, 0.1);
+        border-color: rgba(148, 163, 184, 0.6);
+        background: rgba(51, 65, 85, 0.9);
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
     }
 
     .form-input-styled::placeholder {
@@ -442,9 +330,8 @@
         align-items: center;
     }
 
-    .form-input-wrapper .form-input-styled {
-        width: 100%;
-        padding-right: 2.5rem;
+    .form-input-wrapper input {
+        flex: 1;
     }
 
     .password-toggle {
@@ -453,227 +340,54 @@
         background: none;
         border: none;
         cursor: pointer;
-        padding: 0.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
-        color: #94A3B8;
+        opacity: 0.6;
+        transition: opacity 0.2s ease;
     }
 
     .password-toggle:hover {
-        color: #CCC9DC;
+        opacity: 1;
     }
 
     .toggle-icon {
-        width: 20px;
-        height: 20px;
-        filter: brightness(0) saturate(100%) invert(60%) sepia(35%) saturate(1200%) hue-rotate(95deg);
-    }
-
-    .password-toggle:hover .toggle-icon {
-        filter: brightness(0) saturate(100%) invert(84%) sepia(27%) saturate(744%) hue-rotate(356deg);
-    }
-
-    .form-error-message {
-        color: #F87171;
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        filter: invert(1);
     }
 
     .form-checkbox {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-checkbox input {
-        width: 18px;
-        height: 18px;
-        accent-color: #CCC9DC;
         cursor: pointer;
     }
 
+    .form-checkbox input {
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
+        accent-color: var(--primary-color, #8b5cf6);
+    }
+
     .form-checkbox-label {
-        color: #94A3B8;
-        font-size: 0.9rem;
+        font-size: 0.875rem;
+        color: var(--slate-400);
         cursor: pointer;
         user-select: none;
     }
 
-    .btn-primary {
-        background: linear-gradient(135deg, rgba(204, 201, 220, 0.2) 0%, rgba(50, 74, 95, 0.2) 100%) !important;
-        border: 1px solid rgba(204, 201, 220, 0.3) !important;
-        color: white !important;
-        font-weight: 600 !important;
-        padding: 0.875rem 1.5rem !important;
-        border-radius: 8px !important;
-        transition: all 0.2s ease !important;
-        cursor: pointer !important;
-    }
-
-    .btn-primary:hover {
-        background: linear-gradient(135deg, rgba(204, 201, 220, 0.3) 0%, rgba(50, 74, 95, 0.3) 100%) !important;
-        border-color: rgba(204, 201, 220, 0.5) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 12px 24px rgba(204, 201, 220, 0.1) !important;
-    }
-
-    .btn-primary:disabled {
-        background: linear-gradient(135deg, rgba(204, 201, 220, 0.1) 0%, rgba(50, 74, 95, 0.1) 100%) !important;
-        border-color: rgba(204, 201, 220, 0.15) !important;
-        color: rgba(255, 255, 255, 0.5) !important;
-        cursor: not-allowed !important;
-        transform: none !important;
-    }
-
-    .btn-primary:disabled:hover {
-        box-shadow: none !important;
-    }
-
-    .btn-secondary {
-        background: transparent !important;
-        border: 1px solid rgba(204, 201, 220, 0.2) !important;
-        color: #94A3B8 !important;
-        font-weight: 500 !important;
-        padding: 0.875rem 1.5rem !important;
-        border-radius: 8px !important;
-        transition: all 0.2s ease !important;
-        cursor: pointer !important;
-    }
-
-    .btn-secondary:hover {
-        background: rgba(204, 201, 220, 0.05) !important;
-        border-color: rgba(204, 201, 220, 0.3) !important;
-        color: #CCC9DC !important;
-    }
-
     .auth-divider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin: 1.5rem 0;
-        color: #94A3B8;
-        font-size: 0.85rem;
-    }
-
-    .auth-divider::before,
-    .auth-divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: rgba(204, 201, 220, 0.1);
-    }
-
-    .auth-footer {
         text-align: center;
-        margin-top: 1.5rem;
+        margin: 2rem 0;
+        color: var(--slate-500);
+        font-size: 0.875rem;
     }
 
-    .auth-link {
-        color: #94A3B8 !important;
-        text-decoration: none;
-        transition: all 0.2s;
-        font-size: 0.9rem;
-    }
-
-    .auth-link:hover {
-        color: #CCC9DC !important;
-        text-decoration: underline;
-    }
-
-    .register-form-container {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid rgba(204, 201, 220, 0.1);
-        animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .register-header {
-        margin-bottom: 1.5rem;
-        text-align: center;
-    }
-
-    .register-title {
-        color: #CCC9DC;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin: 0;
-    }
-
-    @@keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-8px); }
-        75% { transform: translateX(8px); }
-    }
-
-    @@keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .auth-card {
-            padding: 2rem;
-            border-radius: 16px;
-        }
-
-        .auth-title {
-            font-size: 1.5rem;
-        }
-
-        .auth-subtitle {
-            font-size: 0.85rem;
-        }
-
-        .auth-container {
-            min-height: calc(100vh - 4rem);
-            padding: 1rem;
-        }
-    }
-
-    @@media (max-width: 480px) {
-        .auth-card {
-            padding: 1.5rem;
-        }
-
-        .auth-title {
-            font-size: 1.25rem;
-        }
-
-        .form-label {
-            font-size: 0.85rem;
-        }
-
-        .form-input-styled {
-            padding: 0.65rem 0.875rem;
-            font-size: 0.9rem;
-        }
-    }
-
-    /* LumexUI Integration */
-    :deep(.lumex-button) {
-        border-radius: 8px !important;
-    }
-
-    :deep(.lumex-navbar) {
-        background: transparent !important;
-    }
-
-    :deep(.lumex-navbar-brand) {
-        cursor: pointer;
-        transition: transform 0.2s ease;
-    }
-
-    :deep(.lumex-navbar-brand:hover) {
-        transform: scale(1.05);
+    :global(.btn-primary),
+    :global(.btn-secondary) {
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
     }
 </style>

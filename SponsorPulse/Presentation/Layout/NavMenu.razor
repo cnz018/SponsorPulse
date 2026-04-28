@@ -1,5 +1,4 @@
-﻿@using LumexUI.Common
-@using SponsorPulse.Presentation.Components
+﻿@using SponsorPulse.Presentation.Components
 @inject NavigationManager Navigation
 
 <LumexNavbar>
@@ -8,11 +7,15 @@
         <BrandLogo />
     </div>
 
-    <LumexUser Name="John Doe" Description="HyperCore Gaming" Class="user-area">
-        <AvatarContent>
+    <div class="user-area">
+        <div class="user-info">
             <LumexAvatar Size="@Size.Large" Src="https://randomuser.me/api/portraits/" Radius=@Radius.Small />
-        </AvatarContent>
-    </LumexUser>
+            <div class="user-details">
+                <p class="user-name">John Doe</p>
+                <p class="user-desc">HyperCore Gaming</p>
+            </div>
+        </div>
+    </div>
     <LumexDivider />
     <LumexNavbarItem Class="w-full">
         <LumexLink href="/dashboard" class="@GetNavClass("/")">
@@ -33,7 +36,7 @@
         font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
     }
 
-    header::before{
+    header::before {
         background-color: transparent;
     }
 
@@ -43,9 +46,9 @@
         border-bottom: 1px solid rgba(148, 163, 184, 0.15);
     }
 
-.user-area {
+    .user-area {
         display: flex;
-padding-top: 2rem;
+        padding-top: 2rem;
         margin-bottom: 1rem;
     }
 
