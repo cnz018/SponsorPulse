@@ -91,13 +91,17 @@ public static class AuthenntificationExtensions
                     try
                     {
                         var form = await context.Request.ReadFormAsync();
+                        var firstName = form["firstName"];
+                        var organizationName = form["organizationName"];
                         var email = form["email"];
                         var password = form["password"];
                         var confirmPassword = form["confirmPassword"];
 
                         logger.LogInformation(
-                            "Tentative d'inscription pour l'email: {Email}",
-                            email
+                            "Tentative d'inscription pour l'email: {Email}, Nom: {FirstName}, Org: {OrgName}",
+                            email,
+                            firstName,
+                            organizationName
                         );
 
                         if (password != confirmPassword)
@@ -114,6 +118,8 @@ public static class AuthenntificationExtensions
                             UserName = email,
                             Email = email,
                             EmailConfirmed = true,
+                            FirstName = firstName.ToString(),
+                            OrganizationName = organizationName.ToString(),
                         };
 
                         logger.LogDebug(

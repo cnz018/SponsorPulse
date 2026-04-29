@@ -42,96 +42,78 @@
                 </div>
             }
 
-            <form method="post" action="/auth/login" class="auth-form">
-                <AntiforgeryToken />
+            @if (!ShowRegister)
+            {
+                <form method="post" action="/auth/login" class="auth-form">
+                    <AntiforgeryToken />
 
-                <div class="form-group">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" name="email" class="form-input-styled" placeholder="vous@exemple.com"
-                           @bind-value="loginModel.Email" />
-                </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">Mot de passe</label>
-                    <div class="form-input-wrapper">
-                        <input type="@(showLoginPassword ? "text" : "password")" id="password" name="password"
-                               class="form-input-styled" placeholder="••••••••" @bind-value="loginModel.Password" />
-                        <button type="button" class="password-toggle"
-                                @onclick="() => showLoginPassword = !showLoginPassword"
-                                title="Afficher/Masquer le mot de passe">
-                            @if (showLoginPassword)
-                            {
-                                <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer"
-                                     class="toggle-icon" />
-                            }
-                            else
-                            {
-                                <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher"
-                                     class="toggle-icon" />
-                            }
-                        </button>
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-input-styled" placeholder="vous@exemple.com"
+                               @bind-value="loginModel.Email" />
                     </div>
-                </div>
 
-                <div class="form-checkbox">
-                    <input type="checkbox" id="remember" name="rememberMe" class="form-checkbox"
-                           @bind-value="loginModel.RememberMe" />
-                    <label for="remember" class="form-checkbox-label">Se souvenir de moi</label>
-                </div>
-
-                <LumexButton class="btn-primary w-full" Type="ButtonType.Submit" Variant="@Variant.Ghost">
-                    Se connecter
-                </LumexButton>
-            </form>
-        </div>
-    </div>
-
-    <div class="auth-divider">
-        <span>Nouveau sur SponsorPulse ?</span>
-    </div>
-
-    <LumexButton class="btn-secondary w-full" Variant="@Variant.Ghost" @onclick="() => showRegister = !showRegister">
-        @if (showRegister)
-        {
-            <span>Masquer le formulaire d'inscription</span>
-        }
-        else
-        {
-            <span>Créer un compte</span>
-        }
-    </LumexButton>
-
-    <!-- Registration Form -->
-    @if (showRegister)
-    {
-        <div class="auth-container">
-            <div class="auth-card">
-                <div class="auth-header">
-                    <h1 class="auth-title">Créer un compte</h1>
-                    <p class="auth-subtitle">Rejoignez SponsorPulse</p>
-                </div>
-
-                @if (!string.IsNullOrEmpty(registerError))
-                {
-                    <div class="auth-error">
-                        <span>@registerError</span>
+                    <div class="form-group">
+                        <label for="password" class="form-label">Mot de passe</label>
+                        <div class="form-input-wrapper">
+                            <input type="@(showLoginPassword ? "text" : "password")" id="password" name="password"
+                                   class="form-input-styled" placeholder="••••••••" @bind-value="loginModel.Password" />
+                            <button type="button" class="password-toggle"
+                                    @onclick="() => showLoginPassword = !showLoginPassword"
+                                    title="Afficher/Masquer le mot de passe">
+                                @if (showLoginPassword)
+                                {
+                                    <img src="https://api.iconify.design/ic:outline-visibility-off.svg" alt="Masquer"
+                                         class="toggle-icon" />
+                                }
+                                else
+                                {
+                                    <img src="https://api.iconify.design/ic:outline-visibility.svg" alt="Afficher"
+                                         class="toggle-icon" />
+                                }
+                            </button>
+                        </div>
                     </div>
-                }
 
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="remember" name="rememberMe" class="form-checkbox"
+                               @bind-value="loginModel.RememberMe" />
+                        <label for="remember" class="form-checkbox-label">Se souvenir de moi</label>
+                    </div>
+
+                    <LumexButton class="btn-primary w-full" Type="ButtonType.Submit" Variant="@Variant.Ghost">
+                        Se connecter
+                    </LumexButton>
+                </form>
+            }
+            else
+            {
                 <form method="post" action="/auth/register" class="auth-form">
                     <AntiforgeryToken />
 
                     <div class="form-group">
+                        <label for="register-firstname" class="form-label">Nom</label>
+                        <input type="text" id="register-firstname" name="firstName" class="form-input-styled"
+                               placeholder="John Streets" @bind-value="registerModel.FirstName" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-orgname" class="form-label">Nom de l'organisation</label>
+                        <input type="text" id="register-orgname" name="organizationName" class="form-input-styled"
+                               placeholder="Hyper Gaming Core" @bind-value="registerModel.OrganizationName" />
+                    </div>
+
+                    <div class="form-group">
                         <label for="register-email" class="form-label">Email</label>
-                        <input type="email" id="register-email" name="email" class="form-input-styled" 
+                        <input type="email" id="register-email" name="email" class="form-input-styled"
                                placeholder="vous@exemple.com" @bind-value="registerModel.Email" />
                     </div>
 
                     <div class="form-group">
                         <label for="register-password" class="form-label">Mot de passe</label>
                         <div class="form-input-wrapper">
-                            <input type="@(showRegisterPassword ? "text" : "password")" id="register-password" 
-                                   name="password" class="form-input-styled" placeholder="••••••••" 
+                            <input type="@(showRegisterPassword ? "text" : "password")" id="register-password"
+                                   name="password" class="form-input-styled" placeholder="••••••••"
                                    @bind-value="registerModel.Password" />
                             <button type="button" class="password-toggle"
                                     @onclick="() => showRegisterPassword = !showRegisterPassword"
@@ -153,8 +135,8 @@
                     <div class="form-group">
                         <label for="confirm-password" class="form-label">Confirmer le mot de passe</label>
                         <div class="form-input-wrapper">
-                            <input type="@(showConfirmPassword ? "text" : "password")" id="confirm-password" 
-                                   name="confirmPassword" class="form-input-styled" placeholder="••••••••" 
+                            <input type="@(showConfirmPassword ? "text" : "password")" id="confirm-password"
+                                   name="confirmPassword" class="form-input-styled" placeholder="••••••••"
                                    @bind-value="registerModel.ConfirmPassword" />
                             <button type="button" class="password-toggle"
                                     @onclick="() => showConfirmPassword = !showConfirmPassword"
@@ -177,13 +159,28 @@
                         Créer un compte
                     </LumexButton>
                 </form>
-            </div>
+            }
         </div>
-    }
+        <div class="auth-divider">
+            <span>Nouveau sur SponsorPulse ?</span>
+        </div>
+
+        <LumexButton class="btn-secondary w-full" Variant="@Variant.Ghost"
+                     @onclick="() => ShowRegister = !ShowRegister">
+            @if (ShowRegister)
+            {
+                <span>Masquer le formulaire d'inscription</span>
+            }
+            else
+            {
+                <span>Créer un compte</span>
+            }
+        </LumexButton>
+    </div>
 </div>
 
 @code {
-    private bool showRegister = false;
+    public bool ShowRegister { get; set; } = false;
     private bool showLoginPassword = false;
     private bool showRegisterPassword = false;
     private bool showConfirmPassword = false;
@@ -199,6 +196,8 @@
 
     public class RegisterModel
     {
+        public string FirstName { get; set; } = string.Empty;
+        public string OrganizationName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;

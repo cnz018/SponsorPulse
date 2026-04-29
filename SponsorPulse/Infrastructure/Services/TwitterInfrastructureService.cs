@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SponsorPulse.Application.Common.Configuration;
 using SponsorPulse.Application.Common.Interfaces;

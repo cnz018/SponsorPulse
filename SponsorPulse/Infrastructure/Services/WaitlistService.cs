@@ -1,9 +1,7 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using SponsorPulse.Application.Common.Interfaces;
 
 namespace SponsorPulse.Infrastructure.Services;
 

@@ -3,17 +3,13 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.Models;
 using LumexUI.Extensions;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using SponsorPulse;
 using SponsorPulse.Domain.Entities;
 using SponsorPulse.Infrastructure.Api.Extensions;
 using SponsorPulse.Infrastructure.DependencyInjection;
 using SponsorPulse.Infrastructure.Persistence;
-using SponsorPulse.Infrastructure.Services;
 using SponsorPulse.Presentation;
 using SponsorPulse.Presentation.Services;
 
@@ -50,8 +46,7 @@ builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
 });
 
 // Identity + auth
-builder
-    .Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
     {
         options.User.RequireUniqueEmail = true;
         options.Password.RequireNonAlphanumeric = false;
@@ -91,8 +86,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // Minimal IdentityServer configuration (in-memory) for development
-builder
-    .Services.AddIdentityServer(options =>
+builder.Services.AddIdentityServer(options =>
     {
         options.Events.RaiseErrorEvents = true;
         options.Events.RaiseInformationEvents = true;
@@ -161,6 +155,9 @@ app.MapTwitchAnalyticsEndpoints();
 
 // Map Waitlist API endpoint
 app.MapWaitlistEndpoint();
+
+// Storytelling endpoint (Azure Function style)
+app.MapStorytellingFunctionEndpoints();
 
 // Map Blazor Components
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();

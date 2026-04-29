@@ -8,532 +8,531 @@ using SponsorPulse.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace SponsorPulse.Migrations
+namespace SponsorPulse.Migrations;
+
+[DbContext(typeof(SponsorPulseDbContext))]
+[Migration("20260413132730_AddIdentityAndUserEntities")]
+partial class AddIdentityAndUserEntities
 {
-    [DbContext(typeof(SponsorPulseDbContext))]
-    [Migration("20260413132730_AddIdentityAndUserEntities")]
-    partial class AddIdentityAndUserEntities
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
+        modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                b.Property<string>("ConcurrencyStamp")
+                    .IsConcurrencyToken()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                b.Property<string>("Name")
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                b.Property<string>("NormalizedName")
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
+                b.HasIndex("NormalizedName")
+                    .IsUnique()
+                    .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
-                });
+                b.ToTable("AspNetRoles", (string)null);
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
+                b.Property<string>("ClaimType")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
+                b.Property<string>("ClaimValue")
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid>("RoleId")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("RoleId");
+                b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
-                });
+                b.ToTable("AspNetRoleClaims", (string)null);
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
+                b.Property<string>("ClaimType")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
+                b.Property<string>("ClaimValue")
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
-                });
+                b.ToTable("AspNetUserClaims", (string)null);
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
-                {
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+            {
+                b.Property<string>("LoginProvider")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("ProviderKey")
-                        .HasColumnType("TEXT");
+                b.Property<string>("ProviderKey")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("TEXT");
+                b.Property<string>("ProviderDisplayName")
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("LoginProvider", "ProviderKey");
+                b.HasKey("LoginProvider", "ProviderKey");
 
-                    b.HasIndex("UserId");
+                b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
-                });
+                b.ToTable("AspNetUserLogins", (string)null);
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
+            {
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid>("RoleId")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("UserId", "RoleId");
+                b.HasKey("UserId", "RoleId");
 
-                    b.HasIndex("RoleId");
+                b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
-                });
+                b.ToTable("AspNetUserRoles", (string)null);
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+            {
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
+                b.Property<string>("LoginProvider")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                b.Property<string>("Name")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Value")
-                        .HasColumnType("TEXT");
+                b.Property<string>("Value")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("UserId", "LoginProvider", "Name");
+                b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
-                });
+                b.ToTable("AspNetUserTokens", (string)null);
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.ApplicationUser", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.ApplicationUser", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
 
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("INTEGER");
+                b.Property<int>("AccessFailedCount")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                b.Property<string>("ConcurrencyStamp")
+                    .IsConcurrencyToken()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                b.Property<string>("Email")
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
 
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("INTEGER");
+                b.Property<bool>("EmailConfirmed")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("FirstName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("LastName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("INTEGER");
+                b.Property<bool>("LockoutEnabled")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("TEXT");
+                b.Property<DateTimeOffset?>("LockoutEnd")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                b.Property<string>("NormalizedEmail")
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                b.Property<string>("NormalizedUserName")
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("OrganizationLogoUrl")
-                        .HasColumnType("TEXT");
+                b.Property<string>("OrganizationLogoUrl")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("OrganizationName")
-                        .HasColumnType("TEXT");
+                b.Property<string>("OrganizationName")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
+                b.Property<string>("PasswordHash")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("TEXT");
+                b.Property<string>("PhoneNumber")
+                    .HasColumnType("TEXT");
 
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("INTEGER");
+                b.Property<bool>("PhoneNumberConfirmed")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("ProfilePhotoUrl")
-                        .HasColumnType("TEXT");
+                b.Property<string>("ProfilePhotoUrl")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("TEXT");
+                b.Property<string>("SecurityStamp")
+                    .HasColumnType("TEXT");
 
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("INTEGER");
+                b.Property<bool>("TwoFactorEnabled")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                b.Property<string>("UserName")
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
+                b.HasIndex("NormalizedEmail")
+                    .HasDatabaseName("EmailIndex");
 
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
+                b.HasIndex("NormalizedUserName")
+                    .IsUnique()
+                    .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", (string)null);
-                });
+                b.ToTable("AspNetUsers", (string)null);
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.Dashboard", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.Dashboard", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("DataJson")
-                        .HasColumnType("TEXT");
+                b.Property<string>("DataJson")
+                    .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("TEXT");
+                b.Property<DateTime>("LastUpdated")
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                b.HasIndex("UserId")
+                    .IsUnique();
 
-                    b.ToTable("Dashboards");
-                });
+                b.ToTable("Dashboards");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.Event", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.Event", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("ChannelId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("ChannelId")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
+                b.Property<DateTime>("Date")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("GameName")
-                        .HasColumnType("TEXT");
+                b.Property<string>("GameName")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid>("OwnerId")
+                    .HasColumnType("TEXT");
 
-                    b.Property<int?>("PeakViewers")
-                        .HasColumnType("INTEGER");
+                b.Property<int?>("PeakViewers")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("Slug")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("TEXT");
+                b.Property<DateTime?>("StartedAt")
+                    .HasColumnType("TEXT");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
+                b.Property<int>("Status")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<TimeSpan?>("StreamDuration")
-                        .HasColumnType("TEXT");
+                b.Property<TimeSpan?>("StreamDuration")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("StreamPlatform")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("StreamPlatform")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("TwitterAnalytics")
-                        .HasColumnType("TEXT");
+                b.Property<string>("TwitterAnalytics")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("TwitterHashtags")
-                        .HasColumnType("TEXT");
+                b.Property<string>("TwitterHashtags")
+                    .HasColumnType("TEXT");
 
-                    b.Property<int?>("ViewerCount")
-                        .HasColumnType("INTEGER");
+                b.Property<int?>("ViewerCount")
+                    .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("OwnerId");
+                b.HasIndex("OwnerId");
 
-                    b.ToTable("Events");
-                });
+                b.ToTable("Events");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.EventMedia", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.EventMedia", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("ContentType")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("EventId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid?>("EventId")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("OriginalFileName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("OriginalFileName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<long>("Size")
-                        .HasColumnType("INTEGER");
+                b.Property<long>("Size")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<string>("StorageFileName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("StorageFileName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("TEXT");
+                b.Property<DateTime>("UploadedAt")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("Url")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("EventId");
+                b.HasIndex("EventId");
 
-                    b.ToTable("EventMedia");
-                });
+                b.ToTable("EventMedia");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.Settings", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.Settings", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnType("TEXT");
+                b.Property<DateTime>("LastModified")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("PreferredLanguage")
-                        .HasColumnType("TEXT");
+                b.Property<string>("PreferredLanguage")
+                    .HasColumnType("TEXT");
 
-                    b.Property<bool>("ReceiveEmails")
-                        .HasColumnType("INTEGER");
+                b.Property<bool>("ReceiveEmails")
+                    .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                b.HasIndex("UserId")
+                    .IsUnique();
 
-                    b.ToTable("Settings");
-                });
+                b.ToTable("Settings");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.TwitchAuthToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.TwitchAuthToken", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("AccessToken")
-                        .HasColumnType("TEXT");
+                b.Property<string>("AccessToken")
+                    .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                b.Property<DateTimeOffset>("CreatedAt")
+                    .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("TEXT");
+                b.Property<DateTimeOffset?>("ExpiresAt")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("TEXT");
+                b.Property<string>("RefreshToken")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("Scopes")
-                        .HasColumnType("TEXT");
+                b.Property<string>("Scopes")
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                b.Property<string>("State")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
-                    b.Property<string>("TwitchUserId")
-                        .HasColumnType("TEXT");
+                b.Property<string>("TwitchUserId")
+                    .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("TEXT");
+                b.Property<Guid?>("UserId")
+                    .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                b.HasIndex("UserId");
 
-                    b.ToTable("TwitchAuthTokens");
-                });
+                b.ToTable("TwitchAuthTokens");
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
+            {
+                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
+                    .WithMany()
+                    .HasForeignKey("RoleId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
+            {
+                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
+                    .WithMany()
+                    .HasForeignKey("RoleId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", null)
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.Dashboard", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "User")
-                        .WithOne("Dashboard")
-                        .HasForeignKey("SponsorPulse.Domain.Entities.Dashboard", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.Dashboard", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "User")
+                    .WithOne("Dashboard")
+                    .HasForeignKey("SponsorPulse.Domain.Entities.Dashboard", "UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.Event", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "Owner")
-                        .WithMany("Events")
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.Event", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "Owner")
+                    .WithMany("Events")
+                    .HasForeignKey("OwnerId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Owner");
-                });
+                b.Navigation("Owner");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.EventMedia", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.Event", null)
-                        .WithMany("Media")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.EventMedia", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.Event", null)
+                    .WithMany("Media")
+                    .HasForeignKey("EventId")
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.Settings", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "User")
-                        .WithOne("Settings")
-                        .HasForeignKey("SponsorPulse.Domain.Entities.Settings", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.Settings", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "User")
+                    .WithOne("Settings")
+                    .HasForeignKey("SponsorPulse.Domain.Entities.Settings", "UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.TwitchAuthToken", b =>
-                {
-                    b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "User")
-                        .WithMany("TwitchAuthTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.TwitchAuthToken", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "User")
+                    .WithMany("TwitchAuthTokens")
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.ApplicationUser", b =>
-                {
-                    b.Navigation("Dashboard");
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.ApplicationUser", b =>
+            {
+                b.Navigation("Dashboard");
 
-                    b.Navigation("Events");
+                b.Navigation("Events");
 
-                    b.Navigation("Settings");
+                b.Navigation("Settings");
 
-                    b.Navigation("TwitchAuthTokens");
-                });
+                b.Navigation("TwitchAuthTokens");
+            });
 
-            modelBuilder.Entity("SponsorPulse.Domain.Entities.Event", b =>
-                {
-                    b.Navigation("Media");
-                });
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.Event", b =>
+            {
+                b.Navigation("Media");
+            });
 #pragma warning restore 612, 618
-        }
     }
 }

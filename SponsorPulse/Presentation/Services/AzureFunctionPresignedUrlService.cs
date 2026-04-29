@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-using Microsoft.Extensions.Logging;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Application.Common.Models;
 
