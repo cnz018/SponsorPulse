@@ -1,6 +1,6 @@
 @page "/dashboard"
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @rendermode RenderMode.InteractiveServer
+@* @attribute [Microsoft.AspNetCore.Authorization.Authorize] *@
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
 @using SponsorPulse.Presentation.Components
@@ -13,7 +13,7 @@
 @inject NavigationManager Navigation
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
 @inject IDemoDataService DemoDataService
-@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
+@* @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider *@
 
 <PageTitle>Dashboard - SponsorPulse</PageTitle>
 
@@ -415,7 +415,7 @@
 
 @code {
     private bool showCreateModal = false;
-    private List<Event>? events;
+    private List<Event>? events = [];
     private Event? eventToDelete;
     private DashboardStats? dashboardStats;
 
@@ -446,8 +446,7 @@
         }
         else
         {
-            // En mode normal, charger depuis la base de données et appliquer filtre utilisateur
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            @* var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             if (user?.Identity == null || !user.Identity.IsAuthenticated)
             {
@@ -464,12 +463,13 @@
             {
                 Navigation.NavigateTo("/login?message=sessionExpired");
                 return;
-            }
+            } *@
 
+            // En mode normal, charger depuis la base de données
             using var context = await DbFactory.CreateDbContextAsync();
-            // Set the current user so EF Core global filters apply
-            context.SetCurrentUser(userId);
-            events = await context.Events.OrderByDescending(e => e.Date).ToListAsync();
+
+            var res = context.Events is null;
+            events = res ? await context.Events?.OrderByDescending(e => e.Date).ToListAsync() ?? [] : [];
         }
     }
 
@@ -531,27 +531,8 @@
     {
         if (eventToDelete == null) return;
 
-        // Ensure user can only delete their own events
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user?.Identity == null || !user.Identity.IsAuthenticated)
-        {
-            Navigation.NavigateTo("/login?message=sessionExpired");
-            return;
-        }
-
-        var idClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                      ?? user.FindFirst("sub")?.Value;
-
-        if (!Guid.TryParse(idClaim, out var userId))
-        {
-            Navigation.NavigateTo("/login?message=sessionExpired");
-            return;
-        }
-
         using var context = await DbFactory.CreateDbContextAsync();
-        context.SetCurrentUser(userId);
-        var evt = await context.Events.FirstOrDefaultAsync(e => e.Id == eventToDelete.Id);
+        var evt = await context.Events.FindAsync(eventToDelete.Id);
         if (evt != null)
         {
             context.Events.Remove(evt);
