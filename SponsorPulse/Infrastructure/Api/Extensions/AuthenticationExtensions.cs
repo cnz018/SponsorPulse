@@ -1,11 +1,13 @@
 using System.Security.Claims;
+using Duende.IdentityServer.Extensions;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using SponsorPulse.Domain.Entities;
 
 namespace SponsorPulse.Infrastructure.Api.Extensions;
 
-public static class AuthenntificationExtensions
+public static class AuthenticationExtensions
 {
     public static WebApplication MapLoginEndpoints(this WebApplication app)
     {
@@ -15,7 +17,8 @@ public static class AuthenntificationExtensions
                     HttpContext context,
                     ILogger<Program> logger,
                     SignInManager<ApplicationUser> signInManager,
-                    UserManager<ApplicationUser> userManager
+                    UserManager<ApplicationUser> userManager,
+                    AuthenticationStateProvider authStateProvider
                 ) =>
                 {
                     try
@@ -149,7 +152,8 @@ public static class AuthenntificationExtensions
 
                         // Récupérer l'utilisateur pour s'assurer que l'ID est bien défini
                         var createdUser = await userManager.FindByEmailAsync(email!);
-                        if (createdUser == null)
+
+                        if (createdUser is null)
                         {
                             logger.LogError(
                                 "Impossible de récupérer l'utilisateur juste créé: {Email}",
@@ -167,9 +171,9 @@ public static class AuthenntificationExtensions
 
                         var claims = new List<Claim>
                         {
-                            new Claim("sub", createdUser.Id.ToString()),
-                            new Claim(ClaimTypes.Name, createdUser.UserName),
-                            new Claim(ClaimTypes.Email, createdUser.Email),
+                            new("sub", createdUser.Id.ToString()),
+                            new(ClaimTypes.Name, createdUser.UserName),
+                            new(ClaimTypes.Email, createdUser.Email),
                         };
 
                         await signInManager.SignInWithClaimsAsync(createdUser, false, claims);
