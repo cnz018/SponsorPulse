@@ -1,77 +1,42 @@
-.page {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+/* MainLayout.razor.css */
+
+/* 1. CONTENEUR PRINCIPAL EN GRILLE */
+#app-layout {
+    display: grid;
+    
+    /* Découpe l'écran en 2 colonnes : 260px à gauche, et le reste (1fr) à droite */
+    grid-template-columns: 260px minmax(0, 1fr);
+    
+    /* Définition d'une seule ligne qui prend exactement 100% de la hauteur de l'écran */
+    grid-template-rows: 100vh;
+    
+    /* Carte visuelle de notre écran : le menu à gauche, le contenu à droite */
+    grid-template-areas: "sidebar content";
+    
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Empêche les barres de défilement globales indésirables */
+    background: radial-gradient(circle at top right, #0B0F19 0%, #061B2E 100%);
+    color: #ffffff;
 }
 
-main {
-    flex: 1;
+/* 2. ZONE DU MENU (À GAUCHE) */
+#sidebar-container {
+    grid-area: sidebar; /* Place cet élément obligatoirement dans la colonne 'sidebar' (260px) */
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 10;
+    background-color: white !important; /* Assure que le fond de la sidebar reste blanc */
 }
 
-.sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
-}
-
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-    }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
-}
-
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
-
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
-    }
+/* 3. ZONE DU TABLEAU DE BORD (À DROITE) */
+#main-content {
+    grid-area: content; /* Place cet élément obligatoirement dans la colonne 'content' (1fr) */
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; /* Active le défilement vertical uniquement si tes cartes dépassent en bas */
+    overflow-x: hidden;
+    padding: 2rem; /* Espace respirant autour de ton tableau de bord */
+    box-sizing: border-box;
 }
