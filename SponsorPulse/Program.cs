@@ -3,6 +3,7 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.Models;
 using LumexUI.Extensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -59,13 +60,17 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/login";
-    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.ExpireTimeSpan = TimeSpan.FromHours(2);
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.SlidingExpiration = true;
 });
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
+
+// Permet de propager l'état d'authentification du serveur vers le client WebAssembly
+builder.Services.AddCascadingAuthenticationState();
 
 // Rate Limiting for auth endpoints
 builder.Services.AddRateLimiter(options =>

@@ -14,16 +14,15 @@ public static class AuthenticationExtensions
         app.MapPost(
                 "/auth/login",
                 async (
-                    HttpContext context,
+                    HttpContext httpContext,
                     ILogger<Program> logger,
                     SignInManager<ApplicationUser> signInManager,
-                    UserManager<ApplicationUser> userManager,
-                    AuthenticationStateProvider authStateProvider
+                    UserManager<ApplicationUser> userManager
                 ) =>
                 {
                     try
                     {
-                        var form = await context.Request.ReadFormAsync();
+                        var form = await httpContext.Request.ReadFormAsync();
                         var email = form["email"];
                         var password = form["password"];
                         var rememberMe = form["rememberMe"] == "true";
@@ -44,7 +43,7 @@ public static class AuthenticationExtensions
                         var result = await signInManager.PasswordSignInAsync(
                             user,
                             password!,
-                            rememberMe,
+                            isPersistent: true,
                             lockoutOnFailure: false
                         );
 
