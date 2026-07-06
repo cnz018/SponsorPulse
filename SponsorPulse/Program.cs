@@ -4,6 +4,7 @@ using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.Models;
 using LumexUI.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -33,13 +34,20 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Register HttpClient
 builder.Services.AddHttpClient();
 
+// fix le cookie pendant le développement local (localhost) pour l'authentification
+builder
+    .Services.AddDataProtection()
+    .PersistKeysToFileSystem(
+        new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "persistedKeys"))
+    )
+    .SetApplicationName("SponsorPulseApp");
+
 // Register Presigned URL API Service
 builder.Services.AddScoped<PresignedUrlApiService>();
 
 // Database Context
 var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Data Source=SponsorPulseV2.db";
+    builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=SponsorPulse.db";
 
 builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
 {
@@ -47,7 +55,8 @@ builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
 });
 
 // Identity + auth
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+builder
+    .Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
     {
         options.User.RequireUniqueEmail = true;
         options.Password.RequireNonAlphanumeric = false;
@@ -65,7 +74,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     options.SlidingExpiration = true;
 });
-
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
@@ -91,7 +99,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // Minimal IdentityServer configuration (in-memory) for development
-builder.Services.AddIdentityServer(options =>
+builder
+    .Services.AddIdentityServer(options =>
     {
         options.Events.RaiseErrorEvents = true;
         options.Events.RaiseInformationEvents = true;
@@ -99,9 +108,7 @@ builder.Services.AddIdentityServer(options =>
         options.Events.RaiseSuccessEvents = true;
     })
     .AddAspNetIdentity<ApplicationUser>()
-    .AddInMemoryIdentityResources(
-        new IdentityResource[] { new IdentityResources.OpenId(), new IdentityResources.Profile() }
-    )
+    .AddInMemoryIdentityResources([new IdentityResources.OpenId(), new IdentityResources.Profile()])
     .AddInMemoryApiScopes(new ApiScope[] { new ApiScope("sponsor_api", "SponsorPulse API") })
     .AddInMemoryClients(
         new Client[]
@@ -110,7 +117,7 @@ builder.Services.AddIdentityServer(options =>
             {
                 ClientId = "sponsorpulse_api_client",
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
-                ClientSecrets = { new Secret("dev_secret".Sha256()) },
+                ClientSecrets = { new Duende.IdentityServer.Models.Secret("dev_secret".Sha256()) },
                 AllowedScopes = { "sponsor_api" },
             },
         }
