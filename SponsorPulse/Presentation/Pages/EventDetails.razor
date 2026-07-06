@@ -1214,7 +1214,9 @@
 
                 if (!authState.TryGetUserId(out var userId))
                 {
-                    throw new InvalidOperationException("Utilisateur non authentifié.");
+                    Navigation.NavigateTo("/login?message=sessionExpired");
+
+                    return;
                 }
 
                 dbContext.SetCurrentUser(userId);

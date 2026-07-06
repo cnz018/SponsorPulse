@@ -468,7 +468,7 @@
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
 
-            if (authState.TryGetUserId(out Guid? userId))
+            if (!authState.TryGetUserId(out Guid? userId))
             {
                 Navigation.NavigateTo("/login?message=sessionExpired");
 
