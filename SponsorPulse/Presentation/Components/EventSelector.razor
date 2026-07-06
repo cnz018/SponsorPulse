@@ -59,7 +59,7 @@
                     <span class="event-name">@context.Name</span>
                     <div class="event-meta">
                         <span class="platform-badge @GetPlatformClass(context.StreamPlatform)">
-                            <img src="https://api.iconify.design/@(GetPlatformIcon(context.StreamPlatform)).svg" 
+                            <img src="https://api.iconify.design/@(GetPlatformIcon(context.StreamPlatform)).svg"
                                  class="platform-icon" alt="" />
                             @context.StreamPlatform
                         </span>
@@ -96,14 +96,16 @@
                             @if (context.ViewerCount.HasValue)
                             {
                                 <span class="metric-item">
-                                    <img src="https://api.iconify.design/ic:outline-remove-red-eye.svg" class="metric-icon" alt="" />
+                                    <img src="https://api.iconify.design/ic:outline-remove-red-eye.svg" class="metric-icon"
+                                         alt="" />
                                     @FormatNumber(context.ViewerCount.Value)
                                 </span>
                             }
                             @if (context.PeakViewers.HasValue)
                             {
                                 <span class="metric-item">
-                                    <img src="https://api.iconify.design/ic:outline-trending-up.svg" class="metric-icon" alt="" />
+                                    <img src="https://api.iconify.design/ic:outline-trending-up.svg" class="metric-icon"
+                                         alt="" />
                                     @FormatNumber(context.PeakViewers.Value)
                                 </span>
                             }
@@ -113,16 +115,19 @@
                     {
                         <div class="metric-group twitter-metrics">
                             <span class="metric-item">
-                                <img src="https://api.iconify.design/ic:outline-message.svg" class="metric-icon twitter-icon" alt="" />
+                                <img src="https://api.iconify.design/ic:outline-message.svg"
+                                     class="metric-icon twitter-icon" alt="" />
                                 @(context.TwitterAnalytics.EngagementRate * 100).ToString("F1")%
                             </span>
                             <span class="metric-item">
-                                <img src="https://api.iconify.design/ic:outline-monitor.svg" class="metric-icon twitter-icon" alt="" />
+                                <img src="https://api.iconify.design/ic:outline-monitor.svg"
+                                     class="metric-icon twitter-icon" alt="" />
                                 @FormatImpressions(context.TwitterAnalytics.EstimatedImpressions)
                             </span>
                         </div>
                     }
-                    @if (!context.ViewerCount.HasValue && !context.PeakViewers.HasValue && context.TwitterAnalytics == null)
+                    @if (!context.ViewerCount.HasValue && !context.PeakViewers.HasValue && context.TwitterAnalytics ==
+                    null)
                     {
                         <span class="no-metrics">—</span>
                     }
@@ -593,6 +598,18 @@
         ("Erreur", EventStatus.Error)
     };
 
+    @* protected override void OnParametersSet()
+    {
+        // Reset selected events when the Events parameter changes
+        SelectedEvents.Clear();
+        OpenMenuId = null;
+        OpenBulkMenu = false;
+        SearchQuery = string.Empty;
+        _currentFilter = null;
+
+        StateHasChanged();
+    } *@
+
     private IQueryable<Event> FilteredEvents
     {
         get
@@ -621,8 +638,8 @@
     {
         var events = Events;
         if (events == null || !events.Any()) return 0;
-        return status.HasValue 
-            ? events.Count(e => e.Status == status.Value) 
+        return status.HasValue
+            ? events.Count(e => e.Status == status.Value)
             : events.Count;
     }
 

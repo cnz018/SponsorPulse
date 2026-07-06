@@ -1,6 +1,7 @@
 @page "/dashboard"
 @rendermode RenderMode.InteractiveServer
 @* @attribute [Microsoft.AspNetCore.Authorization.Authorize] *@
+@using Microsoft.AspNetCore.Components.Authorization
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Infrastructure.Persistence
 @using SponsorPulse.Presentation.Components
@@ -10,10 +11,12 @@
 @using Microsoft.AspNetCore.Components.Web
 @using LumexUI
 @using LumexUI.Common
+@using SponsorPulse.Application.Common.Extensions
+
 @inject NavigationManager Navigation
 @inject IDbContextFactory<SponsorPulseDbContext> DbFactory
 @inject IDemoDataService DemoDataService
-@* @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider *@
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Dashboard - SponsorPulse</PageTitle>
 
@@ -39,9 +42,26 @@
         </div>
     }
 
-    <EventSelector Events="events" OnEdit="HandleEditEvent" OnDelete="HandleDeleteEvent" OnAnalyze="HandleAnalyzeEvent"
-                   OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze" OnBulkDelete="HandleBulkDelete"
-                   OnNavigateToEvent="HandleNavigateToEvent" />
+    <AuthorizeView>
+        <Authorized>
+            <EventSelector Events="events" OnEdit="HandleEditEvent" OnDelete="HandleDeleteEvent"
+                           OnAnalyze="HandleAnalyzeEvent" OnGenerate="HandleGenerateEvent" OnBulkAnalyze="HandleBulkAnalyze"
+                           OnBulkDelete="HandleBulkDelete" OnNavigateToEvent="HandleNavigateToEvent" />
+        </Authorized>
+        <Authorizing>
+            <div class="text-center text-gray-400 mt-8">
+                <p>Chargement des événements...</p>
+            </div>
+        </Authorizing>
+        <NotAuthorized>
+            <div class="text-center text-gray-400 mt-8">
+                <p>Vous devez être connecté pour voir vos événements.</p>
+                <LumexButton Class="mt-4" Variant="@Variant.Ghost" OnClick="@(() => Navigation.NavigateTo("/login"))">
+                    Se connecter
+                </LumexButton>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
 
     <div class="waitlist-card mt-8">
         <div class="waitlist-content">
@@ -446,30 +466,24 @@
         }
         else
         {
-            @* var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-            if (user?.Identity == null || !user.Identity.IsAuthenticated)
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            if (authState.TryGetUserId(out Guid? userId))
             {
-                // Rediriger vers la page de login si la session n'est plus active
                 Navigation.NavigateTo("/login?message=sessionExpired");
+
                 return;
             }
 
-            // Try to get the user's id claim (Identity stores it as NameIdentifier)
-            var idClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                          ?? user.FindFirst("sub")?.Value;
 
-            if (!Guid.TryParse(idClaim, out var userId))
-            {
-                Navigation.NavigateTo("/login?message=sessionExpired");
-                return;
-            } *@
+            using var dbContext = await DbFactory.CreateDbContextAsync();
 
-            // En mode normal, charger depuis la base de données
-            using var context = await DbFactory.CreateDbContextAsync();
+            dbContext.SetCurrentUser(userId);
 
-            var res = context.Events is null;
-            events = res ? await context.Events?.OrderByDescending(e => e.Date).ToListAsync() ?? [] : [];
+            events = await dbContext.Set<Event>()
+            .AsNoTracking()
+            .OrderByDescending(e => e.Date)
+            .ToListAsync();
         }
     }
 

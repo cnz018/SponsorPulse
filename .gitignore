@@ -269,3 +269,5 @@ __pycache__/
 *.db-wal
 docs/*
 *.md
+persistedKeys/
+SponsorPulse/persistedKeys/

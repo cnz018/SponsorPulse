@@ -8,13 +8,11 @@ using SponsorPulse.Domain.Models;
 
 namespace SponsorPulse.Infrastructure.Persistence;
 
-public class SponsorPulseDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> options)
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     // When set (par les composants/authenticator), les filtres globaux utiliseront cet Id
     public Guid? CurrentUserId { get; set; }
-
-    public SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> options)
-        : base(options) { }
 
     public DbSet<Event> Events { get; set; }
     public DbSet<EventMedia> EventMedia { get; set; }
@@ -64,7 +62,7 @@ public class SponsorPulseDbContext : IdentityDbContext<ApplicationUser, Identity
         // Global query filter: ne retourner que les events appartenant à l'utilisateur courant
         modelBuilder
             .Entity<Event>()
-            .HasQueryFilter(e => !CurrentUserId.HasValue || e.OwnerId == CurrentUserId.Value);
+            .HasQueryFilter(e => CurrentUserId == null || e.OwnerId == CurrentUserId);
 
         // Twitch OAuth tokens/state
         modelBuilder.Entity<TwitchAuthToken>().HasKey(t => t.Id);
