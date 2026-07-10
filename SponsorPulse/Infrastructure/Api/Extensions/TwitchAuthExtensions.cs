@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Domain.Entities;
 
@@ -30,16 +31,42 @@ public static class TwitchAuthExtensions
                             expiresAt = t.ExpiresAt,
                         })
                         .ToList();
+
                     return Results.Ok(dto);
                 }
             )
             .WithName("ListTwitchAccounts");
+
+        app.MapGet(
+                "/api/linkedaccounts",
+                async (Microsoft.EntityFrameworkCore.IDbContextFactory<SponsorPulse.Infrastructure.Persistence.SponsorPulseDbContext> dbFactory) =>
+                {
+                    await using var dbContext = await dbFactory.CreateDbContextAsync();
+                    var linkedAccounts = await dbContext.LinkedAccounts
+                        .Select(l => new
+                        {
+                            l.Id,
+                            l.UserId,
+                            l.Platform,
+                            l.PlatformUserId,
+                            l.PlatformUsername,
+                            l.AccessToken,
+                            l.RefreshToken,
+                            l.TokenExpiresAt,
+                        })
+                        .ToListAsync();
+
+                    return Results.Ok(linkedAccounts);
+                }
+            )
+            .WithName("ListLinkedAccounts");
 
         app.MapDelete(
                 "/api/twitch/accounts/{twitchUserId}",
                 async (string twitchUserId, ITwitchAuthStateService stateService) =>
                 {
                     await stateService.RemoveByTwitchUserIdAsync(twitchUserId);
+
                     return Results.Ok(new { success = true });
                 }
             )
@@ -66,11 +93,13 @@ public static class TwitchAuthExtensions
                         if (!string.IsNullOrEmpty(t.TwitchUserId))
                         {
                             var token = await stateService.GetValidAccessTokenAsync(t.TwitchUserId);
+
                             if (!string.IsNullOrEmpty(token))
                             {
                                 try
                                 {
                                     using var client = httpFactory.CreateClient();
+
                                     client.DefaultRequestHeaders.Remove("Client-ID");
                                     client.DefaultRequestHeaders.Add(
                                         "Client-ID",
@@ -85,10 +114,12 @@ public static class TwitchAuthExtensions
                                     var userResp = await client.GetAsync(
                                         $"{BaseUrl}/users?id={Uri.EscapeDataString(t.TwitchUserId)}"
                                     );
+
                                     if (userResp.IsSuccessStatusCode)
                                     {
                                         var doc =
                                             await userResp.Content.ReadFromJsonAsync<JsonDocument>();
+
                                         if (
                                             doc != null
                                             && doc.RootElement.TryGetProperty("data", out var data)
@@ -156,6 +187,7 @@ public class TwitchAuthHandler
     {
         var clientId = configuration["Twitch:ClientId"];
         var redirectUri = configuration["Twitch:RedirectUri"];
+
         if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
             return Results.BadRequest(new { error = "Missing Twitch client configuration." });
 
@@ -172,7 +204,8 @@ public class TwitchAuthHandler
         IHttpClientFactory httpClientFactory,
         ITwitchAuthStateService stateService,
         IConfiguration configuration,
-        ILogger<TwitchAuthHandler> logger
+        ILogger<TwitchAuthHandler> logger,
+        Microsoft.EntityFrameworkCore.IDbContextFactory<SponsorPulse.Infrastructure.Persistence.SponsorPulseDbContext> dbFactory
     )
     {
         var query = request.Query;
@@ -183,7 +216,8 @@ public class TwitchAuthHandler
             return Results.BadRequest(new { error = "Missing code or state in callback." });
 
         var stateRecord = await stateService.FindByStateAsync(state);
-        if (stateRecord == null)
+
+        if (stateRecord is null)
             return Results.BadRequest(new { error = "Invalid state." });
 
         var clientId = configuration["Twitch:ClientId"];
@@ -212,9 +246,11 @@ public class TwitchAuthHandler
             );
 
             var tokenResp = await client.PostAsync("https://id.twitch.tv/oauth2/token", content);
+
             if (!tokenResp.IsSuccessStatusCode)
             {
                 var body = await tokenResp.Content.ReadAsStringAsync();
+
                 logger.LogError(
                     "Token exchange failed: {Status} {Body}",
                     tokenResp.StatusCode,
@@ -225,7 +261,8 @@ public class TwitchAuthHandler
 
             var tokenData =
                 await tokenResp.Content.ReadFromJsonAsync<AuthorizationCodeTokenResponse>();
-            if (tokenData == null || string.IsNullOrEmpty(tokenData.AccessToken))
+
+            if (tokenData is { AccessToken.Length: 0 })
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
 
             // Get user info to link token
@@ -235,6 +272,7 @@ public class TwitchAuthHandler
 
             var userReq = await apiClient.GetAsync($"https://api.twitch.tv/helix/users");
             string? userId = null;
+
             if (userReq.IsSuccessStatusCode)
             {
                 var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
@@ -258,6 +296,7 @@ public class TwitchAuthHandler
                 var nameId =
                     principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                     ?? principal?.FindFirst("sub")?.Value;
+
                 if (!string.IsNullOrEmpty(nameId) && Guid.TryParse(nameId, out var appUserId))
                 {
                     tokenRecord.UserId = appUserId;
@@ -269,6 +308,68 @@ public class TwitchAuthHandler
             }
 
             await stateService.SaveAuthTokenAsync(tokenRecord);
+
+            // Persist a LinkedAccount record for quick access to linked accounts info
+            try
+            {
+                using var dbContext = dbFactory.CreateDbContext();
+
+                var existing = await dbContext.LinkedAccounts.SingleOrDefaultAsync(l =>
+                    l.Platform == Domain.Entities.PlatformType.Twitch && l.PlatformUserId == userId
+                );
+
+                // attempt to get username/display login from the earlier user request
+                string? platformUsername = null;
+                try
+                {
+                    if (userReq.IsSuccessStatusCode)
+                    {
+                        var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
+                        platformUsername = userData?.Data?.FirstOrDefault()?.Id; // fallback if no login
+                    }
+                }
+                catch { }
+
+                if (existing is not null)
+                {
+                    existing.AccessToken = tokenData.AccessToken;
+                    existing.RefreshToken = tokenData.RefreshToken;
+                    existing.TokenExpiresAt = DateTimeOffset
+                        .UtcNow.AddSeconds(tokenData.ExpiresIn)
+                        .UtcDateTime;
+
+                    if (!string.IsNullOrEmpty(platformUsername))
+                        existing.PlatformUsername = platformUsername!;
+
+                    if (!string.IsNullOrEmpty(userId))
+                        existing.PlatformUserId = userId!;
+
+                    dbContext.LinkedAccounts.Update(existing);
+                }
+                else
+                {
+                    var newLinkedAccount = new Domain.Entities.LinkedAccount
+                    {
+                        UserId = tokenRecord.UserId,
+                        Platform = Domain.Entities.PlatformType.Twitch,
+                        PlatformUserId = userId ?? string.Empty,
+                        PlatformUsername = platformUsername ?? string.Empty,
+                        AccessToken = tokenData.AccessToken,
+                        RefreshToken = tokenData.RefreshToken,
+                        TokenExpiresAt = DateTimeOffset
+                            .UtcNow.AddSeconds(tokenData.ExpiresIn)
+                            .UtcDateTime,
+                    };
+
+                    dbContext.LinkedAccounts.Add(newLinkedAccount);
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to persist LinkedAccount for Twitch callback");
+            }
 
             return Results.Ok(new { success = true, userId });
         }

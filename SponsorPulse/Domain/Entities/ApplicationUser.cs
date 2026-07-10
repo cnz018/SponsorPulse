@@ -18,7 +18,7 @@ public class ApplicationUser : IdentityUser<Guid>
     // Relations
     public Settings? Settings { get; set; }
     public Dashboard? Dashboard { get; set; }
-    public ICollection<Event> Events { get; set; } = new List<Event>();
-    public ICollection<TwitchAuthToken> TwitchAuthTokens { get; set; } =
-        new List<TwitchAuthToken>();
+    public ICollection<Event> Events { get; set; } = [];
+    public ICollection<TwitchAuthToken> TwitchAuthTokens { get; set; } = [];
+    public ICollection<LinkedAccount> LinkedAccounts { get; set; } = [];
 }

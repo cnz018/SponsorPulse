@@ -413,6 +413,42 @@ partial class SponsorPulseDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("TwitchAuthTokens");
             });
 
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.LinkedAccount", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("AccessToken")
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTime?>("TokenExpiresAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("PlatformUserId")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<int>("Platform")
+                    .HasColumnType("INTEGER");
+
+                b.Property<string>("PlatformUsername")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("RefreshToken")
+                    .HasColumnType("TEXT");
+
+                b.Property<Guid?>("UserId")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.HasIndex("UserId");
+
+                b.ToTable("LinkedAccounts");
+            });
+
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
             {
                 b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -515,6 +551,16 @@ partial class SponsorPulseDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("User");
             });
 
+        modelBuilder.Entity("SponsorPulse.Domain.Entities.LinkedAccount", b =>
+            {
+                b.HasOne("SponsorPulse.Domain.Entities.ApplicationUser", "User")
+                    .WithMany("LinkedAccounts")
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.Navigation("User");
+            });
+
         modelBuilder.Entity("SponsorPulse.Domain.Entities.ApplicationUser", b =>
             {
                 b.Navigation("Dashboard");
@@ -524,6 +570,7 @@ partial class SponsorPulseDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Settings");
 
                 b.Navigation("TwitchAuthTokens");
+                b.Navigation("LinkedAccounts");
             });
 
         modelBuilder.Entity("SponsorPulse.Domain.Entities.Event", b =>

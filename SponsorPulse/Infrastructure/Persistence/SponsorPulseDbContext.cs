@@ -19,6 +19,7 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
     public DbSet<TwitchAuthToken> TwitchAuthTokens { get; set; }
     public DbSet<Settings> Settings { get; set; }
     public DbSet<Dashboard> Dashboards { get; set; }
+    public DbSet<LinkedAccount> LinkedAccounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,15 @@ public class SponsorPulseDbContext(DbContextOptions<SponsorPulseDbContext> optio
             .HasOne(t => t.User)
             .WithMany(u => u.TwitchAuthTokens)
             .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Linked accounts (Twitch, Twitter, ...)
+        modelBuilder.Entity<LinkedAccount>().HasKey(l => l.Id);
+        modelBuilder
+            .Entity<LinkedAccount>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.LinkedAccounts)
+            .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure TwitterAnalytics as JSON column with value converter

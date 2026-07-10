@@ -28,6 +28,7 @@ public class TwitchInfrastructureService(
             if (string.IsNullOrWhiteSpace(channelNameOrUrl))
             {
                 logger.LogWarning("Channel name or URL cannot be empty.");
+
                 return Result<TwitchMetrics>.Failure("Channel name or URL cannot be empty.");
             }
 
@@ -113,66 +114,67 @@ public class TwitchInfrastructureService(
                 // if not found as video, continue to try as login below
             }
 
-            if (!string.IsNullOrEmpty(login))
-            {
-                var userReq = await client.GetAsync($"{BaseUrl}/users?login={login}");
-                if (!userReq.IsSuccessStatusCode)
-                    return Result<TwitchMetrics>.Failure("User not found.");
+            // if (!string.IsNullOrEmpty(login))
+            // {
+            //     var userReq = await client.GetAsync($"{BaseUrl}/users?login={login}");
+                
+            //     if (!userReq.IsSuccessStatusCode)
+            //         return Result<TwitchMetrics>.Failure("User not found.");
 
-                var userData = await userReq.Content.ReadFromJsonAsync<TwitchUserResponse>();
-                userId = userData?.Data?.FirstOrDefault()?.Id;
+            //     var userData = await userReq.Content.ReadFromJsonAsync<TwitchUserResponse>();
+            //     userId = userData?.Data?.FirstOrDefault()?.Id;
 
-                if (string.IsNullOrEmpty(userId))
-                    return Result<TwitchMetrics>.Failure("User ID not found.");
-            }
+            //     if (string.IsNullOrEmpty(userId))
+            //         return Result<TwitchMetrics>.Failure("User ID not found.");
+            // }
 
             // 4. Check for LIVE stream first
-            var streamReq = await client.GetAsync($"{BaseUrl}/streams?user_id={userId}");
-            if (streamReq.IsSuccessStatusCode)
-            {
-                var streamData = await streamReq.Content.ReadFromJsonAsync<TwitchStreamResponse>();
-                var liveStream = streamData?.Data?.FirstOrDefault();
+            // var streamReq = await client.GetAsync($"{BaseUrl}/streams?user_id={userId}");
+            // if (streamReq.IsSuccessStatusCode)
+            // {
+            //     var streamData = await streamReq.Content.ReadFromJsonAsync<TwitchStreamResponse>();
+            //     var liveStream = streamData?.Data?.FirstOrDefault();
 
-                if (liveStream != null)
-                {
-                    logger.LogInformation("Found LIVE stream for {Channel}", channelNameOrUrl);
-                    return Result<TwitchMetrics>.Success(
-                        new TwitchMetrics
-                        {
-                            ViewerCount = liveStream.ViewerCount,
-                            PeakViewers = liveStream.ViewerCount, // Live peak is current
-                            StreamDuration = DateTimeOffset.UtcNow - liveStream.StartedAt,
-                            StartedAt = liveStream.StartedAt,
-                            GameName = liveStream.GameName,
-                        }
-                    );
-                }
-            }
+            //     if (liveStream != null)
+            //     {
+            //         logger.LogInformation("Found LIVE stream for {Channel}", channelNameOrUrl);
+            //         return Result<TwitchMetrics>.Success(
+            //             new TwitchMetrics
+            //             {
+            //                 ViewerCount = liveStream.ViewerCount,
+            //                 PeakViewers = liveStream.ViewerCount, // Live peak is current
+            //                 StreamDuration = DateTimeOffset.UtcNow - liveStream.StartedAt,
+            //                 StartedAt = liveStream.StartedAt,
+            //                 GameName = liveStream.GameName,
+            //             }
+            //         );
+            //     }
+            // }
 
             // 5. Fallback to Latest Video (VOD)
-            var videoReq = await client.GetAsync(
-                $"{BaseUrl}/videos?user_id={userId}&first=1&sort=time"
-            );
-            if (videoReq.IsSuccessStatusCode)
-            {
-                var videoData = await videoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
-                var lastVideo = videoData?.Data?.FirstOrDefault();
+            // var videoReq = await client.GetAsync(
+            //     $"{BaseUrl}/videos?user_id={userId}&first=1&sort=time"
+            // );
+            // if (videoReq.IsSuccessStatusCode)
+            // {
+            //     var videoData = await videoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
+            //     var lastVideo = videoData?.Data?.FirstOrDefault();
 
-                if (lastVideo != null)
-                {
-                    logger.LogInformation("Found VOD for {Channel}", channelNameOrUrl);
-                    return Result<TwitchMetrics>.Success(
-                        new TwitchMetrics
-                        {
-                            ViewerCount = lastVideo.ViewCount, // Total views
-                            PeakViewers = 0, // Not available in simple VOD endpoint
-                            StreamDuration = ParseDuration(lastVideo.Duration),
-                            StartedAt = lastVideo.CreatedAt,
-                            GameName = "VOD Archive",
-                        }
-                    );
-                }
-            }
+            //     if (lastVideo != null)
+            //     {
+            //         logger.LogInformation("Found VOD for {Channel}", channelNameOrUrl);
+            //         return Result<TwitchMetrics>.Success(
+            //             new TwitchMetrics
+            //             {
+            //                 ViewerCount = lastVideo.ViewCount, // Total views
+            //                 PeakViewers = 0, // Not available in simple VOD endpoint
+            //                 StreamDuration = ParseDuration(lastVideo.Duration),
+            //                 StartedAt = lastVideo.CreatedAt,
+            //                 GameName = "VOD Archive",
+            //             }
+            //         );
+            //     }
+            // }
 
             return Result<TwitchMetrics>.Failure("No active stream or recent VOD found.");
         }
