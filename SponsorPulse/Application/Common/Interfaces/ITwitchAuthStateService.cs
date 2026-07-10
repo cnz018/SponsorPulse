@@ -11,4 +11,7 @@ public interface ITwitchAuthStateService
     Task<string?> GetValidAccessTokenAsync(string twitchUserId);
     Task<List<TwitchAuthToken>> ListAllAsync();
     Task RemoveByTwitchUserIdAsync(string twitchUserId);
+
+    Task UpsertLinkedAccountAsync(LinkedAccount linkedAccount);
+    Task<LinkedAccount?> FindLinkedAccountAsync(PlatformType platform, string platformUserId);
 }

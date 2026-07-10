@@ -39,11 +39,11 @@ public static class TwitchAuthExtensions
 
         app.MapGet(
                 "/api/linkedaccounts",
-                async (Microsoft.EntityFrameworkCore.IDbContextFactory<SponsorPulse.Infrastructure.Persistence.SponsorPulseDbContext> dbFactory) =>
+                async (IDbContextFactory<Persistence.SponsorPulseDbContext> dbFactory) =>
                 {
                     await using var dbContext = await dbFactory.CreateDbContextAsync();
-                    var linkedAccounts = await dbContext.LinkedAccounts
-                        .Select(l => new
+                    var linkedAccounts = await dbContext
+                        .LinkedAccounts.Select(l => new
                         {
                             l.Id,
                             l.UserId,
@@ -312,59 +312,29 @@ public class TwitchAuthHandler
             // Persist a LinkedAccount record for quick access to linked accounts info
             try
             {
-                using var dbContext = dbFactory.CreateDbContext();
-
-                var existing = await dbContext.LinkedAccounts.SingleOrDefaultAsync(l =>
-                    l.Platform == Domain.Entities.PlatformType.Twitch && l.PlatformUserId == userId
-                );
-
-                // attempt to get username/display login from the earlier user request
                 string? platformUsername = null;
-                try
+                if (userReq.IsSuccessStatusCode)
                 {
-                    if (userReq.IsSuccessStatusCode)
-                    {
-                        var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
-                        platformUsername = userData?.Data?.FirstOrDefault()?.Id; // fallback if no login
-                    }
+                    var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
+                    platformUsername =
+                        userData?.Data?.FirstOrDefault()?.Login
+                        ?? userData?.Data?.FirstOrDefault()?.Id;
                 }
-                catch { }
 
-                if (existing is not null)
+                var linkedAccount = new Domain.Entities.LinkedAccount
                 {
-                    existing.AccessToken = tokenData.AccessToken;
-                    existing.RefreshToken = tokenData.RefreshToken;
-                    existing.TokenExpiresAt = DateTimeOffset
+                    UserId = tokenRecord.UserId,
+                    Platform = Domain.Entities.PlatformType.Twitch,
+                    PlatformUserId = userId ?? string.Empty,
+                    PlatformUsername = platformUsername ?? string.Empty,
+                    AccessToken = tokenData.AccessToken,
+                    RefreshToken = tokenData.RefreshToken,
+                    TokenExpiresAt = DateTimeOffset
                         .UtcNow.AddSeconds(tokenData.ExpiresIn)
-                        .UtcDateTime;
+                        .UtcDateTime,
+                };
 
-                    if (!string.IsNullOrEmpty(platformUsername))
-                        existing.PlatformUsername = platformUsername!;
-
-                    if (!string.IsNullOrEmpty(userId))
-                        existing.PlatformUserId = userId!;
-
-                    dbContext.LinkedAccounts.Update(existing);
-                }
-                else
-                {
-                    var newLinkedAccount = new Domain.Entities.LinkedAccount
-                    {
-                        UserId = tokenRecord.UserId,
-                        Platform = Domain.Entities.PlatformType.Twitch,
-                        PlatformUserId = userId ?? string.Empty,
-                        PlatformUsername = platformUsername ?? string.Empty,
-                        AccessToken = tokenData.AccessToken,
-                        RefreshToken = tokenData.RefreshToken,
-                        TokenExpiresAt = DateTimeOffset
-                            .UtcNow.AddSeconds(tokenData.ExpiresIn)
-                            .UtcDateTime,
-                    };
-
-                    dbContext.LinkedAccounts.Add(newLinkedAccount);
-                }
-
-                await dbContext.SaveChangesAsync();
+                await stateService.UpsertLinkedAccountAsync(linkedAccount);
             }
             catch (Exception ex)
             {
@@ -391,5 +361,9 @@ public class TwitchAuthHandler
 
     private record UserDataWrapper([property: JsonPropertyName("data")] List<UserData> Data);
 
-    private record UserData([property: JsonPropertyName("id")] string Id);
+    private record UserData(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("login")] string? Login,
+        [property: JsonPropertyName("display_name")] string? DisplayName
+    );
 }

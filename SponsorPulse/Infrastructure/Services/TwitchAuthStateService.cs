@@ -6,92 +6,133 @@ using SponsorPulse.Infrastructure.Persistence;
 
 namespace SponsorPulse.Infrastructure.Services;
 
-public class TwitchAuthStateService : ITwitchAuthStateService
+public class TwitchAuthStateService(
+    IDbContextFactory<SponsorPulseDbContext> dbFactory,
+    ILogger<TwitchAuthStateService> logger,
+    IHttpClientFactory httpFactory,
+    IConfiguration configuration
+) : ITwitchAuthStateService
 {
-    private readonly IDbContextFactory<SponsorPulseDbContext> _dbFactory;
-    private readonly ILogger<TwitchAuthStateService> _logger;
-    private readonly IHttpClientFactory _httpFactory;
-    private readonly IConfiguration _configuration;
-
-    public TwitchAuthStateService(
-        IDbContextFactory<SponsorPulseDbContext> dbFactory,
-        ILogger<TwitchAuthStateService> logger,
-        IHttpClientFactory httpFactory,
-        IConfiguration configuration
-    )
-    {
-        _dbFactory = dbFactory;
-        _logger = logger;
-        _httpFactory = httpFactory;
-        _configuration = configuration;
-    }
+    private readonly IDbContextFactory<SponsorPulseDbContext> _dbFactory = dbFactory;
+    private readonly ILogger<TwitchAuthStateService> _logger = logger;
+    private readonly IHttpClientFactory _httpFactory = httpFactory;
+    private readonly IConfiguration _configuration = configuration;
 
     public async Task<string> CreateStateAsync()
     {
         var state = Guid.NewGuid().ToString("N");
         var token = new TwitchAuthToken { State = state, CreatedAt = DateTimeOffset.UtcNow };
-        using var ctx = _dbFactory.CreateDbContext();
-        ctx.TwitchAuthTokens.Add(token);
-        await ctx.SaveChangesAsync();
+
+        using var dbcontext = _dbFactory.CreateDbContext();
+
+        dbcontext.TwitchAuthTokens.Add(token);
+        await dbcontext.SaveChangesAsync();
+
         return state;
     }
 
     public async Task SaveAuthTokenAsync(TwitchAuthToken token)
     {
-        using var ctx = _dbFactory.CreateDbContext();
-        var existing = await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t => t.State == token.State);
-        if (existing != null)
+        using var dbContext = _dbFactory.CreateDbContext();
+
+        var existing = await dbContext.TwitchAuthTokens.SingleOrDefaultAsync(t =>
+            t.State == token.State
+        );
+        if (existing is not null)
         {
             existing.AccessToken = token.AccessToken;
             existing.RefreshToken = token.RefreshToken;
             existing.ExpiresAt = token.ExpiresAt;
             existing.TwitchUserId = token.TwitchUserId;
             existing.Scopes = token.Scopes;
-            ctx.TwitchAuthTokens.Update(existing);
+            dbContext.TwitchAuthTokens.Update(existing);
         }
         else
         {
-            ctx.TwitchAuthTokens.Add(token);
+            dbContext.TwitchAuthTokens.Add(token);
         }
 
-        await ctx.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task<TwitchAuthToken?> FindByStateAsync(string state)
     {
-        using var ctx = _dbFactory.CreateDbContext();
-        return await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t => t.State == state);
+        using var dbContext = _dbFactory.CreateDbContext();
+        return await dbContext.TwitchAuthTokens.SingleOrDefaultAsync(t => t.State == state);
     }
 
     public async Task<TwitchAuthToken?> FindByTwitchUserIdAsync(string twitchUserId)
     {
-        using var ctx = _dbFactory.CreateDbContext();
-        return await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t => t.TwitchUserId == twitchUserId);
+        using var dbContext = _dbFactory.CreateDbContext();
+
+        return await dbContext.TwitchAuthTokens.SingleOrDefaultAsync(t =>
+            t.TwitchUserId == twitchUserId
+        );
     }
 
     public async Task<List<TwitchAuthToken>> ListAllAsync()
     {
-        using var ctx = _dbFactory.CreateDbContext();
-        return await ctx.TwitchAuthTokens.AsNoTracking().ToListAsync();
+        using var dbContext = _dbFactory.CreateDbContext();
+
+        return await dbContext.TwitchAuthTokens.AsNoTracking().ToListAsync();
     }
 
     public async Task RemoveByTwitchUserIdAsync(string twitchUserId)
     {
-        using var ctx = _dbFactory.CreateDbContext();
-        var existing = await ctx.TwitchAuthTokens.FirstOrDefaultAsync(t =>
+        using var dbContext = _dbFactory.CreateDbContext();
+        var existing = await dbContext.TwitchAuthTokens.FirstOrDefaultAsync(t =>
             t.TwitchUserId == twitchUserId
         );
-        if (existing != null)
+
+        if (existing is not null)
         {
-            ctx.TwitchAuthTokens.Remove(existing);
-            await ctx.SaveChangesAsync();
+            dbContext.TwitchAuthTokens.Remove(existing);
+            await dbContext.SaveChangesAsync();
         }
+    }
+
+    public async Task UpsertLinkedAccountAsync(LinkedAccount linkedAccount)
+    {
+        using var dbContext = _dbFactory.CreateDbContext();
+        var existing = await dbContext.LinkedAccounts.SingleOrDefaultAsync(l =>
+            l.Platform == linkedAccount.Platform && l.PlatformUserId == linkedAccount.PlatformUserId
+        );
+
+        if (existing is not null)
+        {
+            existing.PlatformUsername = linkedAccount.PlatformUsername;
+            existing.AccessToken = linkedAccount.AccessToken;
+            existing.RefreshToken = linkedAccount.RefreshToken;
+            existing.TokenExpiresAt = linkedAccount.TokenExpiresAt;
+            existing.UserId = linkedAccount.UserId;
+
+            dbContext.LinkedAccounts.Update(existing);
+        }
+        else
+        {
+            dbContext.LinkedAccounts.Add(linkedAccount);
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<LinkedAccount?> FindLinkedAccountAsync(
+        PlatformType platform,
+        string platformUserId
+    )
+    {
+        using var dbContext = _dbFactory.CreateDbContext();
+
+        return await dbContext.LinkedAccounts.FirstOrDefaultAsync(l =>
+            l.Platform == platform && l.PlatformUserId == platformUserId
+        );
     }
 
     public async Task<string?> GetValidAccessTokenAsync(string twitchUserId)
     {
         var token = await FindByTwitchUserIdAsync(twitchUserId);
-        if (token == null)
+
+        if (token is null)
             return null;
 
         if (token.ExpiresAt.HasValue && token.ExpiresAt.Value > DateTimeOffset.UtcNow.AddMinutes(1))
@@ -128,11 +169,12 @@ public class TwitchAuthStateService : ITwitchAuthStateService
             }
 
             var data = await resp.Content.ReadFromJsonAsync<RefreshTokenResponse>();
-            if (data == null || string.IsNullOrEmpty(data.AccessToken))
+
+            if (data is { AccessToken.Length: 0 })
                 return token.AccessToken;
 
             // Update token record
-            token.AccessToken = data.AccessToken;
+            token.AccessToken = data!.AccessToken;
             token.RefreshToken = data.RefreshToken ?? token.RefreshToken;
             token.ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(data.ExpiresIn);
 

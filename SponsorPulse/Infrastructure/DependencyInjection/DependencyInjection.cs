@@ -15,8 +15,9 @@ public static class InfrastructureDependencyInjection
     )
     {
         services.AddHttpClient();
+        services.AddMemoryCache();
         services.AddScoped<ITwitchService, TwitchInfrastructureService>();
-        services.AddScoped<ITwitchAuthStateService, TwitchAuthStateService>();
+        services.AddScoped<ITwitchAuthStateService, TwitchAuthStateManager>();
         services.AddScoped<ITwitterService, TwitterInfrastructureService>();
         services.AddScoped<IStaticReportService, StaticReportService>();
 
