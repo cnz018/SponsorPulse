@@ -15,7 +15,6 @@ public static class TwitchAuthExtensions
     {
         var handler = new TwitchAuthHandler();
 
-        app.MapGet("/auth/twitch/login", handler.StartLogin).WithName("TwitchLogin");
         app.MapGet("/auth/twitch/callback", handler.HandleCallback).WithName("TwitchCallback");
 
         // Management endpoints for connected Twitch accounts
@@ -180,7 +179,7 @@ public static class TwitchAuthExtensions
 
 public class TwitchAuthHandler
 {
-    public async Task<IResult> StartLogin(
+    public async Task<string> StartLoginAsync(
         ITwitchAuthStateService stateService,
         IConfiguration configuration
     )
@@ -189,14 +188,14 @@ public class TwitchAuthHandler
         var redirectUri = configuration["Twitch:RedirectUri"];
 
         if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
-            return Results.BadRequest(new { error = "Missing Twitch client configuration." });
+            return string.Empty;
 
         var state = await stateService.CreateStateAsync();
-        var scopes = "analytics:read:extensions analytics:read:games";
+        var scopes = configuration["Twitch:Scopes"];
         var url =
             $"https://id.twitch.tv/oauth2/authorize?client_id={Uri.EscapeDataString(clientId)}&redirect_uri={Uri.EscapeDataString(redirectUri)}&response_type=code&scope={Uri.EscapeDataString(scopes)}&state={Uri.EscapeDataString(state)}";
 
-        return Results.Redirect(url);
+        return url;
     }
 
     public async Task<IResult> HandleCallback(
@@ -271,13 +270,14 @@ public class TwitchAuthHandler
             apiClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokenData.AccessToken}");
 
             var userReq = await apiClient.GetAsync($"https://api.twitch.tv/helix/users");
-            string? userId = null;
 
-            if (userReq.IsSuccessStatusCode)
+            if (!userReq.IsSuccessStatusCode)
             {
-                var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
-                userId = userData?.Data?.FirstOrDefault()?.Id;
+                return Results.BadRequest(new { error = "Failed to retrieve user information." });
             }
+
+            var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
+            string? userId = userData?.Data?.FirstOrDefault()?.Id;
 
             var tokenRecord = new TwitchAuthToken
             {
@@ -312,19 +312,13 @@ public class TwitchAuthHandler
             // Persist a LinkedAccount record for quick access to linked accounts info
             try
             {
-                string? platformUsername = null;
-                if (userReq.IsSuccessStatusCode)
-                {
-                    var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
-                    platformUsername =
-                        userData?.Data?.FirstOrDefault()?.Login
-                        ?? userData?.Data?.FirstOrDefault()?.Id;
-                }
+                string? platformUsername =
+                    userData?.Data?.FirstOrDefault()?.Login ?? userData?.Data?.FirstOrDefault()?.Id;
 
-                var linkedAccount = new Domain.Entities.LinkedAccount
+                var linkedAccount = new LinkedAccount
                 {
                     UserId = tokenRecord.UserId,
-                    Platform = Domain.Entities.PlatformType.Twitch,
+                    Platform = PlatformType.Twitch,
                     PlatformUserId = userId ?? string.Empty,
                     PlatformUsername = platformUsername ?? string.Empty,
                     AccessToken = tokenData.AccessToken,
@@ -346,6 +340,7 @@ public class TwitchAuthHandler
         catch (Exception ex)
         {
             logger.LogError(ex, "Error in twitch callback");
+
             return Results.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }

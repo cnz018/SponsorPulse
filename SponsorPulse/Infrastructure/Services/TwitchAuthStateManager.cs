@@ -7,35 +7,28 @@ using SponsorPulse.Infrastructure.Persistence;
 
 namespace SponsorPulse.Infrastructure.Services;
 
-public class TwitchAuthStateManager : ITwitchAuthStateService
+public class TwitchAuthStateManager(
+    IMemoryCache memoryCache,
+    IDbContextFactory<SponsorPulseDbContext> dbFactory,
+    ILogger<TwitchAuthStateManager> logger,
+    IHttpClientFactory httpFactory,
+    IConfiguration configuration
+    ) : ITwitchAuthStateService
 {
-    private readonly IMemoryCache _memoryCache;
-    private readonly IDbContextFactory<SponsorPulseDbContext> _dbFactory;
-    private readonly ILogger<TwitchAuthStateManager> _logger;
-    private readonly IHttpClientFactory _httpFactory;
-    private readonly IConfiguration _configuration;
+    private readonly IMemoryCache _memoryCache = memoryCache;
+    private readonly IDbContextFactory<SponsorPulseDbContext> _dbFactory = dbFactory;
+    private readonly ILogger<TwitchAuthStateManager> _logger = logger;
+    private readonly IHttpClientFactory _httpFactory = httpFactory;
+    private readonly IConfiguration _configuration = configuration;
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
-
-    public TwitchAuthStateManager(
-        IMemoryCache memoryCache,
-        IDbContextFactory<SponsorPulseDbContext> dbFactory,
-        ILogger<TwitchAuthStateManager> logger,
-        IHttpClientFactory httpFactory,
-        IConfiguration configuration
-    )
-    {
-        _memoryCache = memoryCache;
-        _dbFactory = dbFactory;
-        _logger = logger;
-        _httpFactory = httpFactory;
-        _configuration = configuration;
-    }
 
     public async Task<string> CreateStateAsync()
     {
         var state = Guid.NewGuid().ToString("N");
         var token = new TwitchAuthToken { State = state, CreatedAt = DateTimeOffset.UtcNow };
+        
         await PersistTokenAsync(token);
+
         return state;
     }
 
@@ -125,7 +118,7 @@ public class TwitchAuthStateManager : ITwitchAuthStateService
     public async Task<List<TwitchAuthToken>> ListAllAsync()
     {
         using var dbContext = _dbFactory.CreateDbContext();
-        
+
         return await dbContext.TwitchAuthTokens.AsNoTracking().ToListAsync();
     }
 
