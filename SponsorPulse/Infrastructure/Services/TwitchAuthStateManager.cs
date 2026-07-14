@@ -153,7 +153,9 @@ public class TwitchAuthStateManager(
             existing.RefreshToken = linkedAccount.RefreshToken;
             existing.TokenExpiresAt = linkedAccount.TokenExpiresAt;
             existing.UserId = linkedAccount.UserId;
+
             dbContext.LinkedAccounts.Update(existing);
+            
             linkedAccount = existing;
         }
         else

@@ -47,7 +47,8 @@ builder.Services.AddScoped<PresignedUrlApiService>();
 
 // Database Context
 var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=SponsorPulse.db";
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Data Source=SponsorPulse.db;Cache=Shared;Foreign Keys=False";
 
 builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
 {

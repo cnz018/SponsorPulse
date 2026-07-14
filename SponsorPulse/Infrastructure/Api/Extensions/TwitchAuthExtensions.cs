@@ -1,16 +1,17 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Domain.Entities;
+using SponsorPulse.Infrastructure.Persistence;
 
 namespace SponsorPulse.Infrastructure.Api.Extensions;
 
 public static class TwitchAuthExtensions
 {
-    private const string BaseUrl = "https://api.twitch.tv/helix";
-    private const string AuthUrl = "https://id.twitch.tv/oauth2/token";
-
+ 
     public static WebApplication MapTwitchAuthEndpoints(this WebApplication app)
     {
         var handler = new TwitchAuthHandler();
@@ -179,23 +180,32 @@ public static class TwitchAuthExtensions
 
 public class TwitchAuthHandler
 {
-    public async Task<string> StartLoginAsync(
+    private const string TwitchAuthorizationBaseUrl = "https://id.twitch.tv/oauth2/authorize";
+    private const string TwitchTokenExchangeUrl = "https://id.twitch.tv/oauth2/token";
+
+    public async Task<string> LoginAsync(
         ITwitchAuthStateService stateService,
-        IConfiguration configuration
+        IConfiguration configuration,
+        CancellationToken cancellationToken = default
     )
     {
         var clientId = configuration["Twitch:ClientId"];
         var redirectUri = configuration["Twitch:RedirectUri"];
 
-        if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(redirectUri))
             return string.Empty;
 
         var state = await stateService.CreateStateAsync();
-        var scopes = configuration["Twitch:Scopes"];
-        var url =
-            $"https://id.twitch.tv/oauth2/authorize?client_id={Uri.EscapeDataString(clientId)}&redirect_uri={Uri.EscapeDataString(redirectUri)}&response_type=code&scope={Uri.EscapeDataString(scopes)}&state={Uri.EscapeDataString(state)}";
+        var scopes = configuration["Twitch:Scopes"] ?? "user:read:email";
 
-        return url;
+        return string.Format(
+            "{0}?client_id={1}&redirect_uri={2}&response_type=code&scope={3}&state={4}",
+            TwitchAuthorizationBaseUrl,
+            Uri.EscapeDataString(clientId),
+            Uri.EscapeDataString(redirectUri),
+            Uri.EscapeDataString(scopes),
+            Uri.EscapeDataString(state)
+        );
     }
 
     public async Task<IResult> HandleCallback(
@@ -204,14 +214,13 @@ public class TwitchAuthHandler
         ITwitchAuthStateService stateService,
         IConfiguration configuration,
         ILogger<TwitchAuthHandler> logger,
-        Microsoft.EntityFrameworkCore.IDbContextFactory<SponsorPulse.Infrastructure.Persistence.SponsorPulseDbContext> dbFactory
+        CancellationToken cancellationToken = default
     )
     {
-        var query = request.Query;
-        var code = query["code"].FirstOrDefault();
-        var state = query["state"].FirstOrDefault();
+        var code = request.Query["code"].FirstOrDefault();
+        var state = request.Query["state"].FirstOrDefault();
 
-        if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
             return Results.BadRequest(new { error = "Missing code or state in callback." });
 
         var stateRecord = await stateService.FindByStateAsync(state);
@@ -224,9 +233,9 @@ public class TwitchAuthHandler
         var redirectUri = configuration["Twitch:RedirectUri"];
 
         if (
-            string.IsNullOrEmpty(clientId)
-            || string.IsNullOrEmpty(clientSecret)
-            || string.IsNullOrEmpty(redirectUri)
+            string.IsNullOrWhiteSpace(clientId)
+            || string.IsNullOrWhiteSpace(clientSecret)
+            || string.IsNullOrWhiteSpace(redirectUri)
         )
             return Results.BadRequest(new { error = "Missing Twitch client configuration." });
 
@@ -244,40 +253,49 @@ public class TwitchAuthHandler
                 }
             );
 
-            var tokenResp = await client.PostAsync("https://id.twitch.tv/oauth2/token", content);
+            var tokenResponse = await client.PostAsync(
+                TwitchTokenExchangeUrl,
+                content,
+                cancellationToken
+            );
 
-            if (!tokenResp.IsSuccessStatusCode)
+            if (!tokenResponse.IsSuccessStatusCode)
             {
-                var body = await tokenResp.Content.ReadAsStringAsync();
+                var body = await tokenResponse.Content.ReadAsStringAsync(cancellationToken);
 
                 logger.LogError(
                     "Token exchange failed: {Status} {Body}",
-                    tokenResp.StatusCode,
+                    tokenResponse.StatusCode,
                     body
                 );
                 return Results.StatusCode(StatusCodes.Status502BadGateway);
             }
 
             var tokenData =
-                await tokenResp.Content.ReadFromJsonAsync<AuthorizationCodeTokenResponse>();
+                await tokenResponse.Content.ReadFromJsonAsync<AuthorizationCodeTokenResponse>(
+                    cancellationToken
+                );
 
-            if (tokenData is { AccessToken.Length: 0 })
+            if (tokenData is null || string.IsNullOrWhiteSpace(tokenData.AccessToken))
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
 
-            // Get user info to link token
             using var apiClient = httpClientFactory.CreateClient();
+            apiClient.DefaultRequestHeaders.Remove("Client-ID");
             apiClient.DefaultRequestHeaders.Add("Client-ID", clientId);
+            apiClient.DefaultRequestHeaders.Remove("Authorization");
             apiClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokenData.AccessToken}");
 
-            var userReq = await apiClient.GetAsync($"https://api.twitch.tv/helix/users");
+            var userInfoUrl =
+                configuration["Twitch:UserInfo"] ?? "https://api.twitch.tv/helix/users";
+            var userRequest = await apiClient.GetAsync(userInfoUrl, cancellationToken);
 
-            if (!userReq.IsSuccessStatusCode)
-            {
+            if (!userRequest.IsSuccessStatusCode)
                 return Results.BadRequest(new { error = "Failed to retrieve user information." });
-            }
 
-            var userData = await userReq.Content.ReadFromJsonAsync<UserDataWrapper>();
-            string? userId = userData?.Data?.FirstOrDefault()?.Id;
+            var userData = await userRequest.Content.ReadFromJsonAsync<UserDataWrapper>(
+                cancellationToken
+            );
+            var userId = userData?.Data?.FirstOrDefault()?.Id;
 
             var tokenRecord = new TwitchAuthToken
             {
@@ -286,10 +304,11 @@ public class TwitchAuthHandler
                 RefreshToken = tokenData.RefreshToken,
                 ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(tokenData.ExpiresIn),
                 TwitchUserId = userId,
-                Scopes = tokenData.Scope != null ? string.Join(' ', tokenData.Scope) : null,
+                Scopes = tokenData.Scope is { Count: > 0 }
+                    ? string.Join(' ', tokenData.Scope)
+                    : null,
             };
 
-            // If the user is authenticated in our app, link the Twitch token to that user
             try
             {
                 var principal = request.HttpContext?.User;
@@ -297,7 +316,7 @@ public class TwitchAuthHandler
                     principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                     ?? principal?.FindFirst("sub")?.Value;
 
-                if (!string.IsNullOrEmpty(nameId) && Guid.TryParse(nameId, out var appUserId))
+                if (!string.IsNullOrWhiteSpace(nameId) && Guid.TryParse(nameId, out var appUserId))
                 {
                     tokenRecord.UserId = appUserId;
                 }
@@ -309,10 +328,9 @@ public class TwitchAuthHandler
 
             await stateService.SaveAuthTokenAsync(tokenRecord);
 
-            // Persist a LinkedAccount record for quick access to linked accounts info
             try
             {
-                string? platformUsername =
+                var platformUsername =
                     userData?.Data?.FirstOrDefault()?.Login ?? userData?.Data?.FirstOrDefault()?.Id;
 
                 var linkedAccount = new LinkedAccount
@@ -335,17 +353,189 @@ public class TwitchAuthHandler
                 logger.LogWarning(ex, "Failed to persist LinkedAccount for Twitch callback");
             }
 
-            return Results.Ok(new { success = true, userId });
+            return Results.Redirect("/settings?platform=twitch&status=success", true, true);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error in twitch callback");
-
             return Results.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
 
-    // Helper DTOs for token exchange
+    public async Task<HttpResponseMessage> RevokeTokenAsync(
+        string twitchUserId,
+        Guid? currentUserId,
+        IConfiguration configuration,
+        IDbContextFactory<SponsorPulseDbContext> dbFactory,
+        ILogger<TwitchAuthHandler>? logger = null,
+        IHttpClientFactory? httpClientFactory = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(twitchUserId))
+            return CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                "Missing twitchUserId parameter."
+            );
+
+        await using var dbContext = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var tokenRecord = await dbContext.TwitchAuthTokens.FirstOrDefaultAsync(
+            token => token.TwitchUserId == twitchUserId,
+            cancellationToken
+        );
+
+        if (tokenRecord is null || string.IsNullOrWhiteSpace(tokenRecord.AccessToken))
+            return CreateErrorResponse(
+                HttpStatusCode.NotFound,
+                "Twitch account not found or no access token."
+            );
+
+        var clientId = configuration["Twitch:ClientId"];
+        var revocationUrl = configuration["Twitch:RevocationUrl"];
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(revocationUrl))
+            return CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                "Missing Twitch client configuration."
+            );
+
+        try
+        {
+            using var client = httpClientFactory?.CreateClient() ?? new HttpClient();
+            var content = new FormUrlEncodedContent(
+                new Dictionary<string, string>
+                {
+                    ["client_id"] = clientId,
+                    ["token"] = tokenRecord.AccessToken,
+                }
+            );
+
+            var revokeResponse = await client.PostAsync(revocationUrl, content, cancellationToken);
+
+            if (!revokeResponse.IsSuccessStatusCode)
+            {
+                var body = await revokeResponse.Content.ReadAsStringAsync(cancellationToken);
+                logger?.LogError(
+                    "Token revocation failed: {Status} {Body}",
+                    revokeResponse.StatusCode,
+                    body
+                );
+
+                return revokeResponse;
+            }
+
+            dbContext.TwitchAuthTokens.Remove(tokenRecord);
+
+            var linkedAccount = await dbContext.LinkedAccounts.FirstOrDefaultAsync(
+                account =>
+                    account.Platform == PlatformType.Twitch
+                    && account.PlatformUserId == twitchUserId,
+                cancellationToken
+            );
+
+            if (linkedAccount is not null)
+                dbContext.LinkedAccounts.Remove(linkedAccount);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return revokeResponse;
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(
+                ex,
+                "Error revoking Twitch token for user {TwitchUserId}",
+                twitchUserId
+            );
+            return CreateErrorResponse(
+                HttpStatusCode.InternalServerError,
+                "Unable to revoke Twitch token."
+            );
+        }
+    }
+
+    public async Task<IResult> RevokeAsync(
+        string twitchUserId,
+        HttpRequest request,
+        IHttpClientFactory httpClientFactory,
+        ITwitchAuthStateService stateService,
+        IConfiguration configuration,
+        ILogger<TwitchAuthHandler> logger
+    )
+    {
+        if (string.IsNullOrWhiteSpace(twitchUserId))
+            return Results.BadRequest(new { error = "Missing twitchUserId parameter." });
+
+        var tokenRecord = await stateService.FindByTwitchUserIdAsync(twitchUserId);
+
+        if (tokenRecord is null || string.IsNullOrWhiteSpace(tokenRecord.AccessToken))
+            return Results.NotFound(new { error = "Twitch account not found or no access token." });
+
+        var clientId = configuration["Twitch:ClientId"];
+        var revocationUrl = configuration["Twitch:RevocationUrl"];
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(revocationUrl))
+            return Results.BadRequest(new { error = "Missing Twitch client configuration." });
+
+        try
+        {
+            using var client = httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("content-type", "application/x-www-form-urlencoded");
+            var content = new FormUrlEncodedContent(
+                new Dictionary<string, string>
+                {
+                    ["client_id"] = clientId,
+                    ["token"] = tokenRecord.AccessToken,
+                }
+            );
+
+            var revokeResponse = await client.PostAsync(revocationUrl, content);
+
+            if (!revokeResponse.IsSuccessStatusCode)
+            {
+                var body = await revokeResponse.Content.ReadAsStringAsync();
+
+                logger.LogError(
+                    "Token revocation failed: {Status} {Body}",
+                    revokeResponse.StatusCode,
+                    body
+                );
+
+                return Results.StatusCode(StatusCodes.Status502BadGateway);
+            }
+
+            await stateService.RemoveByTwitchUserIdAsync(twitchUserId);
+
+            return Results.Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Error revoking Twitch token for user {TwitchUserId}",
+                twitchUserId
+            );
+            return Results.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    private static HttpResponseMessage CreateErrorResponse(
+        HttpStatusCode statusCode,
+        string message
+    )
+    {
+        var response = new HttpResponseMessage(statusCode)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new { error = message }),
+                Encoding.UTF8,
+                "application/json"
+            ),
+        };
+
+        return response;
+    }
+
     private record AuthorizationCodeTokenResponse(
         [property: JsonPropertyName("access_token")] string AccessToken,
         [property: JsonPropertyName("refresh_token")] string? RefreshToken,
