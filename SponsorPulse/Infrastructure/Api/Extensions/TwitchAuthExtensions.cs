@@ -11,7 +11,6 @@ namespace SponsorPulse.Infrastructure.Api.Extensions;
 
 public static class TwitchAuthExtensions
 {
- 
     public static WebApplication MapTwitchAuthEndpoints(this WebApplication app)
     {
         var handler = new TwitchAuthHandler();
@@ -110,7 +109,7 @@ public static class TwitchAuthExtensions
                                         "Authorization",
                                         $"Bearer {token}"
                                     );
-
+                                    string BaseUrl = configuration["Twitch:UserInfo"];
                                     var userResp = await client.GetAsync(
                                         $"{BaseUrl}/users?id={Uri.EscapeDataString(t.TwitchUserId)}"
                                     );

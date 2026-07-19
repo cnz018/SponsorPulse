@@ -9,6 +9,8 @@ public enum EventStatus
     AnalysisReady,
     Completed,
     Error,
+    Live,
+    Scheduled
 }
 
 public record Event(
