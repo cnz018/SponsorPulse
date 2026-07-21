@@ -346,6 +346,50 @@ public class TwitchAuthHandler
                 };
 
                 await stateService.UpsertLinkedAccountAsync(linkedAccount);
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    logger.LogInformation(
+                        "Lancement automatique de l'abonnement EventSub pour l'utilisateur {UserId}...",
+                        userId
+                    );
+                    await Task.Run(async () =>
+                    {
+                        try
+                        {
+                            bool isSubscribed =
+                                await TwitchWebhookExtensions.SubscribeEventSubAsync(
+                                    userId,
+                                    httpClientFactory,
+                                    configuration,
+                                    logger
+                                );
+
+                            if (isSubscribed)
+                            {
+                                logger.LogInformation(
+                                    "Abonnement EventSub automatisé avec succès pour l'utilisateur {UserId}.",
+                                    userId
+                                );
+                            }
+                            else
+                            {
+                                logger.LogWarning(
+                                    "L'abonnement automatique a échoué lors du callback pour {UserId}. L'utilisateur devra cliquer sur 'Synchroniser' dans les paramètres.",
+                                    userId
+                                );
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(
+                                ex,
+                                "Erreur asynchrone lors de la tentative d'abonnement automatique pour {UserId}.",
+                                userId
+                            );
+                        }
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -363,7 +407,6 @@ public class TwitchAuthHandler
 
     public async Task<HttpResponseMessage> RevokeTokenAsync(
         string twitchUserId,
-        Guid? currentUserId,
         IConfiguration configuration,
         IDbContextFactory<SponsorPulseDbContext> dbFactory,
         ILogger<TwitchAuthHandler>? logger = null,
@@ -550,4 +593,17 @@ public class TwitchAuthHandler
         [property: JsonPropertyName("login")] string? Login,
         [property: JsonPropertyName("display_name")] string? DisplayName
     );
+}
+
+internal class TwitchSubscriptionHelper
+{
+    internal static async Task SubscribeEventSubAsync(
+        string userId,
+        IHttpClientFactory httpClientFactory,
+        IConfiguration configuration,
+        ILogger<TwitchAuthHandler> logger
+    )
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -271,3 +271,11 @@ docs/*
 *.md
 persistedKeys/
 SponsorPulse/persistedKeys/
+SponsorPulse/SponsorPulse.db-shm
+SponsorPulse/SponsorPulse.db-shm
+SponsorPulse/SponsorPulse.db
+.gitignore
+.vscode/*
+SponsorPulse/appsettings.Development.json
+.kombai/*
+SponsorPulse/Properties/*

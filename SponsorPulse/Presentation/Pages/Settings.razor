@@ -150,571 +150,575 @@
                                 <div
                                     class="connected-item flex items-center justify-between p-3 border rounded mb-2 bg-gray-900/20">
                                     <div class="flex items-center gap-3">
-
                                         <div>
                                             <div class="text-white font-semibold">@(acct.PlatformUsername)</div>
-                                            <div class="text-gray-400 text-xs">@("@" + acct.PlatformUserId) •
-                                            </div>
+                                            <div class="text-gray-400 text-xs">@("@" + acct.PlatformUserId)</div>
                                         </div>
+                                    </div>
 
-                                        <div class="flex items-center gap-2">
-                                            @if (acct.TokenExpiresAt.HasValue)
-                                            {
-                                                <div class="text-gray-400 text-xs">Exp: @acct.TokenExpiresAt.Value.ToString("g")
-                                                </div>
-                                            }
-                                            <LumexButton class="btn-danger"
-                                                         @onclick="() => ShowDisconnectConfirm(acct.PlatformUserId, acct.PlatformUsername)">
-                                                Déconnecter</LumexButton>
-                                            </div>
-                                        </div>
+                                    <div class="flex items-center gap-2">
+                                        <!-- Statut automatique informatif -->
+                                        <span
+                                            class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded border border-emerald-500/20 font-medium">
+                                            ● Synchronisation Active
+                                        </span>
+
+                                        @if (acct.TokenExpiresAt.HasValue)
+                                        {
+                                            <div class="text-gray-400 text-xs">Exp: @acct.TokenExpiresAt.Value.ToString("g")</div>
                                         }
-                                    </div>
-                                }
-                            </div>
-                        }
 
-                        @if (showDisconnectConfirm)
-                        {
-                            <div class="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
-                                <div class="bg-gray-800 p-6 rounded shadow-lg w-96">
-                                    <h3 class="text-lg font-bold text-white mb-2">Déconnecter le compte</h3>
-                                    <p class="text-gray-300 mb-4">Voulez-vous vraiment déconnecter <strong>@(confirmDisplayName
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ?? confirmTwitchUserId)</strong> ?</p>
-                                        <div class="flex justify-end gap-2">
-                                            <button class="btn-secondary" @onclick="CancelDisconnect"
-                                                    disabled="@isDisconnecting">Annuler</button>
-                                            <button class="btn-danger" @onclick="ConfirmDisconnect"
-                                                    disabled="@isDisconnecting">@((isDisconnecting) ? "Suppression…" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "Confirmer")</button>
-                                            </div>
-                                        </div>
+                                        <LumexButton class="btn-danger" Size="@Size.Small"
+                                                     @onclick="() => ShowDisconnectConfirm(acct.PlatformUserId, acct.PlatformUsername)">
+                                            Déconnecter
+                                        </LumexButton>
                                     </div>
-                                }
-                            </div>
+                                </div>
+                            }
                         </div>
+                    }
 
-
-                        <!-- Section: Couleurs de Marque -->
-                        <div class="settings-section glass-panel">
-                            <div class="section-header">
-                                <div class="section-icon">🎨</div>
-                                <h2 class="section-title">Couleurs de marque</h2>
-                            </div>
-
-                            <div class="section-content">
-                                <div class="color-picker-group">
-                                    <div class="color-picker-item">
-                                        <label class="form-label">Couleur Primaire</label>
-                                        <div class="color-picker-wrapper">
-                                            <input type="color" @bind="primaryColor" class="color-picker" />
-                                            <div class="color-value-display">
-                                                <span class="color-preview" style="background: @primaryColor"></span>
-                                                <span class="color-hex">@primaryColor</span>
-                                            </div>
-                                        </div>
-                                        <div class="color-presets">
-                                            <span class="preset-label">Prédéfinies :</span>
-                                            <button class="preset-color" style="background: #CCC9DC"
-                                                    @onclick="@(() => SetPrimary("#CCC9DC"))" title="Lavender"></button>
-                                            <button class="preset-color" style="background: #6366F1"
-                                                    @onclick="@(() => SetPrimary("#6366F1"))" title="Indigo"></button>
-                                            <button class="preset-color" style="background: #8B5CF6"
-                                                    @onclick="@(() => SetPrimary("#8B5CF6"))" title="Purple"></button>
-                                            <button class="preset-color" style="background: #EC4899"
-                                                    @onclick="@(() => SetPrimary("#EC4899"))" title="Pink"></button>
-                                            <button class="preset-color" style="background: #10B981"
-                                                    @onclick="@(() => SetPrimary("#10B981"))" title="Emerald"></button>
-                                            <button class="preset-color" style="background: #3B82F6"
-                                                    @onclick="@(() => SetPrimary("#3B82F6"))" title="Blue"></button>
-                                        </div>
-                                    </div>
-
-                                    <div class="color-picker-item">
-                                        <label class="form-label">Couleur Secondaire</label>
-                                        <div class="color-picker-wrapper">
-                                            <input type="color" @bind="secondaryColor" class="color-picker" />
-                                            <div class="color-value-display">
-                                                <span class="color-preview" style="background: @secondaryColor"></span>
-                                                <span class="color-hex">@secondaryColor</span>
-                                            </div>
-                                        </div>
-                                        <div class="color-presets">
-                                            <span class="preset-label">Prédéfinies :</span>
-                                            <button class="preset-color" style="background: #94A3B8"
-                                                    @onclick="@(() => SetSecondary("#94A3B8"))" title="Slate"></button>
-                                            <button class="preset-color" style="background: #64748B"
-                                                    @onclick="@(() => SetSecondary("#64748B"))" title="Gray"></button>
-                                            <button class="preset-color" style="background: #475569"
-                                                    @onclick="@(() => SetSecondary("#475569"))" title="Charcoal"></button>
-                                            <button class="preset-color" style="background: #14B8A6"
-                                                    @onclick="@(() => SetSecondary("#14B8A6"))" title="Teal"></button>
-                                            <button class="preset-color" style="background: #F59E0B"
-                                                    @onclick="@(() => SetSecondary("#F59E0B"))" title="Amber"></button>
-                                            <button class="preset-color" style="background: #EF4444"
-                                                    @onclick="@(() => SetSecondary("#EF4444"))" title="Red"></button>
+                    @if (showDisconnectConfirm)
+                    {
+                        <div class="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+                            <div class="bg-gray-800 p-6 rounded shadow-lg w-96">
+                                <h3 class="text-lg font-bold text-white mb-2">Déconnecter le compte</h3>
+                                <p class="text-gray-300 mb-4">Voulez-vous vraiment déconnecter <strong>@(confirmDisplayName
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ?? confirmTwitchUserId)</strong> ?</p>
+                                    <div class="flex justify-end gap-2">
+                                        <button class="btn-secondary" @onclick="CancelDisconnect"
+                                                disabled="@isDisconnecting">Annuler</button>
+                                        <button class="btn-danger" @onclick="ConfirmDisconnect"
+                                                disabled="@isDisconnecting">@((isDisconnecting) ? "Suppression…" :
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "Confirmer")</button>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Preview des couleurs -->
-                                <div class="color-preview-section">
-                                    <label class="form-label">Aperçu</label>
-                                    <div class="color-preview-cards">
-                                        <div class="preview-card primary"
-                                             style="background: linear-gradient(135deg, @primaryColor 0%, @primaryColor 100%)">
-                                            <span class="preview-label">Primaire</span>
-                                        </div>
-                                        <div class="preview-card secondary"
-                                             style="background: linear-gradient(135deg, @secondaryColor 0%, @secondaryColor 100%)">
-                                            <span class="preview-label">Secondaire</span>
-                                        </div>
-                                        <div class="preview-card combined"
-                                             style="background: linear-gradient(135deg, @primaryColor 0%, @secondaryColor 100%)">
-                                            <span class="preview-label">Combiné</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="settings-actions">
-                            <LumexButton Variant="@Variant.Light" Size="@Size.Medium" Color="@ThemeColor.Default"
-                                         OnClick="ResetToDefaults">
-                                <span class="button-icon">↺</span> Réinitialiser
-                            </LumexButton>
-                            <div class="actions-spacer"></div>
-                            <LumexButton Variant="@Variant.Solid" Color="@ThemeColor.Success" Size="@Size.Medium"
-                                         OnClick="SaveSettings">
-                                <span class="button-icon">✓</span> Enregistrer les modifications
-                            </LumexButton>
+                            }
                         </div>
                     </div>
 
-                    <!-- Toast Notifications -->
-                    @if (showToast)
-                    {
-                        <div class="toast-container @toastType">
-                            <div class="toast-icon">@toastIcon</div>
-                            <div class="toast-message">@toastMessage</div>
+
+                    <!-- Section: Couleurs de Marque -->
+                    <div class="settings-section glass-panel">
+                        <div class="section-header">
+                            <div class="section-icon">🎨</div>
+                            <h2 class="section-title">Couleurs de marque</h2>
                         </div>
-                    }
+
+                        <div class="section-content">
+                            <div class="color-picker-group">
+                                <div class="color-picker-item">
+                                    <label class="form-label">Couleur Primaire</label>
+                                    <div class="color-picker-wrapper">
+                                        <input type="color" @bind="primaryColor" class="color-picker" />
+                                        <div class="color-value-display">
+                                            <span class="color-preview" style="background: @primaryColor"></span>
+                                            <span class="color-hex">@primaryColor</span>
+                                        </div>
+                                    </div>
+                                    <div class="color-presets">
+                                        <span class="preset-label">Prédéfinies :</span>
+                                        <button class="preset-color" style="background: #CCC9DC"
+                                                @onclick="@(() => SetPrimary("#CCC9DC"))" title="Lavender"></button>
+                                        <button class="preset-color" style="background: #6366F1"
+                                                @onclick="@(() => SetPrimary("#6366F1"))" title="Indigo"></button>
+                                        <button class="preset-color" style="background: #8B5CF6"
+                                                @onclick="@(() => SetPrimary("#8B5CF6"))" title="Purple"></button>
+                                        <button class="preset-color" style="background: #EC4899"
+                                                @onclick="@(() => SetPrimary("#EC4899"))" title="Pink"></button>
+                                        <button class="preset-color" style="background: #10B981"
+                                                @onclick="@(() => SetPrimary("#10B981"))" title="Emerald"></button>
+                                        <button class="preset-color" style="background: #3B82F6"
+                                                @onclick="@(() => SetPrimary("#3B82F6"))" title="Blue"></button>
+                                    </div>
+                                </div>
+
+                                <div class="color-picker-item">
+                                    <label class="form-label">Couleur Secondaire</label>
+                                    <div class="color-picker-wrapper">
+                                        <input type="color" @bind="secondaryColor" class="color-picker" />
+                                        <div class="color-value-display">
+                                            <span class="color-preview" style="background: @secondaryColor"></span>
+                                            <span class="color-hex">@secondaryColor</span>
+                                        </div>
+                                    </div>
+                                    <div class="color-presets">
+                                        <span class="preset-label">Prédéfinies :</span>
+                                        <button class="preset-color" style="background: #94A3B8"
+                                                @onclick="@(() => SetSecondary("#94A3B8"))" title="Slate"></button>
+                                        <button class="preset-color" style="background: #64748B"
+                                                @onclick="@(() => SetSecondary("#64748B"))" title="Gray"></button>
+                                        <button class="preset-color" style="background: #475569"
+                                                @onclick="@(() => SetSecondary("#475569"))" title="Charcoal"></button>
+                                        <button class="preset-color" style="background: #14B8A6"
+                                                @onclick="@(() => SetSecondary("#14B8A6"))" title="Teal"></button>
+                                        <button class="preset-color" style="background: #F59E0B"
+                                                @onclick="@(() => SetSecondary("#F59E0B"))" title="Amber"></button>
+                                        <button class="preset-color" style="background: #EF4444"
+                                                @onclick="@(() => SetSecondary("#EF4444"))" title="Red"></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview des couleurs -->
+                            <div class="color-preview-section">
+                                <label class="form-label">Aperçu</label>
+                                <div class="color-preview-cards">
+                                    <div class="preview-card primary"
+                                         style="background: linear-gradient(135deg, @primaryColor 0%, @primaryColor 100%)">
+                                        <span class="preview-label">Primaire</span>
+                                    </div>
+                                    <div class="preview-card secondary"
+                                         style="background: linear-gradient(135deg, @secondaryColor 0%, @secondaryColor 100%)">
+                                        <span class="preview-label">Secondaire</span>
+                                    </div>
+                                    <div class="preview-card combined"
+                                         style="background: linear-gradient(135deg, @primaryColor 0%, @secondaryColor 100%)">
+                                        <span class="preview-label">Combiné</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="settings-actions">
+                        <LumexButton Variant="@Variant.Light" Size="@Size.Medium" Color="@ThemeColor.Default"
+                                     OnClick="ResetToDefaults">
+                            <span class="button-icon">↺</span> Réinitialiser
+                        </LumexButton>
+                        <div class="actions-spacer"></div>
+                        <LumexButton Variant="@Variant.Solid" Color="@ThemeColor.Success" Size="@Size.Medium"
+                                     OnClick="SaveSettings">
+                            <span class="button-icon">✓</span> Enregistrer les modifications
+                        </LumexButton>
+                    </div>
                 </div>
+
+                <!-- Toast Notifications -->
+                @if (showToast)
+                {
+                    <div class="toast-container @toastType">
+                        <div class="toast-icon">@toastIcon</div>
+                        <div class="toast-message">@toastMessage</div>
+                    </div>
+                }
             </div>
-            <style>
+        </div>
+        <style>
+            .settings-page {
+                padding: 2rem;
+                max-width: 1200px;
+                margin: 0 auto;
+                animation: fadeIn 0.5s ease-out;
+            }
+
+            .settings-header {
+                margin-bottom: 2rem;
+            }
+
+            .settings-header h1 {
+                font-size: 1.875rem;
+                font-weight: 700;
+                color: var(--white);
+                margin: 0;
+            }
+
+            .settings-grid {
+                display: grid;
+                gap: 1.5rem;
+            }
+
+            .settings-section {
+                background: rgba(30, 41, 59, 0.4);
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                border-radius: 16px;
+                overflow: hidden;
+            }
+
+            .section-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 1.25rem 1.5rem;
+                background: rgba(15, 23, 42, 0.5);
+                border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            }
+
+            .section-icon {
+                font-size: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: var(--white);
+                margin: 0;
+            }
+
+            .section-content {
+                padding: 1.5rem;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-group:last-child {
+                margin-bottom: 0;
+            }
+
+            .form-label {
+                display: block;
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--grey-text);
+                margin-bottom: 0.5rem;
+            }
+
+            .label-hint {
+                display: block;
+                font-size: 0.75rem;
+                color: var(--grey-muted);
+                margin-top: 0.25rem;
+                font-weight: 400;
+            }
+
+            .form-help {
+                font-size: 0.8rem;
+                color: var(--grey-text);
+                margin-top: 0.5rem;
+                line-height: 1.5;
+            }
+
+            .text-lavender {
+                color: var(--lavender);
+            }
+
+            .form-input {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                padding-left: 2.5rem;
+                border: 1px solid rgba(148, 163, 184, 0.3);
+                border-radius: 8px;
+                background: rgba(15, 23, 42, 0.5);
+                color: white;
+                font-size: 1rem;
+            }
+
+            /* Logo Upload */
+            .logo-upload-area {
+                border: 2px dashed rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 2rem;
+                text-align: center;
+                background: rgba(15, 23, 42, 0.4);
+            }
+
+            .upload-placeholder {
+                cursor: pointer;
+            }
+
+            .upload-icon {
+                color: var(--grey-text);
+                margin-bottom: 1rem;
+                opacity: 0.7;
+            }
+
+            .upload-text {
+                color: var(--white);
+                font-weight: 500;
+                margin: 0.5rem 0;
+            }
+
+            .upload-hint {
+                color: var(--grey-text);
+                font-size: 0.8rem;
+                margin: 0;
+            }
+
+            .logo-preview {
+                position: relative;
+                display: inline-block;
+            }
+
+            .logo-image {
+                max-width: 200px;
+                max-height: 150px;
+                border-radius: 8px;
+                object-fit: contain;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 0.5rem;
+            }
+
+            .remove-logo {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background: #EF4444;
+                border: none;
+                color: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+
+            .remove-logo:hover {
+                background: #DC2626;
+                transform: scale(1.1);
+            }
+
+            /* Input with prefix */
+            .input-with-prefix {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .prefix {
+                position: absolute;
+                left: 1rem;
+                color: var(--grey-text);
+                font-weight: 500;
+                pointer-events: none;
+            }
+
+            /* Color Picker */
+            .color-picker-group {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .color-picker-item {
+                padding: 1rem;
+                background: rgba(15, 23, 42, 0.3);
+                border-radius: 12px;
+                border: 1px solid rgba(148, 163, 184, 0.1);
+            }
+
+            .color-picker-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-top: 0.75rem;
+            }
+
+            .color-picker {
+                width: 50px;
+                height: 50px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                background: none;
+                padding: 0;
+            }
+
+            .color-picker::-webkit-color-swatch-wrapper {
+                padding: 0;
+            }
+
+            .color-picker::-webkit-color-swatch {
+                border: 2px solid rgba(148, 163, 184, 0.3);
+                border-radius: 8px;
+            }
+
+            .color-picker::-moz-color-swatch {
+                border: 2px solid rgba(148, 163, 184, 0.3);
+                border-radius: 8px;
+            }
+
+            .color-value-display {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.5rem 0.75rem;
+                background: rgba(30, 41, 59, 0.5);
+                border-radius: 8px;
+                border: 1px solid rgba(148, 163, 184, 0.2);
+            }
+
+            .color-preview {
+                width: 24px;
+                height: 24px;
+                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .color-hex {
+                font-family: 'Courier New', monospace;
+                font-size: 0.875rem;
+                color: var(--lavender);
+                text-transform: uppercase;
+            }
+
+            .color-presets {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .preset-label {
+                font-size: 0.75rem;
+                color: var(--grey-text);
+                margin-right: 0.25rem;
+            }
+
+            .preset-color {
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                border: 2px solid transparent;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .preset-color:hover {
+                transform: scale(1.15);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
+
+            /* Color Preview Cards */
+            .color-preview-section {
+                margin-top: 1.5rem;
+            }
+
+            .color-preview-cards {
+                display: flex;
+                gap: 1rem;
+                margin-top: 0.75rem;
+            }
+
+            .preview-card {
+                flex: 1;
+                height: 80px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+
+            .preview-label {
+                color: white;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            }
+
+            .preview-card.combined {
+                flex: 2;
+            }
+
+            /* Actions */
+            .settings-actions {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1.5rem;
+                background: rgba(15, 23, 42, 0.5);
+                border-radius: 12px;
+                border: 1px solid rgba(148, 163, 184, 0.1);
+            }
+
+            .actions-spacer {
+                flex: 1;
+            }
+
+            .button-icon {
+                margin-right: 0.5rem;
+            }
+
+            /* Toast */
+            .toast-container {
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 1rem 1.25rem;
+                border-radius: 12px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+                animation: slideInRight 0.3s ease-out;
+                z-index: 9999;
+            }
+
+            .toast-container.success {
+                background: rgba(22, 163, 74, 0.15);
+                border: 1px solid rgba(34, 197, 94, 0.4);
+            }
+
+            .toast-container.info {
+                background: rgba(37, 99, 235, 0.15);
+                border: 1px solid rgba(59, 130, 246, 0.4);
+            }
+
+            .toast-icon {
+                font-size: 1.25rem;
+            }
+
+            .toast-message {
+                color: white;
+                font-size: 0.9rem;
+            }
+
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @@keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+
+                to {
+                    opacity: 1;
+                }
+            }
+
+            /* Responsive */
+            @@media (max-width: 768px) {
                 .settings-page {
-                    padding: 2rem;
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    animation: fadeIn 0.5s ease-out;
-                }
-
-                .settings-header {
-                    margin-bottom: 2rem;
-                }
-
-                .settings-header h1 {
-                    font-size: 1.875rem;
-                    font-weight: 700;
-                    color: var(--white);
-                    margin: 0;
-                }
-
-                .settings-grid {
-                    display: grid;
-                    gap: 1.5rem;
-                }
-
-                .settings-section {
-                    background: rgba(30, 41, 59, 0.4);
-                    border: 1px solid rgba(148, 163, 184, 0.2);
-                    border-radius: 16px;
-                    overflow: hidden;
-                }
-
-                .section-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    padding: 1.25rem 1.5rem;
-                    background: rgba(15, 23, 42, 0.5);
-                    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-                }
-
-                .section-icon {
-                    font-size: 1.5rem;
-                }
-
-                .section-title {
-                    font-size: 1.125rem;
-                    font-weight: 600;
-                    color: var(--white);
-                    margin: 0;
-                }
-
-                .section-content {
-                    padding: 1.5rem;
-                }
-
-                .form-group {
-                    margin-bottom: 1.5rem;
-                }
-
-                .form-group:last-child {
-                    margin-bottom: 0;
-                }
-
-                .form-label {
-                    display: block;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    color: var(--grey-text);
-                    margin-bottom: 0.5rem;
-                }
-
-                .label-hint {
-                    display: block;
-                    font-size: 0.75rem;
-                    color: var(--grey-muted);
-                    margin-top: 0.25rem;
-                    font-weight: 400;
-                }
-
-                .form-help {
-                    font-size: 0.8rem;
-                    color: var(--grey-text);
-                    margin-top: 0.5rem;
-                    line-height: 1.5;
-                }
-
-                .text-lavender {
-                    color: var(--lavender);
-                }
-
-                .form-input {
-                    width: 100%;
-                    padding: 0.75rem 1rem;
-                    padding-left: 2.5rem;
-                    border: 1px solid rgba(148, 163, 184, 0.3);
-                    border-radius: 8px;
-                    background: rgba(15, 23, 42, 0.5);
-                    color: white;
-                    font-size: 1rem;
-                }
-
-                /* Logo Upload */
-                .logo-upload-area {
-                    border: 2px dashed rgba(59, 130, 246, 0.3);
-                    border-radius: 12px;
-                    padding: 2rem;
-                    text-align: center;
-                    background: rgba(15, 23, 42, 0.4);
-                }
-
-                .upload-placeholder {
-                    cursor: pointer;
-                }
-
-                .upload-icon {
-                    color: var(--grey-text);
-                    margin-bottom: 1rem;
-                    opacity: 0.7;
-                }
-
-                .upload-text {
-                    color: var(--white);
-                    font-weight: 500;
-                    margin: 0.5rem 0;
-                }
-
-                .upload-hint {
-                    color: var(--grey-text);
-                    font-size: 0.8rem;
-                    margin: 0;
-                }
-
-                .logo-preview {
-                    position: relative;
-                    display: inline-block;
-                }
-
-                .logo-image {
-                    max-width: 200px;
-                    max-height: 150px;
-                    border-radius: 8px;
-                    object-fit: contain;
-                    background: rgba(0, 0, 0, 0.3);
-                    padding: 0.5rem;
-                }
-
-                .remove-logo {
-                    position: absolute;
-                    top: -8px;
-                    right: -8px;
-                    width: 28px;
-                    height: 28px;
-                    border-radius: 50%;
-                    background: #EF4444;
-                    border: none;
-                    color: white;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s;
-                }
-
-                .remove-logo:hover {
-                    background: #DC2626;
-                    transform: scale(1.1);
-                }
-
-                /* Input with prefix */
-                .input-with-prefix {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                }
-
-                .prefix {
-                    position: absolute;
-                    left: 1rem;
-                    color: var(--grey-text);
-                    font-weight: 500;
-                    pointer-events: none;
-                }
-
-                /* Color Picker */
-                .color-picker-group {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                    gap: 1.5rem;
-                    margin-bottom: 1.5rem;
-                }
-
-                .color-picker-item {
                     padding: 1rem;
-                    background: rgba(15, 23, 42, 0.3);
-                    border-radius: 12px;
-                    border: 1px solid rgba(148, 163, 184, 0.1);
                 }
 
-                .color-picker-wrapper {
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    margin-top: 0.75rem;
-                }
-
-                .color-picker {
-                    width: 50px;
-                    height: 50px;
-                    border: none;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    background: none;
-                    padding: 0;
-                }
-
-                .color-picker::-webkit-color-swatch-wrapper {
-                    padding: 0;
-                }
-
-                .color-picker::-webkit-color-swatch {
-                    border: 2px solid rgba(148, 163, 184, 0.3);
-                    border-radius: 8px;
-                }
-
-                .color-picker::-moz-color-swatch {
-                    border: 2px solid rgba(148, 163, 184, 0.3);
-                    border-radius: 8px;
-                }
-
-                .color-value-display {
-                    flex: 1;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    padding: 0.5rem 0.75rem;
-                    background: rgba(30, 41, 59, 0.5);
-                    border-radius: 8px;
-                    border: 1px solid rgba(148, 163, 184, 0.2);
-                }
-
-                .color-preview {
-                    width: 24px;
-                    height: 24px;
-                    border-radius: 6px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                }
-
-                .color-hex {
-                    font-family: 'Courier New', monospace;
-                    font-size: 0.875rem;
-                    color: var(--lavender);
-                    text-transform: uppercase;
-                }
-
-                .color-presets {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    margin-top: 1rem;
-                    flex-wrap: wrap;
-                }
-
-                .preset-label {
-                    font-size: 0.75rem;
-                    color: var(--grey-text);
-                    margin-right: 0.25rem;
-                }
-
-                .preset-color {
-                    width: 28px;
-                    height: 28px;
-                    border-radius: 6px;
-                    border: 2px solid transparent;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-
-                .preset-color:hover {
-                    transform: scale(1.15);
-                    border-color: rgba(255, 255, 255, 0.3);
-                }
-
-                /* Color Preview Cards */
-                .color-preview-section {
-                    margin-top: 1.5rem;
+                .color-picker-group {
+                    grid-template-columns: 1fr;
                 }
 
                 .color-preview-cards {
-                    display: flex;
-                    gap: 1rem;
-                    margin-top: 0.75rem;
+                    flex-direction: column;
                 }
 
-                .preview-card {
-                    flex: 1;
-                    height: 80px;
-                    border-radius: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    position: relative;
-                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                }
-
-                .preview-label {
-                    color: white;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-                }
-
-                .preview-card.combined {
-                    flex: 2;
-                }
-
-                /* Actions */
                 .settings-actions {
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    padding: 1.5rem;
-                    background: rgba(15, 23, 42, 0.5);
-                    border-radius: 12px;
-                    border: 1px solid rgba(148, 163, 184, 0.1);
+                    flex-direction: column;
                 }
 
                 .actions-spacer {
-                    flex: 1;
+                    display: none;
                 }
-
-                .button-icon {
-                    margin-right: 0.5rem;
-                }
-
-                /* Toast */
-                .toast-container {
-                    position: fixed;
-                    bottom: 2rem;
-                    right: 2rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    padding: 1rem 1.25rem;
-                    border-radius: 12px;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-                    animation: slideInRight 0.3s ease-out;
-                    z-index: 9999;
-                }
-
-                .toast-container.success {
-                    background: rgba(22, 163, 74, 0.15);
-                    border: 1px solid rgba(34, 197, 94, 0.4);
-                }
-
-                .toast-container.info {
-                    background: rgba(37, 99, 235, 0.15);
-                    border: 1px solid rgba(59, 130, 246, 0.4);
-                }
-
-                .toast-icon {
-                    font-size: 1.25rem;
-                }
-
-                .toast-message {
-                    color: white;
-                    font-size: 0.9rem;
-                }
-
-                @@keyframes slideInRight {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-
-                @@keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                    }
-
-                    to {
-                        opacity: 1;
-                    }
-                }
-
-                /* Responsive */
-                @@media (max-width: 768px) {
-                    .settings-page {
-                        padding: 1rem;
-                    }
-
-                    .color-picker-group {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .color-preview-cards {
-                        flex-direction: column;
-                    }
-
-                    .settings-actions {
-                        flex-direction: column;
-                    }
-
-                    .actions-spacer {
-                        display: none;
-                    }
-                }
-            </style>
+            }
+        </style>
 
 @code {
     // Organisation
