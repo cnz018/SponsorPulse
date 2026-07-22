@@ -75,7 +75,7 @@
             <TemplateColumn Title="Date">
                 <div class="date-cell">
                     <img src="https://api.iconify.design/ic:outline-calendar-today.svg" class="date-icon" alt="" />
-                    <span class="date-text">@context.Date.Humanize()</span>
+                    <span class="date-text">@context.Date.ToLocalTime().Humanize()</span>
                 </div>
             </TemplateColumn>
             @* Colonne 3 : Statut *@

@@ -36,9 +36,16 @@
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="form-label" for="date">Date</label>
-                    <InputDate id="date" class="sp-input" @bind-Value="command.Date" />
+                    <InputDate id="date" class="sp-input" @bind-Value="command.Date" min="@MinDate" />
                     <ValidationMessage For="@(() => command.Date)" />
                 </div>
+                <div>
+                    <label class="form-label" for="start-time">Heure de démarrage</label>
+                    <input id="start-time" type="time" class="sp-input" @bind="command.StartedAtTime" />
+                    <ValidationMessage For="@(() => command.StartedAtTime)" />
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="form-label" for="platform">Plateforme</label>
                     <InputSelect id="platform" class="sp-input" @bind-Value="command.StreamPlatform">
@@ -220,18 +227,29 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnCreated { get; set; } // Callback to refresh parent if needed
 
-    private CreateEventCommand command = new();
+    private CreateEventCommand command = new()
+    {
+        Date = TimeProvider.System.GetUtcNow().ToLocalTime().DateTime.Date,
+        StartedAtTime = TimeOnly.FromDateTime(TimeProvider.System.GetUtcNow().ToLocalTime().DateTime)
+    };
+
+    private string MinDate => TimeProvider.System.GetUtcNow().ToLocalTime().Date.ToString("yyyy-MM-dd");
 
     private async Task HandleValidSubmit()
     {
-        // 2. Mapping vers Domain Entity
+        var eventDateLocal = command.Date!.Value.Date;
+        var startTime = command.StartedAtTime!.Value;
+        var startedAtLocal = eventDateLocal.Add(startTime.ToTimeSpan());
+
         var newEvent = Event.Create(
             command.Name,
             command.Description,
-            command.Date ?? DateTime.Now,
+            DateTime.SpecifyKind(eventDateLocal, DateTimeKind.Local).ToUniversalTime(),
             command.StreamPlatform,
             command.ChannelId
         );
+
+        newEvent.StartedAt = DateTime.SpecifyKind(startedAtLocal, DateTimeKind.Local).ToUniversalTime();
 
         // Ajouter les hashtags Twitter si fournis
         if (!string.IsNullOrWhiteSpace(command.TwitterHashtags))

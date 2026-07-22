@@ -54,6 +54,11 @@ public static class TwitchWebhookExtensions
             )
             .WithName("RetryTwitchSubscription");
 
+        app.MapGet(
+            "/api/webhooks/twitch",
+            (ILogger<Program> logger) => logger.LogInformation("Requete recu dans le get")
+        );
+
         app.MapPost(
             "/api/webhooks/twitch",
             async (
@@ -63,6 +68,7 @@ public static class TwitchWebhookExtensions
                 ILogger<Program> logger
             ) =>
             {
+                logger.LogInformation("Requete reçu");
                 // 1. Gestion du challenge de validation de Twitch
                 if (!string.IsNullOrEmpty(payload.Challenge))
                 {
@@ -151,7 +157,8 @@ public static class TwitchWebhookExtensions
                 // On cherche un événement "Planifié" pour ce streamer spécifique
                 using var dbContext = await dbFactory.CreateDbContextAsync();
                 var candidateEvents = await dbContext
-                    .Events.AsNoTracking()
+                    .Events
+                    .AsSplitQuery()
                     .Include(e => e.Owner)
                     .Include(e => e.Owner.LinkedAccounts)
                     .SelectMany(
@@ -160,7 +167,7 @@ public static class TwitchWebhookExtensions
                     )
                     .Where(e =>
                         e.Event.StartedAt.HasValue
-                        && e.Event.StartedAt.Value.Date == streamEvent.StartedAt.Date
+                        && e.Event.StartedAt.Value.Date.CompareTo(streamEvent.StartedAt.Date) == 0
                         && e.LinkedAccount.PlatformUserId == streamEvent.BroadcasterUserId
                         && e.Event.Status == EventStatus.Scheduled
                     )

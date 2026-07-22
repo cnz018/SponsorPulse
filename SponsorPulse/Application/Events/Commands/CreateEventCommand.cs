@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SponsorPulse.Application.Events.Commands;
 
-public class CreateEventCommand
+public class CreateEventCommand : IValidatableObject
 {
     [Required(ErrorMessage = "Le nom de l'événement est obligatoire.")]
     [StringLength(100, ErrorMessage = "Le nom est trop long (100 caractères max).")]
@@ -12,7 +13,12 @@ public class CreateEventCommand
     public string Description { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La date est obligatoire.")]
-    public DateTime? Date { get; set; } = TimeProvider.System.GetUtcNow().Date;
+    public DateTime? Date { get; set; } =
+        TimeProvider.System.GetUtcNow().ToLocalTime().DateTime.Date;
+
+    [Required(ErrorMessage = "L'heure de démarrage est obligatoire.")]
+    public TimeOnly? StartedAtTime { get; set; } =
+        TimeOnly.FromDateTime(TimeProvider.System.GetUtcNow().ToLocalTime().DateTime);
 
     [Required(ErrorMessage = "Veuillez sélectionner une plateforme.")]
     public string StreamPlatform { get; set; } = "Twitch";
@@ -22,4 +28,25 @@ public class CreateEventCommand
 
     [StringLength(500, ErrorMessage = "Les hashtags ne peuvent pas dépasser 500 caractères.")]
     public string? TwitterHashtags { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var localToday = TimeProvider.System.GetUtcNow().ToLocalTime().Date;
+
+        if (Date.HasValue && Date.Value.Date < localToday)
+        {
+            yield return new ValidationResult(
+                "La date de l'événement ne peut pas être antérieure à aujourd'hui.",
+                new[] { nameof(Date) }
+            );
+        }
+
+        if (!StartedAtTime.HasValue)
+        {
+            yield return new ValidationResult(
+                "L'heure de démarrage est obligatoire.",
+                new[] { nameof(StartedAtTime) }
+            );
+        }
+    }
 }

@@ -142,9 +142,9 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 app.UseRouting();
 app.UseRateLimiter();
 app.UseIdentityServer();
@@ -165,6 +165,7 @@ app.MapTwitchAuthEndpoints();
 
 // Map Twitch analytics endpoints
 app.MapTwitchAnalyticsEndpoints();
+app.MapTwitchWebhookEndpoints();
 
 // Map Waitlist API endpoint
 app.MapWaitlistEndpoint();

@@ -901,7 +901,7 @@ string? Scopes, DateTimeOffset? ExpiresAt);
         try
         {
             var twitchHandler = new TwitchAuthHandler();
-            var resp = await twitchHandler.RevokeTokenAsync(confirmTwitchUserId, CurrentUserId, Configuration, DbFactory);
+            var resp = await twitchHandler.RevokeTokenAsync(confirmTwitchUserId, Configuration, DbFactory);
 
             if (resp.IsSuccessStatusCode)
             {
