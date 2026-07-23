@@ -16,6 +16,16 @@ public class XpozSettings
     public required string BaseUrl { get; set; }
 
     /// <summary>
+    /// Chemin de l'endpoint de recherche Twitter Xpoz.
+    /// </summary>
+    public string TwitterSearchPath { get; set; }
+
+    /// <summary>
+    /// Nom de l'en-tête API key pour les appels Xpoz.
+    /// </summary>
+    public string ApiKeyHeaderName { get; set; }
+
+    /// <summary>
     /// Bucket par défaut pour les données Twitter
     /// </summary>
     public required string DefaultBucket { get; set; }

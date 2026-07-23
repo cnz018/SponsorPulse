@@ -1,5 +1,6 @@
-using System.Security.Cryptography;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using SponsorPulse.Application.Common.Configuration;
@@ -16,6 +17,11 @@ public class XpozTwitterStrategy(
     ILogger<XpozTwitterStrategy> logger
 ) : IXpozPlatformStrategy
 {
+    private const string JsonRpcVersion = "2.0";
+    private const string RpcMethodName = "tools/call";
+    private const string TwitterToolName = "getTwitterPostsByKeywords";
+    private const string ResponseContentType = "application/json";
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNameCaseInsensitive = true,
@@ -69,8 +75,13 @@ public class XpozTwitterStrategy(
                 }
             );
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException exception)
         {
+            logger.LogError(
+                exception,
+                "La récupération des publications Twitter Xpoz a été annulé."
+            );
+
             return Result<SocialFetchResult>.Failure("La récupération Xpoz a été annulée.");
         }
         catch (Exception exception)
@@ -79,6 +90,7 @@ public class XpozTwitterStrategy(
                 exception,
                 "Erreur pendant la récupération des publications Twitter Xpoz."
             );
+
             return Result<SocialFetchResult>.Failure(exception.Message);
         }
     }
@@ -96,29 +108,48 @@ public class XpozTwitterStrategy(
         {
             try
             {
-                using var request = new HttpRequestMessage(
-                    HttpMethod.Post,
-                    $"{settings.BaseUrl.TrimEnd('/')}/twitter/search/getTwitterPostsByKeywords"
-                )
+                var payload = new
                 {
-                    Content = JsonContent.Create(
-                        new
+                    jsonrpc = JsonRpcVersion,
+                    method = RpcMethodName,
+                    @params = new
+                    {
+                        name = TwitterToolName,
+                        arguments = new
                         {
                             keywords = query,
                             startDate = ToUtc(startDate).ToString("O"),
                             endDate = ToUtc(endDate).ToString("O"),
                             bucket = settings.DefaultBucket,
-                        }
+                        },
+                    },
+                };
+
+                using var request = new HttpRequestMessage(
+                    HttpMethod.Post,
+                    $"{settings.BaseUrl.TrimEnd('/')}/{settings.TwitterSearchPath.TrimStart('/')}"
+                )
+                {
+                    Content = new StringContent(
+                        JsonSerializer.Serialize(payload, JsonOptions),
+                        Encoding.UTF8,
+                        ResponseContentType
                     ),
                 };
-                request.Headers.Add("x-api-key", settings.ApiKey);
+                request.Headers.Add(settings.ApiKeyHeaderName, settings.ApiKey);
 
                 using var response = await httpClient.SendAsync(request, cancellationToken);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    var payload = await response.Content.ReadAsStringAsync(cancellationToken);
-                    return JsonSerializer.Deserialize<XpozTwitterResponse>(payload, JsonOptions)
-                        ?? new XpozTwitterResponse([], 0, null);
+                    var responsePayload = await response.Content.ReadAsStringAsync(
+                        cancellationToken
+                    );
+
+                    return JsonSerializer.Deserialize<XpozTwitterResponse>(
+                            responsePayload,
+                            JsonOptions
+                        ) ?? new XpozTwitterResponse([], 0, null);
                 }
 
                 if (!IsTransient(response.StatusCode) || attempt == maxRetries)
@@ -169,7 +200,7 @@ public class XpozTwitterStrategy(
     private static SocialPost MapPost(XpozTweet tweet) =>
         new()
         {
-            Id = CreateStableGuid(tweet.Id, tweet.CreatedAt),
+            Id = Guid.CreateVersion7(),
             Platform = SocialPlatform.Twitter,
             AuthorId = tweet.Author.Id,
             AuthorName = tweet.Author.DisplayName,
@@ -189,20 +220,6 @@ public class XpozTwitterStrategy(
                 ["Language"] = tweet.Language ?? string.Empty,
             },
         };
-
-    private static Guid CreateStableGuid(string externalId, DateTime createdAt)
-    {
-        var hash = Convert.ToHexString(
-            SHA256.HashData(System.Text.Encoding.UTF8.GetBytes($"twitter:{externalId}"))
-        ).ToLowerInvariant();
-        var timestamp = new DateTimeOffset(ToUtc(createdAt)).ToUnixTimeMilliseconds();
-        var timestampHex = timestamp.ToString("x12");
-        var randomA = $"7{hash[..3]}";
-        var variant = ((Convert.ToInt32(hash[6].ToString(), 16) & 0x03) | 0x08).ToString("x");
-        var randomB = variant + hash[7..22];
-
-        return Guid.ParseExact(timestampHex + randomA + randomB, "N");
-    }
 
     private static DateTime ToUtc(DateTime value) =>
         value.Kind switch
