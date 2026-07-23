@@ -49,10 +49,18 @@ builder.Services.AddScoped<PresignedUrlApiService>();
 var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=SponsorPulse.db;Cache=Shared;Foreign Keys=False";
+var analyticsConnectionString =
+    builder.Configuration.GetConnectionString("SponsorPulseAnalyticsConnection")
+    ?? "Data Source=sponsorpulse_analytics.db";
 
 builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>
 {
     options.UseSqlite(connectionString);
+});
+
+builder.Services.AddDbContext<SponsorPulseAnalyticsDbContext>(options =>
+{
+    options.UseSqlite(analyticsConnectionString);
 });
 
 // Identity + auth
@@ -135,6 +143,10 @@ using (var scope = app.Services.CreateScope())
     >();
     using var context = await dbFactory.CreateDbContextAsync();
     await context.Database.EnsureCreatedAsync();
+
+    var analyticsContext =
+        scope.ServiceProvider.GetRequiredService<SponsorPulseAnalyticsDbContext>();
+    await analyticsContext.Database.MigrateAsync();
 }
 
 // Configure the HTTP request pipeline

@@ -3,7 +3,10 @@ using SponsorPulse.Application.Common.Configuration;
 using SponsorPulse.Application.Common.Interfaces;
 using SponsorPulse.Application.Services;
 using SponsorPulse.Infrastructure.CloudflareR2;
+using SponsorPulse.Infrastructure.Persistence;
+using SponsorPulse.Infrastructure.Repositories;
 using SponsorPulse.Infrastructure.Services;
+using SponsorPulse.Infrastructure.Xpoz.Strategies;
 
 namespace SponsorPulse.Infrastructure.DependencyInjection;
 
@@ -19,6 +22,9 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<ITwitchService, TwitchInfrastructureService>();
         services.AddScoped<ITwitchAuthStateService, TwitchAuthStateManager>();
         services.AddScoped<ITwitterService, TwitterInfrastructureService>();
+        services.AddScoped<IXpozPlatformStrategy, XpozTwitterStrategy>();
+        services.AddScoped<ISocialMediaAnalyticsService, SocialMediaAnalyticsService>();
+        services.AddScoped<ISocialPostRepository, SocialPostRepository>();
         services.AddScoped<IStaticReportService, StaticReportService>();
 
         // Demo Mode Configuration
@@ -42,6 +48,7 @@ public static class InfrastructureDependencyInjection
         services.AddSingleton<IWaitlistService, WaitlistService>();
 
         services.Configure<XpozSettings>(configuration.GetSection("XpozSettings"));
+        services.AddSingleton(TimeProvider.System);
         services.Configure<R2Settings>(configuration.GetSection("CloudflareR2"));
         services.AddSingleton<IR2ClientFactory, R2ClientFactory>();
         services.AddScoped<IMediaStorageService, MediaStorageService>();
