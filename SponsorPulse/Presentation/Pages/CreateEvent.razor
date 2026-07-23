@@ -56,6 +56,23 @@
                 </div>
             </div>
 
+            <div class="mb-6">
+                <label class="form-label">Réseaux sociaux</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label" for="social-start-date">Début de recherche</label>
+                        <InputDate id="social-start-date" class="sp-input" @bind-Value="command.SocialStartDate" />
+                        <ValidationMessage For="@(() => command.SocialStartDate)" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="social-end-date">Fin de recherche</label>
+                        <InputDate id="social-end-date" class="sp-input" @bind-Value="command.SocialEndDate" />
+                        <ValidationMessage For="@(() => command.SocialEndDate)" />
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Par défaut, la plage couvre le tournoi à partir de 2 jours avant le démarrage jusqu'à 2 jours après.</p>
+            </div>
+
             <div class="mb-8">
                 <label class="form-label" for="channel">ID de la chaîne / URL</label>
                 <div class="relative">
@@ -230,7 +247,9 @@
     private CreateEventCommand command = new()
     {
         Date = TimeProvider.System.GetUtcNow().ToLocalTime().DateTime.Date,
-        StartedAtTime = TimeOnly.FromDateTime(TimeProvider.System.GetUtcNow().ToLocalTime().DateTime)
+        StartedAtTime = TimeOnly.FromDateTime(TimeProvider.System.GetUtcNow().ToLocalTime().DateTime),
+        SocialStartDate = TimeProvider.System.GetUtcNow().ToLocalTime().DateTime.Date.AddDays(-2),
+        SocialEndDate = TimeProvider.System.GetUtcNow().ToLocalTime().DateTime.Date.AddDays(2)
     };
 
     private string MinDate => TimeProvider.System.GetUtcNow().ToLocalTime().Date.ToString("yyyy-MM-dd");
