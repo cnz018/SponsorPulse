@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
 namespace SponsorPulse.Infrastructure.Xpoz.Models;
 
 /// <summary>
@@ -12,7 +14,14 @@ public record XpozAuthor(
     string? ProfileImageUrl
 );
 
-public record XpozMetrics(int Likes, int Retweets, int Replies, int Bookmarks);
+public record XpozMetrics(
+    int Likes,
+    int Retweets,
+    int Replies,
+    int Quotes,
+    int Bookmarks,
+    double Impressions
+);
 
 public record XpozTweet(
     string Id,
@@ -21,7 +30,11 @@ public record XpozTweet(
     DateTime CreatedAt,
     string? Url,
     XpozMetrics Metrics,
+    string? Location,
     string? Language
 );
 
-public record XpozTwitterResponse(List<XpozTweet> Posts, int TotalCount, string? NextCursor);
+public record XpozTwitterResponse(List<XpozTweet> Posts, int TotalCount, string? NextCursor)
+{
+    public static XpozTwitterResponse Empty => new([], 0, null);
+}

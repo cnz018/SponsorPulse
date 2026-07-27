@@ -5,8 +5,10 @@ namespace SponsorPulse.Application.Events.Commands;
 
 public class CreateEventCommand : IValidatableObject
 {
-    private static readonly DateTime DefaultEventDate =
-        TimeProvider.System.GetUtcNow().ToLocalTime().DateTime.Date;
+    private static readonly DateTime DefaultEventDate = TimeProvider
+        .System.GetUtcNow()
+        .ToLocalTime()
+        .DateTime.Date;
 
     [Required(ErrorMessage = "Le nom de l'événement est obligatoire.")]
     [StringLength(100, ErrorMessage = "Le nom est trop long (100 caractères max).")]

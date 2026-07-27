@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SponsorPulse.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using SponsorPulse.Infrastructure.Persistence;
 namespace SponsorPulse.Migrations
 {
     [DbContext(typeof(SponsorPulseDbContext))]
-    partial class SponsorPulseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260724000006_AddSocialSearchFieldsToEvent")]
+    partial class AddSocialSearchFieldsToEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
@@ -280,6 +283,9 @@ namespace SponsorPulse.Migrations
 
                     b.Property<string>("Slug")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SocialCountry")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("SocialEndDate")

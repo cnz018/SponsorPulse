@@ -24,6 +24,7 @@ public record TopHashtag(
 /// </summary>
 public record TopTweet
 {
+    public Guid Id {get; init;}
     public string AuthorName { get; init; } = string.Empty;
     public string AuthorHandle { get; init; } = string.Empty;
     public long AuthorFollowersCount { get; init; }

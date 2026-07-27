@@ -10,7 +10,7 @@ public enum EventStatus
     Completed,
     Error,
     Live,
-    Scheduled
+    Scheduled,
 }
 
 public record Event(
@@ -38,6 +38,8 @@ public record Event(
 
     // Twitter Data
     public string? TwitterHashtags { get; set; }
+    public DateTime? SocialStartDate { get; set; }
+    public DateTime? SocialEndDate { get; set; }
     public TwitterAnalytics? TwitterAnalytics { get; set; }
 
     // Media

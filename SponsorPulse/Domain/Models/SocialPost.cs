@@ -5,7 +5,7 @@ namespace SponsorPulse.Domain.Models;
 public class SocialPost
 {
     public Guid Id { get; init; }
-    public Guid EventId { get; init; }
+    public Guid EventId { get; set; }
     public SocialPlatform Platform { get; init; }
     public string AuthorId { get; init; } = string.Empty;
     public string AuthorName { get; init; } = string.Empty;
@@ -18,6 +18,7 @@ public class SocialPost
     public int LikesCount { get; init; }
     public int SharesCount { get; init; }
     public int CommentsCount { get; init; }
+    public double ImpressionsCount { get; init; }
     public string RawJsonPayload { get; init; } = string.Empty;
     public Dictionary<string, object> PlatformSpecificData { get; init; } = [];
 }
