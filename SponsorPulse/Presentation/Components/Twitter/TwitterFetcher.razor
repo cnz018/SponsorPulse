@@ -155,7 +155,7 @@
                         <div class="metric-row">
                             <span class="text-gray-400">Top Influencer</span>
                             <span class="font-semibold text-blue-400">@(_twitterAnalytics.TopInfluencer.FollowersCount /
-                                                                                                                        1000)K</span>
+                                                                                                                                                        1000)K</span>
                             </div>
                         }
                     </div>
@@ -575,7 +575,7 @@
                 _twitterAnalytics = EventToUpdate.TwitterAnalytics;
             }
 
-            InitializeManualEditData();
+            //InitializeManualEditData();
         }
     }
 
@@ -629,6 +629,7 @@
 
             // 6. Mettre à jour l'événement parent
             EventToUpdate = EventToUpdate with { TwitterAnalytics = _twitterAnalytics };
+
             InitializeManualEditData();
             await OnDataUpdated.InvokeAsync(EventToUpdate);
         }
@@ -669,6 +670,7 @@
                 Text = p.ContentText,
                 Likes = p.LikesCount,
                 Retweets = p.SharesCount,
+                Impressions = p.ImpressionsCount,
                 CreatedAt = p.CreatedAt
             }).ToList();
 
@@ -713,6 +715,7 @@
             LikesCount = e.LikesCount,
             SharesCount = e.SharesCount,
             CommentsCount = e.CommentsCount,
+            ImpressionsCount = e.ImpressionsCount,
             RawJsonPayload = e.RawJsonPayload
         }).ToList();
 

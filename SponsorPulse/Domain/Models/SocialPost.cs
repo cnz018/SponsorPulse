@@ -18,7 +18,7 @@ public class SocialPost
     public int LikesCount { get; init; }
     public int SharesCount { get; init; }
     public int CommentsCount { get; init; }
-    public double ImpressionsCount { get; init; }
+    public long ImpressionsCount { get; init; }
     public string RawJsonPayload { get; init; } = string.Empty;
     public Dictionary<string, object> PlatformSpecificData { get; init; } = [];
 }

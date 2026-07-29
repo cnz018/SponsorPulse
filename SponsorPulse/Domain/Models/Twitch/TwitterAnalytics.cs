@@ -34,7 +34,7 @@ public record TopTweet
     public int Retweets { get; init; }
     public int Replies { get; init; }
     public DateTime CreatedAt { get; init; }
-    public int Impressions { get; init; }
+    public long Impressions { get; init; }
     public double EngagementRate { get; init; }
 }
 

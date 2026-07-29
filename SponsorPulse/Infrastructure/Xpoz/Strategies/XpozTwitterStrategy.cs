@@ -218,7 +218,6 @@ public class XpozTwitterStrategy(
                             "authorUsername",
                             "text",
                             "impressionCount",
-                            "country",
                             "retweetCount",
                             "likeCount",
                             "quoteCount",
@@ -404,7 +403,6 @@ public class XpozTwitterStrategy(
             // 1: authorName
             // 2: text
             // 3: impressionCount
-            // 4: country
             // 5: retweetCount
             // 6: likeCount
             // 7: quoteCount
@@ -419,16 +417,15 @@ public class XpozTwitterStrategy(
                 var text = WebUtility.HtmlDecode(columns[2]); // Décodage des entités HTML (ex: &amp;)
 
                 _ = long.TryParse(columns[3], out var impressionCount);
-                var country = columns[4];
 
-                _ = int.TryParse(columns[5], out var retweetCount);
-                _ = int.TryParse(columns[6], out var likeCount);
-                _ = int.TryParse(columns[7], out var quoteCount);
-                _ = int.TryParse(columns[8], out var replyCount);
-                _ = int.TryParse(columns[9], out var bookmarkCount);
-                var lang = columns[10];
+                _ = int.TryParse(columns[4], out var retweetCount);
+                _ = int.TryParse(columns[5], out var likeCount);
+                _ = int.TryParse(columns[6], out var quoteCount);
+                _ = int.TryParse(columns[7], out var replyCount);
+                _ = int.TryParse(columns[8], out var bookmarkCount);
+                var lang = columns[9];
 
-                DateTime.TryParse(columns[11], out var createdAt);
+                DateTime.TryParse(columns[10], out var createdAt);
 
                 // Construction de l'auteur avec le nom fourni
                 var author = new XpozAuthor(
@@ -457,7 +454,7 @@ public class XpozTwitterStrategy(
                     CreatedAt: createdAt,
                     Url: $"https://twitter.com/{authorName}/status/{id}",
                     Metrics: metrics,
-                    Location: country,
+                    Location: string.Empty,
                     Language: lang
                 );
 
@@ -535,7 +532,7 @@ public class XpozTwitterStrategy(
                 LikesCount = tweet.Metrics?.Likes ?? 0,
                 SharesCount = tweet.Metrics?.Retweets ?? 0,
                 CommentsCount = tweet.Metrics?.Replies ?? 0,
-                ImpressionsCount = tweet.Metrics?.Impressions ?? 0d,
+                ImpressionsCount = tweet.Metrics?.Impressions ?? 0L,
                 RawJsonPayload = rawJsonPayload,
             };
 
@@ -616,6 +613,7 @@ public class XpozTwitterStrategy(
             LikesCount = tweet.Metrics.Likes,
             SharesCount = tweet.Metrics.Retweets,
             CommentsCount = tweet.Metrics.Replies,
+            ImpressionsCount = tweet.Metrics.Impressions,
             RawJsonPayload = JsonSerializer.Serialize(tweet, JsonOptions),
             PlatformSpecificData = new Dictionary<string, object>
             {

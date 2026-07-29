@@ -20,7 +20,7 @@ public record XpozMetrics(
     int Replies,
     int Quotes,
     int Bookmarks,
-    double Impressions
+    long Impressions
 );
 
 public record XpozTweet(

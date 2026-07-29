@@ -64,6 +64,7 @@ public class SocialPostRepository(
         entity.SharesCount = post.SharesCount;
         entity.CommentsCount = post.CommentsCount;
         entity.RawJsonPayload = post.RawJsonPayload;
+        entity.ImpressionsCount = post.ImpressionsCount;
         entity.PlatformSpecificDataJson = JsonSerializer.Serialize(
             post.PlatformSpecificData,
             JsonOptions
@@ -87,6 +88,7 @@ public class SocialPostRepository(
             LikesCount = entity.LikesCount,
             SharesCount = entity.SharesCount,
             CommentsCount = entity.CommentsCount,
+            ImpressionsCount = entity.ImpressionsCount,
             RawJsonPayload = entity.RawJsonPayload,
             PlatformSpecificData =
                 JsonSerializer.Deserialize<Dictionary<string, object>>(

@@ -11,6 +11,7 @@ public class SocialPostEntity
     public string AuthorName { get; set; } = string.Empty;
     public string AuthorHandle { get; set; } = string.Empty;
     public long AuthorFollowersCount { get; set; }
+    public long ImpressionsCount { get; set; }
     public string? AuthorProfileImageUrl { get; set; }
     public string ContentText { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }

@@ -21,6 +21,7 @@ public class SponsorPulseAnalyticsDbContext(
                 .HasColumnType("TEXT")
                 .IsRequired();
             entity.Property(post => post.FetchedAt).IsRequired();
+            entity.Property(post => post.ImpressionsCount).IsRequired().HasDefaultValue(0);
             entity.HasIndex(post => post.Platform);
             entity.HasIndex(post => post.CreatedAt);
         });
