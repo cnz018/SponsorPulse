@@ -3,28 +3,19 @@ namespace SponsorPulse.Domain.Models;
 /// <summary>
 /// Représente la répartition géographique des impressions.
 /// </summary>
-public record GeographicDistribution(
-    string Country,
-    double Percentage,
-    int Impressions
-);
+public record GeographicDistribution(string Country, double Percentage, int Impressions);
 
 /// <summary>
 /// Représente un hashtag avec ses performances.
 /// </summary>
-public record TopHashtag(
-    string Tag,
-    int UsageCount,
-    int TotalEngagements,
-    double ReachEstimate
-);
+public record TopHashtag(string Tag, int UsageCount, int TotalEngagements, double ReachEstimate);
 
 /// <summary>
 /// Représente un tweet du top 3 avec ses métriques principales.
 /// </summary>
 public record TopTweet
 {
-    public Guid Id {get; init;}
+    public Guid Id { get; init; }
     public string AuthorName { get; init; } = string.Empty;
     public string AuthorHandle { get; init; } = string.Empty;
     public long AuthorFollowersCount { get; init; }
@@ -73,6 +64,7 @@ public record TwitterAnalytics
     public double ShareOfVoice { get; init; }
     public decimal EstimatedROI { get; init; }
     public decimal CPM { get; init; }
+    public Dictionary<string, double> LanguageRatio { get; init; } = [];
 }
 
 /// <summary>

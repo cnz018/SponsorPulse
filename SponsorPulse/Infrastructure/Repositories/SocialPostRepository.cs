@@ -41,14 +41,14 @@ public class SocialPostRepository(
                 dbContext.SocialPosts.Add(entity);
             }
 
-            MapPostEntityFromPost(post, entity);
+            MapFromPostToPostEntity(post, entity);
             entity.FetchedAt = fetchedAt;
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static void MapPostEntityFromPost(SocialPost post, SocialPostEntity entity)
+    private static void MapFromPostToPostEntity(SocialPost post, SocialPostEntity entity)
     {
         entity.EventId = post.EventId;
         entity.Platform = post.Platform;
@@ -71,7 +71,7 @@ public class SocialPostRepository(
         );
     }
 
-    private static SocialPost MapPostEntitytoPost(SocialPostEntity entity)
+    private static SocialPost MapFromPostEntityToPost(SocialPostEntity entity)
     {
         SocialPost post = new()
         {
@@ -117,7 +117,7 @@ public class SocialPostRepository(
         return dbContext
             .SocialPosts.AsNoTracking()
             .Where(sp => sp.EventId == eventId)
-            .Select(sp => MapPostEntitytoPost(sp))
+            .Select(sp => MapFromPostEntityToPost(sp))
             .ToListAsync(token);
     }
 

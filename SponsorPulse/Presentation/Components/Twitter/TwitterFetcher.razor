@@ -78,6 +78,7 @@
 
     @if (_twitterAnalytics != null)
     {
+        <!-- Grille des métriques clés -->
         <div class="twitter-metrics grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="metric-card">
                 <div class="metric-label">Tweets</div>
@@ -85,454 +86,450 @@
             </div>
 
             <div class="metric-card">
-                <div class="metric-label">Engagement</div>
-                <div class="metric-value">@_twitterAnalytics.TotalEngagement.ToString("N0")</div>
-            </div>
+                <div class="metric-label">Portée (Reach)</div>
+                <div class="metric-value">@(_twitterAnalytics.EstimatedImpressions >= 1_000_000
+                                                                                                                                                                                ? $"{(_twitterAnalytics.EstimatedImpressions / 1_000_000.0):F1}M"
+                                                                                                                                                                                : _twitterAnalytics.EstimatedImpressions.ToString("N0"))</div>
+                </div>
 
-            <div class="metric-card">
-                <div class="metric-label">Impressions</div>
-                <div class="metric-value">@(_twitterAnalytics.EstimatedImpressions / 1_000_000)M</div>
-            </div>
+                <div class="metric-card">
+                    <div class="metric-label">Taux d'Engagement</div>
+                    <div class="metric-value text-blue-400">@_twitterAnalytics.EngagementRate.ToString("F2")%</div>
+                </div>
 
-            <div class="metric-card">
-                <div class="metric-label">AVE</div>
-                <div class="metric-value text-accent-gold">@_twitterAnalytics.AdValueEquivalent.ToString("C0")</div>
-            </div>
-        </div>
-
-        <div class="twitter-details grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div class="detail-section glass-panel p-3">
-                <h4 class="text-xs font-semibold text-lavender mb-2 uppercase tracking-wider">Sentiment</h4>
-                <div class="sentiment-bars">
-                    @if (_twitterAnalytics.SentimentRatio.TryGetValue("Positif", out var positive))
-                    {
-                        <div class="sentiment-item mb-2">
-                            <div class="flex justify-between mb-1">
-                                <span class="text-xs text-gray-400">Positif</span>
-                                <span class="text-xs font-semibold text-green-400">@positive%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill bg-green-500" style="width: @positive%"></div>
-                            </div>
-                        </div>
-                    }
-                    @if (_twitterAnalytics.SentimentRatio.TryGetValue("Neutre", out var neutral))
-                    {
-                        <div class="sentiment-item mb-2">
-                            <div class="flex justify-between mb-1">
-                                <span class="text-xs text-gray-400">Neutre</span>
-                                <span class="text-xs font-semibold text-gray-400">@neutral%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill bg-gray-500" style="width: @neutral%"></div>
-                            </div>
-                        </div>
-                    }
-                    @if (_twitterAnalytics.SentimentRatio.TryGetValue("Négatif", out var negative))
-                    {
-                        <div class="sentiment-item">
-                            <div class="flex justify-between mb-1">
-                                <span class="text-xs text-gray-400">Négatif</span>
-                                <span class="text-xs font-semibold text-red-400">@negative%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill bg-red-500" style="width: @negative%"></div>
-                            </div>
-                        </div>
-                    }
+                <div class="metric-card">
+                    <div class="metric-label">Valeur EMV (€)</div>
+                    <div class="metric-value text-accent-gold">@_twitterAnalytics.AdValueEquivalent.ToString("C0")</div>
                 </div>
             </div>
 
-            <div class="detail-section glass-panel p-3">
-                <h4 class="text-xs font-semibold text-lavender mb-2 uppercase tracking-wider">Métriques</h4>
-                <div class="metrics-list text-sm">
-                    <div class="metric-row mb-2">
-                        <span class="text-gray-400">Viral Multiplier</span>
-                        <span class="font-semibold text-orange-400">@_twitterAnalytics.ViralMultiplier.ToString("F2")</span>
-                    </div>
-                    @if (_twitterAnalytics.TopInfluencer != null)
-                    {
-                        <div class="metric-row">
-                            <span class="text-gray-400">Top Influencer</span>
-                            <span class="font-semibold text-blue-400">@(_twitterAnalytics.TopInfluencer.FollowersCount /
-                                                                                                                                                        1000)K</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            @if (_twitterAnalytics.TopTweets.Any())
-            {
-                <div class="top-tweets mt-4">
-                    <h4 class="text-xs font-semibold text-lavender mb-2 uppercase tracking-wider">Top Tweets</h4>
-                    <div class="space-y-2">
-                        @foreach (var tweet in _twitterAnalytics.TopTweets.Take(3))
-                        {
-                            <div class="tweet-card glass-panel p-3 border border-blue-500/10">
-                                <div class="flex items-start gap-2">
-                                    <div class="flex-1">
-                                        <p class="text-xs font-semibold text-blue-300">@tweet.AuthorName</p>
-                                        <p class="text-xs text-gray-400">@tweet.AuthorHandle</p>
-                                        <p class="text-sm text-gray-200 mt-1 line-clamp-2">@tweet.Text</p>
+            <!-- Section détails des métriques et sentiment -->
+            <div class="twitter-details grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="detail-section glass-panel overflow-y-hidden p-3">
+                    <h4 class="text-xs font-semibold text-lavender mb-2 uppercase tracking-wider">Langues des
+                        posts</h4>
+                        <div class="sentiment-bars">
+                            @if (_twitterAnalytics.LanguageRatio != null && _twitterAnalytics.LanguageRatio.Any())
+                            {
+                                @foreach (var (language, percentage) in _twitterAnalytics.LanguageRatio)
+                                {
+                                    <div class="sentiment-item mb-2">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-xs text-gray-300">@language</span>
+                                            <span class="text-xs font-semibold text-blue-400">@percentage%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill bg-blue-500" style="width: @percentage%"></div>
+                                        </div>
                                     </div>
-                                    <div class="flex gap-2 text-xs">
-                                        <span class="px-2 py-1 bg-red-500/10 text-red-400 rounded">❤ @tweet.Likes</span>
-                                        <span class="px-2 py-1 bg-green-500/10 text-green-400 rounded">🔄 @tweet.Retweets</span>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-xs text-gray-500 italic">Aucune donnée de langue disponible.</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="detail-section glass-panel p-3">
+                        <h4 class="text-xs font-semibold text-lavender mb-2 uppercase tracking-wider">Indicateurs avancés</h4>
+                        <div class="metrics-list text-sm">
+                            <div class="metric-row mb-2">
+                                <span class="text-gray-400">Interactions totales</span>
+                                <span class="font-semibold text-blue-300">@_twitterAnalytics.TotalEngagement.ToString("N0")</span>
+                            </div>
+                            <div class="metric-row mb-2">
+                                <span class="text-gray-400">Score de Viralité</span>
+                                <span class="font-semibold text-orange-400">@_twitterAnalytics.ViralMultiplier.ToString("F2")</span>
+                            </div>
+
+                            @if (_twitterAnalytics.TopInfluencer != null &&
+                                                    !string.IsNullOrEmpty(_twitterAnalytics.TopInfluencer.Name))
+                            {
+                                <div class="metric-row">
+                                    <span class="text-gray-400">Top Influencer</span>
+                                    <span class="font-semibold text-blue-400">
+                                        @_twitterAnalytics.TopInfluencer.Name (@(_twitterAnalytics.TopInfluencer.FollowersCount /
+                                        1000)K)
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+
+                @if (_twitterAnalytics.TopTweets.Any())
+                {
+                    <div class="top-tweets mt-4">
+                        <h4 class="text-xs font-semibold text-lavender mb-2 uppercase tracking-wider">Top Tweets</h4>
+                        <div class="space-y-2">
+                            @foreach (var tweet in _twitterAnalytics.TopTweets.Take(3))
+                            {
+                                <div class="tweet-card glass-panel p-3 border border-blue-500/10">
+                                    <div class="flex items-start gap-2">
+                                        <div class="flex-1">
+                                            <p class="text-xs font-semibold text-blue-300">@tweet.AuthorName</p>
+                                            <p class="text-xs text-gray-400">@tweet.AuthorHandle</p>
+                                            <p class="text-sm text-gray-200 mt-1 line-clamp-2">@tweet.Text</p>
+                                        </div>
+                                        <div class="flex gap-2 text-xs">
+                                            <span class="px-2 py-1 bg-red-500/10 text-red-400 rounded">❤ @tweet.Likes</span>
+                                            <span class="px-2 py-1 bg-green-500/10 text-green-400 rounded">🔄 @tweet.Retweets</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        }
+                            }
+                        </div>
                     </div>
+                }
+            }
+    else if (!_isFetching && _twitterAnalytics == null && string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="empty-state p-8 text-center text-gray-400">
+                    <p class="text-sm">Cliquez sur "Récupérer les données" pour importer les analytics Twitter via Xpoz</p>
                 </div>
             }
-        }
-    else if (!_isFetching && _twitterAnalytics == null && string.IsNullOrEmpty(_errorMessage))
-        {
-            <div class="empty-state p-8 text-center text-gray-400">
-                <p class="text-sm">Cliquez sur "Récupérer les données" pour importer les analytics Twitter via Xpoz</p>
-            </div>
-        }
-    </div>
+        </div>
 
-    <style>
-        /* Les styles CSS d'origine sont conservés à l'identique */
-        .twitter-fetcher-section {
-            width: 100%;
-        }
-
-        .fetch-controls {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .btn-fetch {
-            background: linear-gradient(135deg, #1DA1F2 0%, #1a8cd8 100%);
-            color: white;
-            border: none;
-            padding: 0.65rem 1.25rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .btn-fetch:hover:not(:disabled) {
-            background: linear-gradient(135deg, #1a94dd 0%, #1680c5 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(29, 161, 242, 0.3);
-        }
-
-        .btn-fetch:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .spinner-icon {
-            display: inline-block;
-            animation: spin 1s linear infinite;
-            font-size: 1.1rem;
-        }
-
-        @@keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .error-banner {
-            display: flex;
-            align-items: center;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @@keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
+        <style>
+            /* Les styles CSS d'origine sont conservés à l'identique */
+            .twitter-fetcher-section {
+                width: 100%;
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .fetch-controls {
+                display: flex;
+                gap: 0.75rem;
             }
-        }
 
-        .icon-error {
-            margin-right: 0.5rem;
-        }
+            .btn-fetch {
+                background: linear-gradient(135deg, #1DA1F2 0%, #1a8cd8 100%);
+                color: white;
+                border: none;
+                padding: 0.65rem 1.25rem;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.2s;
+            }
 
-        .manual-edit-section {
-            background: linear-gradient(145deg, rgba(30, 58, 138, 0.15), rgba(15, 30, 90, 0.1));
-        }
+            .btn-fetch:hover:not(:disabled) {
+                background: linear-gradient(135deg, #1a94dd 0%, #1680c5 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 10px 15px -3px rgba(29, 161, 242, 0.3);
+            }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
+            .btn-fetch:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
 
-        .form-label {
-            display: block;
-            margin-bottom: 0.35rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
-        }
+            .spinner-icon {
+                display: inline-block;
+                animation: spin 1s linear infinite;
+                font-size: 1.1rem;
+            }
 
-        .twitter-metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.75rem;
-        }
+            @@keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
 
-        .metric-card {
-            background: linear-gradient(145deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            padding: 1rem;
-            border-radius: 12px;
-            text-align: center;
-        }
+            .error-banner {
+                display: flex;
+                align-items: center;
+                animation: slideIn 0.3s ease-out;
+            }
 
-        .metric-label {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
+            @@keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
 
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #60A5FA;
-        }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
 
-        .metric-value.text-accent-gold {
-            color: #FBBF24;
-        }
+            .icon-error {
+                margin-right: 0.5rem;
+            }
 
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
+            .manual-edit-section {
+                background: linear-gradient(145deg, rgba(30, 58, 138, 0.15), rgba(15, 30, 90, 0.1));
+            }
 
-        .detail-section {
-            padding: 1rem;
-        }
+            .form-group {
+                display: flex;
+                flex-direction: column;
+            }
 
-        .sentiment-bars {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+            .form-label {
+                display: block;
+                margin-bottom: 0.35rem;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                font-weight: 600;
+            }
 
-        .sentiment-item {
-            width: 100%;
-        }
+            .twitter-metrics {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 0.75rem;
+            }
 
-        .progress-bar {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-            overflow: hidden;
-        }
+            .metric-card {
+                background: linear-gradient(145deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
+                border: 1px solid rgba(59, 130, 246, 0.2);
+                padding: 1rem;
+                border-radius: 12px;
+                text-align: center;
+            }
 
-        .progress-fill {
-            height: 100%;
-            transition: width 0.3s ease-out;
-        }
+            .metric-label {
+                font-size: 0.75rem;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+            }
 
-        .metrics-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
+            .metric-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #60A5FA;
+            }
 
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+            .metric-value.text-accent-gold {
+                color: #FBBF24;
+            }
 
-        .tweet-card {
-            background: rgba(29, 161, 242, 0.05);
-            border-left: 3px solid #1DA1F2;
-            transition: all 0.2s;
-        }
+            .glass-panel {
+                background: rgba(30, 41, 59, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                backdrop-filter: blur(10px);
+            }
 
-        .tweet-card:hover {
-            background: rgba(29, 161, 242, 0.1);
-            border-left-color: #60A5FA;
-        }
+            .detail-section {
+                padding: 1rem;
+            }
 
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+            .sentiment-bars {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
 
-        .btn-ghost {
-            background: transparent;
-            border: 1px solid transparent;
-            color: #94a3b8;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+            .sentiment-item {
+                width: 100%;
+            }
 
-        .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #cbd5e1;
-        }
+            .progress-bar {
+                height: 6px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 3px;
+                overflow: hidden;
+            }
 
-        .empty-state {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            border: 1px dashed rgba(255, 255, 255, 0.1);
-        }
+            .progress-fill {
+                height: 100%;
+                transition: width 0.3s ease-out;
+            }
 
-        .top-tweets {
-            margin-top: 1rem;
-        }
+            .metrics-list {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
 
-        .space-y-2>*+* {
-            margin-top: 0.5rem;
-        }
+            .metric-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-        .grid {
-            display: grid;
-        }
+            .tweet-card {
+                background: rgba(29, 161, 242, 0.05);
+                border-left: 3px solid #1DA1F2;
+                transition: all 0.2s;
+            }
 
-        .grid-cols-2 {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+            .tweet-card:hover {
+                background: rgba(29, 161, 242, 0.1);
+                border-left-color: #60A5FA;
+            }
 
-        .grid-cols-4 {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
+            .line-clamp-2 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
 
-        @@media (max-width: 768px) {
+            .btn-ghost {
+                background: transparent;
+                border: 1px solid transparent;
+                color: #94a3b8;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .btn-ghost:hover {
+                background: rgba(255, 255, 255, 0.05);
+                color: #cbd5e1;
+            }
+
+            .empty-state {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 12px;
+                border: 1px dashed rgba(255, 255, 255, 0.1);
+            }
+
+            .top-tweets {
+                margin-top: 1rem;
+            }
+
+            .space-y-2>*+* {
+                margin-top: 0.5rem;
+            }
+
+            .grid {
+                display: grid;
+            }
+
             .grid-cols-2 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .grid-cols-4 {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
-        }
 
-        .gap-3 {
-            gap: 0.75rem;
-        }
+            @@media (max-width: 768px) {
+                .grid-cols-2 {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
 
-        .gap-4 {
-            gap: 1rem;
-        }
+                .grid-cols-4 {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
 
-        .mb-4 {
-            margin-bottom: 1rem;
-        }
+            .gap-3 {
+                gap: 0.75rem;
+            }
 
-        .mb-3 {
-            margin-bottom: 0.75rem;
-        }
+            .gap-4 {
+                gap: 1rem;
+            }
 
-        .mb-2 {
-            margin-bottom: 0.5rem;
-        }
+            .mb-4 {
+                margin-bottom: 1rem;
+            }
 
-        .mt-1 {
-            margin-top: 0.25rem;
-        }
+            .mb-3 {
+                margin-bottom: 0.75rem;
+            }
 
-        .mt-4 {
-            margin-top: 1rem;
-        }
+            .mb-2 {
+                margin-bottom: 0.5rem;
+            }
 
-        .flex {
-            display: flex;
-        }
+            .mt-1 {
+                margin-top: 0.25rem;
+            }
 
-        .justify-between {
-            justify-content: space-between;
-        }
+            .mt-4 {
+                margin-top: 1rem;
+            }
 
-        .items-center {
-            align-items: center;
-        }
+            .flex {
+                display: flex;
+            }
 
-        .items-start {
-            align-items: flex-start;
-        }
+            .justify-between {
+                justify-content: space-between;
+            }
 
-        .px-2 {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
+            .items-center {
+                align-items: center;
+            }
 
-        .py-1 {
-            padding-top: 0.25rem;
-            padding-bottom: 0.25rem;
-        }
+            .items-start {
+                align-items: flex-start;
+            }
 
-        .p-3 {
-            padding: 0.75rem;
-        }
+            .px-2 {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
 
-        .p-4 {
-            padding: 1rem;
-        }
+            .py-1 {
+                padding-top: 0.25rem;
+                padding-bottom: 0.25rem;
+            }
 
-        .p-8 {
-            padding: 2rem;
-        }
+            .p-3 {
+                padding: 0.75rem;
+            }
 
-        .text-xs {
-            font-size: 0.75rem;
-        }
+            .p-4 {
+                padding: 1rem;
+            }
 
-        .text-sm {
-            font-size: 0.875rem;
-        }
+            .p-8 {
+                padding: 2rem;
+            }
 
-        .font-semibold {
-            font-weight: 600;
-        }
+            .text-xs {
+                font-size: 0.75rem;
+            }
 
-        .uppercase {
-            text-transform: uppercase;
-        }
+            .text-sm {
+                font-size: 0.875rem;
+            }
 
-        .tracking-wider {
-            letter-spacing: 0.05em;
-        }
+            .font-semibold {
+                font-weight: 600;
+            }
 
-        .border {
-            border-width: 1px;
-        }
+            .uppercase {
+                text-transform: uppercase;
+            }
 
-        .rounded {
-            border-radius: 0.375rem;
-        }
+            .tracking-wider {
+                letter-spacing: 0.05em;
+            }
 
-        .w-full {
-            width: 100%;
-        }
+            .border {
+                border-width: 1px;
+            }
 
-        .flex-1 {
-            flex: 1 1 0%;
-        }
-    </style>
+            .rounded {
+                border-radius: 0.375rem;
+            }
+
+            .w-full {
+                width: 100%;
+            }
+
+            .flex-1 {
+                flex: 1 1 0%;
+            }
+        </style>
 
 @code {
     [Parameter]
@@ -541,6 +538,8 @@
     [Parameter]
     public EventCallback<Event> OnDataUpdated { get; set; }
 
+    private const string TWITTER_DATA_LANG_KEY = "Language";
+    private const string UNKWNON_LANG = "Inconnu";
     private TwitterAnalytics? _twitterAnalytics;
     private bool _isFetching;
     private string? _errorMessage;
@@ -568,7 +567,7 @@
 
             if (storedEntities.Any())
             {
-                _twitterAnalytics = MapEntitiesToAnalytics(storedEntities);
+                _twitterAnalytics = MapPostsToAnalytics(storedEntities, storedEntities.Count);
             }
             else if (EventToUpdate.TwitterAnalytics != null)
             {
@@ -646,11 +645,44 @@
     /// <summary>
     /// Convertit la liste des posts du domaine vers le modèle d'affichage UI
     /// </summary>
+    /// <summary>
+    /// Convertit la liste des posts du domaine vers le modèle d'affichage UI en appliquant les formules standards.
+    /// </summary>
     private TwitterAnalytics MapPostsToAnalytics(List<SocialPost> posts, int totalCount)
     {
-        var totalEngagement = posts.Sum(p => p.LikesCount + p.SharesCount + p.CommentsCount);
+        if (posts is null || !posts.Any())
+        {
+            return new TwitterAnalytics();
+        }
 
-        // Trouver le top influencer parmi les auteurs
+        // 1. Extraction des données brutes cumulées
+        long totalImpressions = posts.Sum(p => p.ImpressionsCount);
+        int totalLikes = posts.Sum(p => p.LikesCount);
+        int totalRetweets = posts.Sum(p => p.SharesCount);
+        int totalReplies = posts.Sum(p => p.CommentsCount);
+
+        // Interactions totales (L + RT + R)
+        int totalEngagement = totalLikes + totalRetweets + totalReplies;
+
+        // 2. Calcul de l'EMV (Earned Media Value) / AVE
+        // Standards du marché : CPM = 8.00 € / 1000 impressions, CPE = 0.50 € par interaction
+        const decimal cpmStandard = 8.00m;
+        const decimal cpeStandard = 0.50m;
+
+        decimal emvImpressions = ((decimal)totalImpressions / 1000m) * cpmStandard;
+        decimal emvEngagement = totalEngagement * cpeStandard;
+        decimal earnedMediaValue = emvImpressions + emvEngagement;
+
+        // 3. Calcul du Taux d'Engagement (%)
+        double engagementRate = totalImpressions > 0
+            ? ((double)totalEngagement / totalImpressions) * 100.0
+            : 0.0;
+
+        // 4. Calcul du Score de Viralité (VR)
+        // VR = (RT + Quotes) / max(1, L)
+        double viralMultiplier = (double)totalRetweets / Math.Max(1, totalLikes);
+
+        // 5. Identification du Top Influencer
         var topAuthor = posts.OrderByDescending(p => p.AuthorFollowersCount).FirstOrDefault();
         TopInfluencer? topInfluencer = topAuthor != null ? new TopInfluencer
         {
@@ -659,39 +691,65 @@
             FollowersCount = topAuthor.AuthorFollowersCount
         } : null;
 
-        // Mapper les top tweets
-        var topTweets = posts.OrderByDescending(p => p.LikesCount + p.SharesCount)
+        // 6. Mapping des Top Tweets avec leur propre taux d'engagement
+        var topTweets = posts
+            .OrderByDescending(p => p.LikesCount + p.SharesCount + p.CommentsCount)
             .Take(5)
-            .Select(p => new TopTweet
+            .Select(p =>
             {
-                Id = p.Id,
-                AuthorName = p.AuthorName,
-                AuthorHandle = p.AuthorHandle,
-                Text = p.ContentText,
-                Likes = p.LikesCount,
-                Retweets = p.SharesCount,
-                Impressions = p.ImpressionsCount,
-                CreatedAt = p.CreatedAt
+                int tweetEngagement = p.LikesCount + p.SharesCount + p.CommentsCount;
+                double tweetEr = p.ImpressionsCount > 0
+                    ? ((double)tweetEngagement / p.ImpressionsCount) * 100.0
+                    : 0.0;
+
+                return new TopTweet
+                {
+                    Id = p.Id,
+                    AuthorName = p.AuthorName,
+                    AuthorHandle = p.AuthorHandle,
+                    Text = p.ContentText,
+                    Likes = p.LikesCount,
+                    Retweets = p.SharesCount,
+                    Replies = p.CommentsCount,
+                    Impressions = p.ImpressionsCount,
+                    EngagementRate = tweetEr,
+                    CreatedAt = p.CreatedAt
+                };
             }).ToList();
 
-        // Dérivation d'estimations pour l'UI
-        double estimatedImpressions = posts.Sum(p => p.ImpressionsCount);
-        decimal adValueEquivalent = (decimal)(estimatedImpressions * 0.005); // Exemple CPM
+        var totalPosts = posts.Count;
+        var languageRatio = posts
+            .Select(p =>
+            {
+                // Récupère la langue depuis PlatformSpecificData ou "und" si non disponible
+                if (p.PlatformSpecificData != null &&
+                    p.PlatformSpecificData.TryGetValue(TWITTER_DATA_LANG_KEY, out var val))
+                {
+                    return val.ToString();
+                }
+                return UNKWNON_LANG;
+            })
+            .GroupBy(GetLanguageDisplayName)
+            .ToDictionary(
+                g => g.Key,
+                g => Math.Round(((double)g.Count() / totalPosts) * 100.0, 1)
+            )
+            .OrderByDescending(kv => kv.Value)
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
 
+        // 7. Assemblage du modèle analytics final
         return new TwitterAnalytics
         {
             TotalTweets = totalCount > 0 ? totalCount : posts.Count,
             TotalEngagement = totalEngagement,
-            EstimatedImpressions = (long)estimatedImpressions,
-            AdValueEquivalent = adValueEquivalent,
-            ViralMultiplier = posts.Count > 0 ? (double)totalEngagement / posts.Count : 1.0,
-            SentimentRatio = new Dictionary<string, double>
-            {
-                { "Positif", 70.0 },
-                { "Neutre", 20.0 },
-                { "Négatif", 10.0 }
-            },
-            TopInfluencer = topInfluencer,
+            EstimatedImpressions = totalImpressions,
+            UniqueReach = totalImpressions, // Reach = Impressions
+            AdValueEquivalent = earnedMediaValue,
+            EngagementRate = engagementRate,
+            ViralMultiplier = viralMultiplier,
+            CPM = cpmStandard,
+            LanguageRatio = languageRatio,
+            TopInfluencer = topInfluencer ?? new TopInfluencer(),
             TopTweets = topTweets
         };
     }
@@ -772,6 +830,25 @@
         }
 
         _showManualEdit = false;
-        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Convertit un code de langue ISO (ex: 'fr', 'en') en nom complet d'affichage.
+    /// </summary>
+    private static string GetLanguageDisplayName(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return "Non défini";
+
+        return code.ToLowerInvariant().Trim() switch
+        {
+            "fr" or "fre" or "fra" => "Français",
+            "en" or "eng" => "Anglais",
+            "es" or "spa" => "Espagnol",
+            "de" or "ger" or "deu" => "Allemand",
+            "it" or "ita" => "Italien",
+            "pt" or "por" => "Portugais",
+            "ja" or "jpn" => "Japonais",
+            _ => code.ToUpperInvariant()
+        };
     }
 }
