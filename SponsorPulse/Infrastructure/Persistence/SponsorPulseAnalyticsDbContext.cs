@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SponsorPulse.Domain.Models.Twitch;
 
 namespace SponsorPulse.Infrastructure.Persistence;
 
@@ -7,6 +8,7 @@ public class SponsorPulseAnalyticsDbContext(
 ) : DbContext(options)
 {
     public DbSet<SocialPostEntity> SocialPosts { get; set; }
+    public DbSet<TwitchStreamSnapshot> TwitchStreamSnapshots { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +26,13 @@ public class SponsorPulseAnalyticsDbContext(
             entity.Property(post => post.ImpressionsCount).IsRequired().HasDefaultValue(0);
             entity.HasIndex(post => post.Platform);
             entity.HasIndex(post => post.CreatedAt);
+        });
+
+        modelBuilder.Entity<TwitchStreamSnapshot>(entity => 
+        {
+            entity.ToTable("twitchStreamSnapshots");
+            entity.HasKey(snap => snap.Id);
+            
         });
     }
 }
