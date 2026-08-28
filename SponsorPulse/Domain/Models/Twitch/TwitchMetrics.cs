@@ -62,4 +62,17 @@ public record TwitchMetrics
     public double EngagementRate { get; init; }
     public decimal EstimatedROI { get; init; }
     public decimal CPM { get; init; }
+
+public static TwitchMetrics Empty => new();
+    public static TwitchMetrics Create() => new ();
+    public static TwitchMetrics Create(int viewerCount, int peakViewers, int uniqueViewers, TimeSpan streamDuration, DateTimeOffset startedAt, string gameName) =>
+        new()
+        {
+            ViewerCount = viewerCount,
+            PeakViewers = peakViewers,
+            UniqueViewers = uniqueViewers,
+            StreamDuration = streamDuration,
+            StartedAt = startedAt,
+            GameName = gameName
+        };
 }

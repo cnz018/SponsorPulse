@@ -27,9 +27,9 @@ public class TwitchInfrastructureService(
         {
             if (string.IsNullOrWhiteSpace(channelNameOrUrl))
             {
-                logger.LogWarning("Channel name or URL cannot be empty.");
+                logger.LogWarning("Channel name cannot be empty.");
 
-                return Result<TwitchMetrics>.Failure("Channel name or URL cannot be empty.");
+                return Result<TwitchMetrics>.Failure("Channel name  cannot be empty.");
             }
 
             var clientId = configuration["Twitch:ClientId"];
@@ -38,11 +38,13 @@ public class TwitchInfrastructureService(
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
             {
                 logger.LogError("Twitch credentials are missing.");
+
                 return Result<TwitchMetrics>.Failure("Configuration error. Missing credentials.");
             }
 
             // 1. Setup HttpClient and authentication headers
             using var client = httpClientFactory.CreateClient();
+
             client.DefaultRequestHeaders.Remove("Client-ID");
             client.DefaultRequestHeaders.Add("Client-ID", clientId);
 
@@ -67,10 +69,12 @@ public class TwitchInfrastructureService(
                         "Authentication failed. Status: {StatusCode}",
                         authResponse.StatusCode
                     );
+
                     return Result<TwitchMetrics>.Failure("Authentication failed.");
                 }
 
                 var authData = await authResponse.Content.ReadFromJsonAsync<TwitchAuthResponse>();
+
                 if (string.IsNullOrEmpty(authData?.AccessToken))
                 {
                     return Result<TwitchMetrics>.Failure("Failed to retrieve Access Token.");
@@ -80,107 +84,48 @@ public class TwitchInfrastructureService(
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authData.AccessToken}");
             }
 
-            // 3. Resolve input: can be a login, a full twitch URL, or a video id/url
-            var (login, videoId) = ParseTwitchInput(channelNameOrUrl);
-            string? userId = null;
+            string targetChannel = "kenbogard";
 
-            if (!string.IsNullOrEmpty(videoId))
+            logger.LogInformation(
+                "[TwitchTracker] Analyse du live pour : {Channel}",
+                targetChannel
+            );
+            var streamReq = await client.GetAsync($"{BaseUrl}/streams?user_id={targetChannel}");
+
+            if (!streamReq.IsSuccessStatusCode)
             {
-                // If we received a video id directly, fetch the video
-                var directVideoReq = await client.GetAsync($"{BaseUrl}/videos?id={videoId}");
-                if (directVideoReq.IsSuccessStatusCode)
-                {
-                    var directVideoData =
-                        await directVideoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
-                    var directVideo = directVideoData?.Data?.FirstOrDefault();
-                    if (directVideo != null)
-                    {
-                        logger.LogInformation(
-                            "Found VOD by video id for {Input}",
-                            channelNameOrUrl
-                        );
-                        return Result<TwitchMetrics>.Success(
-                            new TwitchMetrics
-                            {
-                                ViewerCount = directVideo.ViewCount,
-                                PeakViewers = 0,
-                                StreamDuration = ParseDuration(directVideo.Duration),
-                                StartedAt = directVideo.CreatedAt,
-                                GameName = "VOD Archive",
-                            }
-                        );
-                    }
-                }
-                // if not found as video, continue to try as login below
+                logger.LogInformation(" No LIVE stream for {Channel}", channelNameOrUrl);
+
+                return Result<TwitchMetrics>.Failure("No active stream");
             }
 
-            // if (!string.IsNullOrEmpty(login))
-            // {
-            //     var userReq = await client.GetAsync($"{BaseUrl}/users?login={login}");
-                
-            //     if (!userReq.IsSuccessStatusCode)
-            //         return Result<TwitchMetrics>.Failure("User not found.");
+            var streamData = await streamReq.Content.ReadFromJsonAsync<TwitchStreamResponse>();
+            var liveStream = streamData?.Data?.FirstOrDefault();
 
-            //     var userData = await userReq.Content.ReadFromJsonAsync<TwitchUserResponse>();
-            //     userId = userData?.Data?.FirstOrDefault()?.Id;
+            if (liveStream is null)
+            {
+                logger.LogInformation(" No data stream for {Channel}", channelNameOrUrl);
 
-            //     if (string.IsNullOrEmpty(userId))
-            //         return Result<TwitchMetrics>.Failure("User ID not found.");
-            // }
+                return Result<TwitchMetrics>.Failure("No active stream");
+            }
 
-            // 4. Check for LIVE stream first
-            // var streamReq = await client.GetAsync($"{BaseUrl}/streams?user_id={userId}");
-            // if (streamReq.IsSuccessStatusCode)
-            // {
-            //     var streamData = await streamReq.Content.ReadFromJsonAsync<TwitchStreamResponse>();
-            //     var liveStream = streamData?.Data?.FirstOrDefault();
+            logger.LogInformation("Found LIVE stream for {Channel}", channelNameOrUrl);
 
-            //     if (liveStream != null)
-            //     {
-            //         logger.LogInformation("Found LIVE stream for {Channel}", channelNameOrUrl);
-            //         return Result<TwitchMetrics>.Success(
-            //             new TwitchMetrics
-            //             {
-            //                 ViewerCount = liveStream.ViewerCount,
-            //                 PeakViewers = liveStream.ViewerCount, // Live peak is current
-            //                 StreamDuration = DateTimeOffset.UtcNow - liveStream.StartedAt,
-            //                 StartedAt = liveStream.StartedAt,
-            //                 GameName = liveStream.GameName,
-            //             }
-            //         );
-            //     }
-            // }
-
-            // 5. Fallback to Latest Video (VOD)
-            // var videoReq = await client.GetAsync(
-            //     $"{BaseUrl}/videos?user_id={userId}&first=1&sort=time"
-            // );
-            // if (videoReq.IsSuccessStatusCode)
-            // {
-            //     var videoData = await videoReq.Content.ReadFromJsonAsync<TwitchVideoResponse>();
-            //     var lastVideo = videoData?.Data?.FirstOrDefault();
-
-            //     if (lastVideo != null)
-            //     {
-            //         logger.LogInformation("Found VOD for {Channel}", channelNameOrUrl);
-            //         return Result<TwitchMetrics>.Success(
-            //             new TwitchMetrics
-            //             {
-            //                 ViewerCount = lastVideo.ViewCount, // Total views
-            //                 PeakViewers = 0, // Not available in simple VOD endpoint
-            //                 StreamDuration = ParseDuration(lastVideo.Duration),
-            //                 StartedAt = lastVideo.CreatedAt,
-            //                 GameName = "VOD Archive",
-            //             }
-            //         );
-            //     }
-            // }
-
-            return Result<TwitchMetrics>.Failure("No active stream or recent VOD found.");
+            return Result<TwitchMetrics>.Success(
+                new TwitchMetrics
+                {
+                    ViewerCount = liveStream.ViewerCount,
+                    PeakViewers = liveStream.ViewerCount, // Live peak is current
+                    StreamDuration = DateTimeOffset.UtcNow - liveStream.StartedAt,
+                    StartedAt = liveStream.StartedAt,
+                    GameName = liveStream.GameName,
+                }
+            );
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception in Twitch service.");
+
             return Result<TwitchMetrics>.Failure(ex.Message);
         }
     }

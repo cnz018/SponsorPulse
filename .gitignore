@@ -279,3 +279,4 @@ SponsorPulse/SponsorPulse.db
 SponsorPulse/appsettings.Development.json
 .kombai/*
 SponsorPulse/Properties/*
+__azurite*.json

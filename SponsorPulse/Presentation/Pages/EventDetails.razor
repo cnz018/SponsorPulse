@@ -1247,8 +1247,8 @@
     private async Task HandleDataUpdated(Event updatedEvent)
     {
         _event = updatedEvent;
-        // Save to DB
         using var context = await DbFactory.CreateDbContextAsync();
+
         context.Events.Update(_event);
         await context.SaveChangesAsync();
         StateHasChanged();
@@ -1272,12 +1272,14 @@
                 result.Size,
                 result.ContentType
             );
+
             eventEntity.Media.Add(media);
         }
 
         await context.SaveChangesAsync();
         // Reload to ensure we have the latest state (IDs etc)
         _event = eventEntity;
+        
         StateHasChanged();
     }
 

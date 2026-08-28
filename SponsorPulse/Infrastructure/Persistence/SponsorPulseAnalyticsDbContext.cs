@@ -28,11 +28,10 @@ public class SponsorPulseAnalyticsDbContext(
             entity.HasIndex(post => post.CreatedAt);
         });
 
-        modelBuilder.Entity<TwitchStreamSnapshot>(entity => 
+        modelBuilder.Entity<TwitchStreamSnapshot>(entity =>
         {
             entity.ToTable("twitchStreamSnapshots");
             entity.HasKey(snap => snap.Id);
-            
         });
     }
 }

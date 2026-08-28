@@ -50,7 +50,7 @@ var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=SponsorPulse.db;Cache=Shared;Foreign Keys=False";
 var analyticsConnectionString =
-    builder.Configuration.GetConnectionString("SponsorPulseAnalyticsConnection")
+    builder.Configuration.GetConnectionString("AnalyticsConnection")
     ?? "Data Source=sponsorpulse_analytics.db";
 
 builder.Services.AddDbContextFactory<SponsorPulseDbContext>(options =>

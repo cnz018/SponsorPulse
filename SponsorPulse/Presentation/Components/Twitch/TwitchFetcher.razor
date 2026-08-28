@@ -1,9 +1,11 @@
+@using System.Text
+@using Microsoft.AspNetCore.Components.Web
 @using SponsorPulse.Application.Common.Interfaces
 @using SponsorPulse.Domain.Entities
 @using SponsorPulse.Domain.Models
-@using Microsoft.AspNetCore.Components.Web
 @inject ITwitchService TwitchService
 @inject ILogger<TwitchFetcher> Logger
+@inject HttpClient Http
 
 <div class="twitch-fetcher mb-8">
     <div class="flex items-center gap-4 mb-4">
@@ -88,7 +90,7 @@
                     <div>
                         <span class="text-gray-400 block text-xs">Durée</span>
                         <span class="text-white font-mono">@(EventToUpdate.StreamDuration?.ToString(@"hh\:mm") ??
-                                                                                                        "--:--")</span>
+                                                                                                                                                                                            "--:--")</span>
                         </div>
                     </div>
                 </div>
@@ -187,6 +189,8 @@
     private bool IsLoading = false;
     private bool ShowManualInput = false;
     private string? ErrorMessage;
+    // Adresse locale par défaut de l'Azure Function
+    private const string AzureFunctionBaseUrl = "http://localhost:7290/api";
 
     // Helper for binding TimeSpan to text input
     private string StreamDurationString
@@ -220,11 +224,12 @@
         {
             EventToUpdate.Status = EventStatus.Fetching;
 
-            var result = await TwitchService.GetStreamMetricsAsync(EventToUpdate.ChannelId);
+            // Appel HTTP POST vers l'Azure Function pour déclencher la collecte et la sauvegarde
+            var response = await Http.PostAsync($"{AzureFunctionBaseUrl}/collect/twitch/", new StringContent($"{{\"channelId\": \"{EventToUpdate.ChannelId}\"}}", Encoding.UTF8, "application/json"));
 
-            if (result.IsSuccess && result.Value != null)
+            if (response.IsSuccessStatusCode && response.Content != null)
             {
-                var metrics = result.Value;
+                var metrics = await response.Content.ReadFromJsonAsync<TwitchMetrics>() ?? TwitchMetrics.Empty;
                 EventToUpdate.ViewerCount = metrics.ViewerCount;
                 EventToUpdate.PeakViewers = metrics.PeakViewers;
                 EventToUpdate.StreamDuration = metrics.StreamDuration;
@@ -236,13 +241,15 @@
             }
             else
             {
-                ErrorMessage = result.ErrorMessage ?? "Erreur inconnue lors de l'appel Twitch.";
+                ErrorMessage = response.ReasonPhrase ?? "Erreur inconnue lors de l'appel Twitch.";
+
                 EventToUpdate.Status = EventStatus.Error;
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "UI Fetch Error");
+
             ErrorMessage = "Erreur technique: " + ex.Message;
             EventToUpdate.Status = EventStatus.Error;
         }
